@@ -59,5 +59,54 @@ class BookingInfo(Base):
     Departed = Column(Boolean)
     Self_Issued = Column(Boolean)
 
+class Transport(Base):
+    __tablename__ = "Transport"
+    id = Column(Integer, primary_key=True, index=True)
+    departure_time = Column(DateTime, nullable=False)
+    type = Column(String, nullable=False)
+    transport_type = Column(String, nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_on': transport_type,
+        'polymorphic_identity': 'transport'
+    }
+
+class Bus(Transport):
+    __tablename__ = "Bus"
+    bus_id = Column(Integer, ForeignKey('Transport.id'), primary_key=True)
+    bus_number = Column(String, nullable=False)
+    no_of_seats = Column(Integer, nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'bus',
+    }
+
+class Train(Transport):
+    __tablename__ = "Train"
+    train_id = Column(Integer, ForeignKey('Transport.id'), primary_key=True)
+    company = Column(String, nullable=True)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'train',
+    }
+
+class Plane(Transport):
+    __tablename__ = "Plane"
+    plane_id = Column(Integer, ForeignKey('Transport.id'), primary_key=True)
+    company = Column(String, nullable=True)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'plane',
+    }
+
+class Shuttle(Transport):
+    __tablename__ = "Shuttle"
+    shuttle_id = Column(Integer, ForeignKey('Transport.id'), primary_key=True)
+    destination = Column(String, nullable=False)
+    no_of_seats = Column(Integer, nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'shuttle',
+    }
 # Create all tables in the database
 Base.metadata.create_all(bind=engine)
