@@ -62,7 +62,7 @@ class BookingInfo(Base):
 class Transport(Base):
     __tablename__ = "Transport"
     id = Column(Integer, primary_key=True, index=True)
-    departure_time = Column(DateTime, nullable=False)
+    departure_time = Column(Date, nullable=False)
     type = Column(String, nullable=False)
     transport_type = Column(String, nullable=False)
 
