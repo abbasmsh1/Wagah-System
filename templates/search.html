@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search User</title>
+</head>
+<body>
+    <h1>Search User by ID</h1>
+    <form id="searchForm">
+        <label for="user_id">User ID:</label><br>
+        <input type="number" id="user_id" name="user_id"><br>
+        <input type="submit" value="Search">
+    </form>
+    <div id="result"></div>
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const userId = document.getElementById('user_id').value;
+            fetch(`/search/${userId}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('result').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('result').innerText = 'Error searching user.';
+                });
+        });
+    </script>
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+</body>
+</html>
