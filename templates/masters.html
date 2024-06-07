@@ -13,6 +13,8 @@
         <th>Visa Number</th>
         <th>Mode of Transport</th>
         <th>Phone</th>
+        <th>Arrived</th>
+        <th>Timestamp</th>
     </tr>
     {% for master in masters %}
     <tr>
@@ -25,6 +27,8 @@
         <td>{{ master.Visa_No }}</td>
         <td>{{ master.Mode_of_Transport }}</td>
         <td>{{ master.phone }}</td>
+        <td>{{ master.arrived }}</td>
+        <td>{{ master.timestamp }}</td>
     </tr>
     {% endfor %}
 </table>

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Mark as Arrived</h2>
+<form method="post" action="/mark_as_arrived/">
+    <label for="its">ITS:</label><br>
+    <input type="text" id="its" name="its" required><br>
+    <input type="submit" value="Mark as Arrived">
+</form>
+
+{% if master %}
+<h2>Arrival Information</h2>
+<table>
+    <tr>
+        <th>ITS</th>
+        <td>{{ master.ITS }}</td>
+    </tr>
+    <tr>
+        <th>First Name</th>
+        <td>{{ master.first_name }}</td>
+    </tr>
+    <tr>
+        <th>Middle Name</th>
+        <td>{{ master.middle_name }}</td>
+    </tr>
+    <tr>
+        <th>Last Name</th>
+        <td>{{ master.last_name }}</td>
+    </tr>
+    <tr>
+        <th>Arrival Status</th>
+        <td>{{ master.arrived }}</td>
+    </tr>
+    <tr>
+        <th>Arrival Time</th>
+        <td>{{ master.timestamp }}</td>
+    </tr>
+</table>
+{% elif error %}
+<p>{{ error }}</p>
+{% endif %}
+
+{% endblock %}

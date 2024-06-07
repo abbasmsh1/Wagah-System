@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Date, Boolean, Fo
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from dotenv import load_dotenv
-
+from sqlalchemy.sql import func
 # Load environment variables
 load_dotenv()
 
@@ -35,6 +35,8 @@ class Master(Base):
     Visa_No = Column(String, index=True)
     Mode_of_Transport = Column(String, index=True)
     phone = Column(String, index=True)
+    arrived = Column(Boolean, default=False)
+    timestamp = Column(DateTime, default=func.now())
 
 # Define the Group model with a composite primary key
 class Group(Base):
@@ -61,7 +63,7 @@ class BookingInfo(Base):
 class Transport(Base):
     __tablename__ = "transport"
     id = Column(Integer, primary_key=True, index=True)
-    departure_time = Column(Date, nullable=False)
+    departure_time = Column(Date, nullable=True)
     type = Column(String, nullable=False)
     transport_type = Column(String, nullable=False)
 
@@ -75,7 +77,7 @@ class Bus(Transport):
     bus_id = Column(Integer, ForeignKey('transport.id'), primary_key=True)
     bus_number = Column(String, nullable=False)
     no_of_seats = Column(Integer, nullable=False)
-    type = Column(String, index=True)
+    type = Column(String, index=True,nullable=True)
     __mapper_args__ = {
         'polymorphic_identity': 'bus',
     }

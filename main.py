@@ -1,16 +1,15 @@
-from fastapi import FastAPI, Depends, Request, Form, HTTPException, File, UploadFile, APIRouter, Request,  Query
-from fastapi.responses import RedirectResponse,HTMLResponse
+from fastapi import FastAPI, Depends, Request, Form, HTTPException, File, UploadFile, APIRouter, Request,  Query, Path
+from fastapi.responses import RedirectResponse,HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Transport, Bus, Plane, Train
-# from wagah_system import crud, models, schemas
 import os
 import csv
 import io
 from datetime import datetime
-
+from fastapi.responses import JSONResponse
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -39,6 +38,21 @@ def get_master_by_its(request: Request, its: int, db: Session = Depends(get_db))
     if not master:
         raise HTTPException(status_code=404, detail="Master not found")
     return templates.TemplateResponse("master.html", {"request": request, "master": master})
+
+@app.get("/mark-as-arrived-form/", response_class=HTMLResponse)
+async def get_mark_as_arrived_form(request: Request):
+    return templates.TemplateResponse("arrive.html", {"request": request})
+
+@app.post("/mark_as_arrived/", response_class=HTMLResponse)
+async def mark_as_arrived(request: Request, its: int = Form(...), db: Session = Depends(get_db)):
+    master = db.query(Master).filter(Master.ITS == int(its)).first()
+    if master:
+        master.arrived = 1
+        db.commit()
+        db.refresh(master)
+        return templates.TemplateResponse("arrive.html", {"request": request, "master": master})
+    else:
+        return templates.TemplateResponse("arrive.html", {"request": request, "error": "No record found for the given ITS"})
 
 @app.post("/master/update", response_class=HTMLResponse)
 async def update_master(request: Request,
@@ -75,8 +89,7 @@ def get_masters(request: Request, page: int = 1, db: Session = Depends(get_db)):
     total_masters = db.query(func.count(Master.ITS)).scalar()
     return templates.TemplateResponse("masters.html", {"request": request, "masters": masters, "total_masters": total_masters, "page": page, "page_size": page_size})
 
-
-
+   
 @app.route("/assign-sim-form", methods=["GET", "POST"])
 async def get_assign_sim_form(request: Request, its: int = Form(...)):
     if request.method == "POST":
@@ -90,14 +103,32 @@ async def get_assign_sim_form(request: Request, its: int = Form(...)):
         return templates.TemplateResponse("assign_sim.html", {"request": request})
 
 @app.post("/assign-sim/", response_class=HTMLResponse)
-async def assign_sim(request: Request, its: int = Form(...), phone_number: str = Form(...), db: Session = Depends(get_db)):
+async def assign_sim(request: Request, its: int = Form(...), db: Session = Depends(get_db)):
     master = db.query(Master).filter(Master.ITS == its).first()
     if not master:
         raise HTTPException(status_code=404, detail="Master not found")
-    master.phone = phone_number
+    
     db.commit()
     db.refresh(master)
     return templates.TemplateResponse("assign_sim.html", {"request": request, "master": master, "message": "SIM assigned successfully"})
+
+@app.post("/update-phone/", response_class=HTMLResponse)
+async def update_phone(request: Request, its: int = Form(...), phone_number: str = Form(...), db: Session = Depends(get_db)):
+    existing_master = db.query(Master).filter(Master.phone == phone_number).first()
+    if existing_master and existing_master.ITS != its:
+        error_message = "This phone number is already assigned to another ITS"
+        master = db.query(Master).filter(Master.ITS == its).first()
+        return templates.TemplateResponse("assign_sim.html", {"request": request, "master": master, "error": error_message})
+    
+    master = db.query(Master).filter(Master.ITS == its).first()
+    if not master:
+        raise HTTPException(status_code=404, detail="Master not found")
+    
+    master.phone = phone_number
+    db.commit()
+    db.refresh(master)
+    return templates.TemplateResponse("assign_sim.html", {"request": request, "master": master, "message": "Phone number updated successfully"})
+
 
 @app.get("/assign-transport-form")
 def get_assign_transport_form(request: Request):
@@ -184,9 +215,16 @@ def view_trains(request: Request, db: Session = Depends(get_db)):
 def get_add_bus(request: Request):
     return templates.TemplateResponse("add_bus.html", {"request": request})
 
+
 @app.post("/add-bus/")
-def post_add_bus(request: Request, bus_number: str = Form(...), no_of_seats: int = Form(...), type: str = Form(...), departure_time: str = Form(...), db: Session = Depends(get_db)):
-    new_bus = Bus(bus_number=bus_number, no_of_seats=no_of_seats, type=type, departure_time=datetime.strptime(departure_time, '%Y-%m-%d').date())
+def post_add_bus(request: Request, no_of_seats: int = Form(...), type: str = Form(...), db: Session = Depends(get_db)):
+    # Get the highest bus number from the database
+    highest_bus_number = int(db.query(func.max(Bus.bus_number)).scalar())
+    
+    # If there are no buses yet, start from 1, otherwise, increment the highest bus number
+    new_bus_number = highest_bus_number + 1 if highest_bus_number else 1
+    
+    new_bus = Bus(bus_number=new_bus_number, no_of_seats=no_of_seats, type=type)
     db.add(new_bus)
     db.commit()
     return RedirectResponse(url="/view-buses/", status_code=303)
@@ -261,9 +299,44 @@ async def post_upload_csv(request: Request, file: UploadFile = File(...), db: Se
     db.commit()
     return RedirectResponse(url="/", status_code=303)
 
+@app.get("/bus-booking/", response_class=HTMLResponse)
+async def get_bus_booking(request: Request, its: int = None, db: Session = Depends(get_db)):
+    person = db.query(Master).filter(Master.ITS == its).first() if its else None
+    return templates.TemplateResponse("bus_booking.html", {"request": request, "person": person, "search": its})
+
+@app.post("/book-bus/", response_class=HTMLResponse)
+async def book_bus(request: Request, its: int = Form(...), bus_number: str = Form(...), no_of_seats: int = Form(...), type: str = Form(...), departure_time: str = Form(...), db: Session = Depends(get_db)):
+    # Add the bus booking logic here
+    new_bus = Bus(bus_number=bus_number, no_of_seats=no_of_seats, type=type)
+    db.add(new_bus)
+    db.commit()
+    booking_info = BookingInfo(
+        ITS=its,
+        Mode=new_bus.id,
+        Issued=True,
+        Departed=False,
+        Self_Issued=True
+    )
+    db.add(booking_info)
+    db.commit()
+    return templates.TemplateResponse("bus_booking.html", {"request": request, "message": "Bus booked successfully!", "person": db.query(Master).filter(Master.ITS == its).first()})
 
 
-
+@app.get("/{its}")
+def get_master(its: int, db: Session = Depends(get_db)):
+    master = db.query(Master).filter(Master.ITS == its).first()
+    if not master:
+        return JSONResponse(status_code=404, content={"error": "Master not found"})
+    
+    return JSONResponse(content={
+        "ITS": master.ITS,
+        "first_name": master.first_name,
+        "middle_name": master.middle_name,
+        "last_name": master.last_name,
+        "passport_No": master.passport_No,
+        "passport_Expiry": str(master.passport_Expiry),  # Convert to string for JSON serialization
+        "Visa_No": master.Visa_No
+    })
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Bus Booking</h1>
+<form id="searchForm" method="get" action="/bus-booking/">
+    <label for="its">Search by ITS:</label>
+    <input type="number" id="its" name="its" required>
+    <button type="submit">Search</button>
+</form>
+
+{% if person %}
+    <h2>Person Details</h2>
+    <p>ITS: {{ person.ITS }}</p>
+    <p>Name: {{ person.first_name }} {{ person.middle_name }} {{ person.last_name }}</p>
+    <p>Phone: {{ person.phone }}</p>
+
+    <h2>Book a Bus</h2>
+    <form id="bookingForm" action="/book-bus/" method="post">
+        <input type="hidden" name="its" value="{{ person.ITS }}">
+        <label for="bus_number">Bus Number:</label>
+        <input type="text" id="bus_number" name="bus_number" required><br>
+        <label for="no_of_seats">Number of Seats:</label>
+        <input type="number" id="no_of_seats" name="no_of_seats" required><br>
+        <label for="type">Type:</label>
+        <input type="text" id="type" name="type" required><br>
+        <label for="departure_time">Departure Time:</label>
+        <input type="date" id="departure_time" name="departure_time" required><br>
+        <button type="submit">Book Bus</button>
+    </form>
+{% elif search %}
+    <p>No person found with ITS number {{ search }}</p>
+{% endif %}
+
+{% if message %}
+    <p>{{ message }}</p>
+{% endif %}
+{% endblock %}
