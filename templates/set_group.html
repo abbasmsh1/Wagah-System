@@ -1,16 +1,44 @@
+<!-- set_group.html -->
+
 {% extends "base.html" %}
 
 {% block content %}
 <h1>Set Group</h1>
-<form action="/set-group/" method="post">
-    <label for="group_leader_its">Group Leader ITS:</label>
-    <input type="number" id="group_leader_its" name="group_leader_its" required><br>
-    <label for="member_its_list">Group Members ITS (comma-separated):</label>
-    <input type="text" id="member_its_list" name="member_its_list" required><br>
+<form id="setGroupForm" method="post" action="/set-group/{{ its }}">
+
+    <div>
+        <label for="groupLeaderITS">Group Leader ITS:</label>
+        <input type="number" id="groupLeaderITS" name="group_leader_its" required>
+    </div>
+    <div>
+        <label for="groupMembersITS">Group Members ITS (comma-separated):</label>
+        <input type="text" id="groupMembersITS" name="member_its_list" required>
+        <small>Example: 123,456,789</small>
+    </div>
     <button type="submit">Create Group</button>
 </form>
 
 {% if message %}
     <p>{{ message }}</p>
 {% endif %}
+
+<script>
+    document.getElementById("setGroupForm").addEventListener("submit", function(event) {
+        const leaderITS = document.getElementById("groupLeaderITS").value.trim();
+        const membersITS = document.getElementById("groupMembersITS").value.trim();
+
+        // Validate input
+        if (!leaderITS || !membersITS) {
+            alert("Please fill in all fields.");
+            event.preventDefault();
+        }
+
+        // Check if ITS numbers are valid integers
+        const itsRegex = /^\d+(,\d+)*$/;
+        if (!itsRegex.test(membersITS)) {
+            alert("Invalid ITS numbers format. Please use comma-separated integers.");
+            event.preventDefault();
+        }
+    });
+</script>
 {% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Booking Information</h1>
+<table>
+    <thead>
+        <tr>
+            <th>ITS</th>
+            <th>Bus Number</th>
+            <th>Issued</th>
+            <th>Departed</th>
+            <th>Self Issued</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for booking in booking_info %}
+        <tr>
+            <td>{{ booking.ITS }}</td>
+            <td>{{ booking.Mode }}</td>
+            <td>{{ "Yes" if booking.Issued else "No" }}</td>
+            <td>{{ "Yes" if booking.Departed else "No" }}</td>
+            <td>{{ "Yes" if booking.Self_Issued else "No" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

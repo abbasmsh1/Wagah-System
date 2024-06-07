@@ -1,4 +1,5 @@
 import os
+from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, Column, Integer, String, Date, Boolean, ForeignKey, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
@@ -52,6 +53,8 @@ class GroupInfo(Base):
     ITS = Column(Integer, ForeignKey('master.ITS'), primary_key=True, index=True)
 
 # Define the Booking_Info model with a composite primary key
+from typing import Optional
+
 class BookingInfo(Base):
     __tablename__ = "booking_info"
     Mode = Column(Integer, primary_key=True, index=True)
@@ -59,6 +62,37 @@ class BookingInfo(Base):
     Issued = Column(Boolean)
     Departed = Column(Boolean)
     Self_Issued = Column(Boolean)
+    seat_number = Column(Integer)  # Add seat number column
+    bus_number = Column(Integer)  # Add bus number column
+
+    @staticmethod
+    def fill_form(db_session: Session, its: int, seat_number: int, bus_number: int):
+        """
+        Fill the booking form and update the BookingInfo table.
+        """
+        try:
+            # Check if the ITS exists in the Master table
+            master_record = db_session.query(Master).filter(Master.ITS == its).first()
+            if not master_record:
+                return None  # Return None if ITS doesn't exist
+            
+            # Update the BookingInfo table
+            booking_info = BookingInfo(
+                Mode=1,  # Update Mode according to your requirements
+                ITS=its,
+                Issued=True,  # Assuming the form submission indicates the booking is issued
+                Departed=False,  # Assuming the bus hasn't departed yet
+                Self_Issued=True,  # Assuming the booking is self-issued
+                seat_number=seat_number,  # Add seat number to the record
+                bus_number=bus_number  # Add bus number to the record
+            )
+            db_session.add(booking_info)
+            db_session.commit()
+            return booking_info
+        except Exception as e:
+            print(f"Error filling form and updating BookingInfo table: {e}")
+            db_session.rollback()
+            return None
 
 class Transport(Base):
     __tablename__ = "transport"

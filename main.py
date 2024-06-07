@@ -321,9 +321,12 @@ async def post_book_bus(request: Request, its: int = Form(...), bus_number: int 
     if not bus:
         raise HTTPException(status_code=404, detail="Bus not found")
     
-    # Here you should check if there are enough seats left
-    if bus.no_of_seats < no_of_seats:
-        message = "Not enough seats available."
+    # Fetch the number of remaining seats from the database
+    remaining_seats = bus.no_of_seats
+    
+    # Check if there are enough seats left
+    if remaining_seats < no_of_seats:
+        message = f"Not enough seats available. Remaining seats: {remaining_seats}"
         return templates.TemplateResponse("bus_booking.html", {"request": request, "message": message})
     
     # Create a new booking info record
@@ -347,6 +350,13 @@ async def post_book_bus(request: Request, its: int = Form(...), bus_number: int 
     buses = db.query(Bus).all()  # Fetch all buses again to display in the form
 
     return templates.TemplateResponse("bus_booking.html", {"request": request, "person": person, "buses": buses, "message": message})
+
+# Add a new route to view all booking information
+@app.get("/view-booking-info/", response_class=HTMLResponse)
+async def view_booking_info(request: Request, db: Session = Depends(get_db)):
+    booking_info = db.query(BookingInfo).all()
+    return templates.TemplateResponse("view_booking_info.html", {"request": request, "booking_info": booking_info})
+
 
 @app.get("/get-group-members/")
 async def get_group_members(its: int, db: Session = Depends(get_db)):
@@ -372,12 +382,15 @@ def get_master(its: int, db: Session = Depends(get_db)):
         "Visa_No": master.Visa_No
     })
 
-@app.get("/set-group-form")
-def get_set_group_form(request: Request):
-    return templates.TemplateResponse("set_group.html", {"request": request})
+# Update the route definition for the set group form
+@app.get("/set-group-form/{its}", response_class=HTMLResponse)
+async def get_set_group_form(request: Request, its: int):
+    return templates.TemplateResponse("set_group.html", {"request": request, "its": its})
+
 
 @app.post("/set-group/")
 async def set_group(request: Request, group_leader_its: int = Form(...), member_its_list: str = Form(...), db: Session = Depends(get_db)):
+    # Retrieve the group leader from the database
     group_leader = db.query(Master).filter(Master.ITS == group_leader_its).first()
     if not group_leader:
         raise HTTPException(status_code=404, detail="Group leader not found")
@@ -390,17 +403,17 @@ async def set_group(request: Request, group_leader_its: int = Form(...), member_
     if len(members) != len(member_its_numbers):
         raise HTTPException(status_code=404, detail="Some members not found")
 
-    # Create group
-    group = Group(no_Members=len(member_its_numbers) + 1)
+    # Create a new group in the database
+    group = Group(no_Members=len(member_its_numbers) + 1)  # Add 1 for the group leader
     db.add(group)
     db.commit()
     db.refresh(group)
 
-    # Add group leader to GroupInfo
+    # Add the group leader to GroupInfo
     group_info_leader = GroupInfo(ID=group.ID, ITS=group_leader_its)
     db.add(group_info_leader)
 
-    # Add members to GroupInfo
+    # Add the group members to GroupInfo
     for member in members:
         group_info_member = GroupInfo(ID=group.ID, ITS=member.ITS)
         db.add(group_info_member)
