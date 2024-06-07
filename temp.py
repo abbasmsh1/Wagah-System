@@ -54,6 +54,8 @@ def get_masters(request: Request, page: int = 1, db: Session = Depends(get_db)):
     total_masters = db.query(func.count(Master.ITS)).scalar()
     return templates.TemplateResponse("masters.html", {"request": request, "masters": masters, "total_masters": total_masters, "page": page, "page_size": page_size})
 
+
+
 @app.route("/assign-sim-form", methods=["GET", "POST"])
 async def get_assign_sim_form(request: Request, its: int = Form(...)):
     if request.method == "POST":
@@ -162,7 +164,7 @@ def get_add_bus(request: Request):
     return templates.TemplateResponse("add_bus.html", {"request": request})
 
 @app.post("/add-bus/")
-def post_add_bus(request: Request, bus_number: str = Form(...), no_of_seats: int = Form(...), type: str = Form(...), departure_time: str = Form(...), db: Session = Depends(get_db)):
+def post_add_bus(request: Request, no_of_seats: int = Form(...), type: str = Form(...), departure_time: str = Form(...), db: Session = Depends(get_db)):
     new_bus = Bus(bus_number=bus_number, no_of_seats=no_of_seats, type=type, departure_time=datetime.strptime(departure_time, '%Y-%m-%d').date())
     db.add(new_bus)
     db.commit()
@@ -238,6 +240,7 @@ async def post_upload_csv(request: Request, file: UploadFile = File(...), db: Se
     db.commit()
     return RedirectResponse(url="/", status_code=303)
 
+
 @app.get("/bus-booking/", response_class=HTMLResponse)
 async def get_bus_booking(request: Request, its: int = None, db: Session = Depends(get_db)):
     person = db.query(Master).filter(Master.ITS == its).first() if its else None
@@ -260,6 +263,32 @@ async def book_bus(request: Request, its: int = Form(...), bus_number: str = For
     db.add(booking_info)
     db.commit()
     return templates.TemplateResponse("bus_booking.html", {"request": request, "message": "Bus booked successfully!", "person": db.query(Master).filter(Master.ITS == its).first()})
+
+@app.get("/train-booking/", response_class=HTMLResponse)
+async def get_train_booking(request: Request, its: int = None, db: Session = Depends(get_db)):
+    person = db.query(Master).filter(Master.ITS == its).first() if its else None
+    trains = db.query(Train).all()
+    return templates.TemplateResponse("train_booking.html", {"request": request, "person": person, "search": its, "trains": trains})
+
+@app.post("/book-train/", response_class=HTMLResponse)
+async def book_train(request: Request, its: int = Form(...), train_id: int = Form(...), db: Session = Depends(get_db)):
+    train = db.query(Train).filter(Train.train_id == train_id).first()
+    if not train:
+        raise HTTPException(status_code=404, detail="Train not found")
+    
+    # Here, you can implement the logic to check for available time slots for the train
+    
+    # For now, let's assume the train is available and proceed with booking
+    booking_info = BookingInfo(
+        ITS=its,
+        Mode=train_id,
+        Issued=True,
+        Departed=False,
+        Self_Issued=True
+    )
+    db.add(booking_info)
+    db.commit()
+    return templates.TemplateResponse("train_booking.html", {"request": request, "message": "Train booked successfully!", "person": db.query(Master).filter(Master.ITS == its).first()})
 
 
 

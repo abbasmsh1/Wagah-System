@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Train Booking</h1>
+<form id="searchForm" method="get" action="/train-booking/">
+    <label for="its">Search by ITS:</label>
+    <input type="number" id="its" name="its" required>
+    <button type="submit">Search</button>
+</form>
+
+{% if person %}
+    <h2>Person Details</h2>
+    <p>ITS: {{ person.ITS }}</p>
+    <p>Name: {{ person.first_name }} {{ person.middle_name }} {{ person.last_name }}</p>
+    <p>Phone: {{ person.phone }}</p>
+
+    <h2>Book a Train</h2>
+    <form id="bookingForm" action="/book-train/" method="post">
+        <input type="hidden" name="its" value="{{ person.ITS }}">
+        <label for="train_id">Select Train:</label>
+        <select id="train_id" name="train_id" required>
+            {% for train in trains %}
+                <option value="{{ train.train_id }}">{{ train.company }} - {{ train.type }}</option>
+            {% endfor %}
+        </select><br>
+        <!-- You can add additional fields here if needed -->
+        <button type="submit">Book Train</button>
+    </form>
+{% elif search %}
+    <p>No person found with ITS number {{ search }}</p>
+{% endif %}
+
+{% if message %}
+    <p>{{ message }}</p>
+{% endif %}
+{% endblock %}

@@ -11,20 +11,41 @@
 {% if person %}
     <h2>Person Details</h2>
     <p>ITS: {{ person.ITS }}</p>
-    <p>Name: {{ person.first_name }} {{ person.middle_name }} {{ person.last_name }}</p>
+    <p>Name: {{ person.first_name }}</p>
     <p>Phone: {{ person.phone }}</p>
+
+    <h2>Group Information</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ITS</th>
+                <th>Name</th>
+            </tr>
+        </thead>
+        <tbody id="groupMembersTableBody">
+            <!-- This section will be populated by the script below -->
+        </tbody>
+    </table>
 
     <h2>Book a Bus</h2>
     <form id="bookingForm" action="/book-bus/" method="post">
         <input type="hidden" name="its" value="{{ person.ITS }}">
+        <label for="type">Type:</label>
+        <select id="type" name="type" required>
+            <option value="business">Business</option>
+            <option value="executive">Executive</option>
+        </select><br>
         <label for="bus_number">Bus Number:</label>
-        <input type="text" id="bus_number" name="bus_number" required><br>
+        <select id="bus_number" name="bus_number" required>
+            <option value="">Select Bus Number</option>
+            {% for bus in buses %}
+                <option value="{{ bus.bus_number }}">{{ bus.bus_number }}</option>
+            {% endfor %}
+        </select><br>
         <label for="no_of_seats">Number of Seats:</label>
         <input type="number" id="no_of_seats" name="no_of_seats" required><br>
-        <label for="type">Type:</label>
-        <input type="text" id="type" name="type" required><br>
-        <label for="departure_time">Departure Time:</label>
-        <input type="date" id="departure_time" name="departure_time" required><br>
+        <label for="seats_left">Seats Left:</label>
+        <span id="seats_left"></span><br>
         <button type="submit">Book Bus</button>
     </form>
 {% elif search %}
@@ -34,4 +55,28 @@
 {% if message %}
     <p>{{ message }}</p>
 {% endif %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Add your JavaScript to fetch and display group members
+        const displayGroupMembers = (itsList) => {
+            const tableBody = document.getElementById("groupMembersTableBody");
+            tableBody.innerHTML = "";
+            itsList.forEach(member => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${member.ITS}</td>
+                    <td>${member.first_name}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        };
+
+        // Example of fetching group members (you'll need to implement the corresponding endpoint)
+        fetch(`/get-group-members/?its={{ person.ITS }}`)
+            .then(response => response.json())
+            .then(data => displayGroupMembers(data.group_members))
+            .catch(error => console.error('Error fetching group members:', error));
+    });
+</script>
 {% endblock %}

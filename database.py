@@ -75,7 +75,7 @@ class Transport(Base):
 class Bus(Transport):
     __tablename__ = "bus"
     bus_id = Column(Integer, ForeignKey('transport.id'), primary_key=True)
-    bus_number = Column(String, nullable=False)
+    bus_number = Column(Integer, nullable=False)
     no_of_seats = Column(Integer, nullable=False)
     type = Column(String, index=True,nullable=True)
     __mapper_args__ = {
@@ -120,5 +120,8 @@ class Schedule(Base):
     route = Column(String, index=True)
     transport = relationship("Transport")
 
+
+
 # Create all tables in the database
 Base.metadata.create_all(bind=engine)
+
