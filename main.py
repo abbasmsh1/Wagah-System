@@ -40,6 +40,27 @@ def get_master_by_its(request: Request, its: int, db: Session = Depends(get_db))
         raise HTTPException(status_code=404, detail="Master not found")
     return templates.TemplateResponse("master.html", {"request": request, "master": master})
 
+@app.post("/master/update", response_class=HTMLResponse)
+async def update_master(request: Request,
+                        its: int = Form(...),
+                        first_name: str = Form(...),
+                        middle_name: str = Form(None),
+                        last_name: str = Form(...),
+                        passport_No: str = Form(...),
+                        passport_Expiry: str = Form(...),
+                        Visa_No: str = Form(None),
+                        db: Session = Depends(get_db)):
+    master = db.query(Master).filter(Master.ITS == its).first()
+    if master:
+        master.first_name = first_name
+        master.middle_name = middle_name
+        master.last_name = last_name
+        master.passport_No = passport_No
+        master.passport_Expiry = datetime.strptime(passport_Expiry, "%Y-%m-%d").date()
+        master.Visa_No = Visa_No
+        db.commit()
+    return RedirectResponse(url=f"/master?its={its}", status_code=303)
+
 @app.get("/master/info/", response_class=HTMLResponse)
 async def get_master_info(its: int = Query(..., description="ITS of the master to retrieve"), db: Session = Depends(get_db)):
     master = db.query(Master).filter(Master.ITS == its).first()
