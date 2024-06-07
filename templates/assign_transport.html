@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Assign Transport</h2>
+<form action="/assign-transport/" method="post">
+    <label for="its">ITS:</label>
+    <input type="number" id="its" name="its" required>
+    <label for="transport_id">Transport ID:</label>
+    <input type="number" id="transport_id" name="transport_id" required>
+    <button type="submit">Assign Transport</button>
+</form>
+{% endblock %}

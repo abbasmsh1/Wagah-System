@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Add Transport</h2>
+<form action="/add-transport/" method="post">
+    <label for="name">Transport Name:</label>
+    <input type="text" id="name" name="name" required>
+    <label for="type">Transport Type:</label>
+    <select id="type" name="type" required>
+        <option value="Bus">Bus</option>
+        <option value="Plane">Plane</option>
+        <option value="Train">Train</option>
+    </select>
+    <button type="submit">Add Transport</button>
+</form>
+{% endblock %}

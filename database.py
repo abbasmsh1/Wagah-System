@@ -1,7 +1,7 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, Date, Boolean, ForeignKey, PrimaryKeyConstraint
+from sqlalchemy import create_engine, Column, Integer, String, Date, Boolean, ForeignKey, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import relationship, sessionmaker
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -29,13 +29,12 @@ class Master(Base):
     first_name = Column(String, index=True)
     middle_name = Column(String, index=True)
     last_name = Column(String, index=True)
-    email = Column(String, unique=True, index=True)
     DOB = Column(Date)
     passport_No = Column(String, unique=True, index=True)
-    passport_Issue = Column(Date, index=True)
     passport_Expiry = Column(Date, index=True)
     Visa_No = Column(String, index=True)
     Mode_of_Transport = Column(String, index=True)
+    phone = Column(String, index=True)
 
 # Define the Group model with a composite primary key
 class Group(Base):
@@ -60,7 +59,7 @@ class BookingInfo(Base):
     Self_Issued = Column(Boolean)
 
 class Transport(Base):
-    __tablename__ = "Transport"
+    __tablename__ = "transport"
     id = Column(Integer, primary_key=True, index=True)
     departure_time = Column(Date, nullable=False)
     type = Column(String, nullable=False)
@@ -72,18 +71,18 @@ class Transport(Base):
     }
 
 class Bus(Transport):
-    __tablename__ = "Bus"
-    bus_id = Column(Integer, ForeignKey('Transport.id'), primary_key=True)
+    __tablename__ = "bus"
+    bus_id = Column(Integer, ForeignKey('transport.id'), primary_key=True)
     bus_number = Column(String, nullable=False)
     no_of_seats = Column(Integer, nullable=False)
-
+    type = Column(String, index=True)
     __mapper_args__ = {
         'polymorphic_identity': 'bus',
     }
 
 class Train(Transport):
-    __tablename__ = "Train"
-    train_id = Column(Integer, ForeignKey('Transport.id'), primary_key=True)
+    __tablename__ = "train"
+    train_id = Column(Integer, ForeignKey('transport.id'), primary_key=True)
     company = Column(String, nullable=True)
 
     __mapper_args__ = {
@@ -91,22 +90,33 @@ class Train(Transport):
     }
 
 class Plane(Transport):
-    __tablename__ = "Plane"
-    plane_id = Column(Integer, ForeignKey('Transport.id'), primary_key=True)
+    __tablename__ = "plane"
+    plane_id = Column(Integer, ForeignKey('transport.id'), primary_key=True)
     company = Column(String, nullable=True)
+    type = Column(String, index=True)
 
     __mapper_args__ = {
         'polymorphic_identity': 'plane',
     }
 
 class Shuttle(Transport):
-    __tablename__ = "Shuttle"
-    shuttle_id = Column(Integer, ForeignKey('Transport.id'), primary_key=True)
+    __tablename__ = "shuttle"
+    shuttle_id = Column(Integer, ForeignKey('transport.id'), primary_key=True)
     destination = Column(String, nullable=False)
     no_of_seats = Column(Integer, nullable=False)
 
     __mapper_args__ = {
         'polymorphic_identity': 'shuttle',
     }
+
+class Schedule(Base):
+    __tablename__ = 'schedules'
+    id = Column(Integer, primary_key=True, index=True)
+    transport_id = Column(Integer, ForeignKey('transport.id'))
+    departure_time = Column(DateTime)
+    arrival_time = Column(DateTime)
+    route = Column(String, index=True)
+    transport = relationship("Transport")
+
 # Create all tables in the database
 Base.metadata.create_all(bind=engine)

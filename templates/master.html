@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Get Master Info</h2>
+<form action="/master/" method="get">
+    <label for="its">ITS:</label>
+    <input type="number" id="its" name="its" required>
+    <button type="submit">Get Info</button>
+</form>
+
+{% if master %}
+<h2>Master Information</h2>
+<form action="/master/update" method="post" id="masterForm">
+    <table>
+        <tr>
+            <th>ITS</th>
+            <td><input type="number" id="its" name="its" value="{{ master.ITS }}" required></td>
+        </tr>
+        <tr>
+            <th>First Name</th>
+            <td><input type="text" id="first_name" name="first_name" value="{{ master.first_name }}" required></td>
+        </tr>
+        <tr>
+            <th>Middle Name</th>
+            <td><input type="text" id="middle_name" name="middle_name" value="{{ master.middle_name }}"></td>
+        </tr>
+        <tr>
+            <th>Last Name</th>
+            <td><input type="text" id="last_name" name="last_name" value="{{ master.last_name }}" required></td>
+        </tr>
+        <tr>
+            <th>Passport Number</th>
+            <td><input type="text" id="passport_No" name="passport_No" value="{{ master.passport_No }}" required></td>
+        </tr>
+        <tr>
+            <th>Passport Expiry Date</th>
+            <td><input type="date" id="passport_Expiry" name="passport_Expiry" value="{{ master.passport_Expiry }}" required></td>
+        </tr>
+        <tr>
+            <th>Visa Number</th>
+            <td><input type="text" id="Visa_No" name="Visa_No" value="{{ master.Visa_No }}"></td>
+        </tr>
+    </table>
+    <button type="submit">Save</button>
+    <button type="button" onclick="printForm()">Print</button>
+</form>
+{% endif %}
+
+<script>
+function printForm() {
+    var printContents = document.getElementById('masterForm').innerHTML;
+    var originalContents = document.body.innerHTML;
+    document.body.innerHTML = printContents;
+    window.print();
+    document.body.innerHTML = originalContents;
+}
+</script>
+{% endblock %}

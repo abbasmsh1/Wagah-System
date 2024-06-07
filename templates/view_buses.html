@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>All Buses</h1>
+<table>
+    <tr>
+        <th>Number</th>
+        <th>Number of Seats</th>
+        <th>Type</th>
+        <th>Departure Time</th>
+    </tr>
+    {% for bus in buses %}
+    <tr>
+        <td>{{ bus.bus_number }}</td>
+        <td>{{ bus.no_of_seats }}</td>
+        <td>{{ bus.type }}</td>
+        <td>{{ bus.departure_time }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

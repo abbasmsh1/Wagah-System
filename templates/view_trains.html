@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>All Trains</h1>
+<ul>
+    {% for train in trains %}
+    <li>{{ train.name }} - {{ train.departure_datetime }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

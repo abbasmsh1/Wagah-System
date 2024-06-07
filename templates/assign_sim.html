@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Assign SIM</h2>
+<form action="/assign-sim/" method="post">
+    <label for="its">ITS:</label>
+    <input type="number" id="its" name="its" required>
+    <label for="phone_number">Phone Number:</label>
+    <input type="text" id="phone_number" name="phone_number" required>
+    <button type="submit">Assign SIM</button>
+</form>
+{% endblock %}

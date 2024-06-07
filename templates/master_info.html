@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Master Information</h2>
+<table>
+    <tr>
+        <th>ITS</th>
+        <td>{{ master.ITS }}</td>
+    </tr>
+    <tr>
+        <th>First Name</th>
+        <td>{{ master.first_name }}</td>
+    </tr>
+    <tr>
+        <th>Middle Name</th>
+        <td>{{ master.middle_name }}</td>
+    </tr>
+    <tr>
+        <th>Last Name</th>
+        <td>{{ master.last_name }}</td>
+    </tr>
+    <tr>
+        <th>Email</th>
+        <td>{{ master.email }}</td>
+    </tr>
+    <tr>
+        <th>DOB</th>
+        <td>{{ master.DOB }}</td>
+    </tr>
+    <tr>
+        <th>Passport Number</th>
+        <td>{{ master.passport_No }}</td>
+    </tr>
+    <tr>
+        <th>Passport Issue Date</th>
+        <td>{{ master.passport_Issue }}</td>
+    </tr>
+    <tr>
+        <th>Passport Expiry Date</th>
+        <td>{{ master.passport_Expiry }}</td>
+    </tr>
+    <tr>
+        <th>Visa Number</th>
+        <td>{{ master.Visa_No }}</td>
+    </tr>
+    <tr>
+        <th>Mode of Transport</th>
+        <td>{{ master.Mode_of_Transport }}</td>
+    </tr>
+    <tr>
+        <th>Phone</th>
+        <td>{{ master.phone }}</td>
+    </tr>
+</table>
+{% endblock %}

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI App</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/master-form">Master Form</a></li>
+            <li><a href="/assign-sim-form">Assign SIM</a></li>
+            <li><a href="/assign-transport-form">Assign Transport</a></li>
+            <li><a href="/verify-departure-form">Verify Departure</a></li>
+            <li><a href="/add-transport-form">Add Transport</a></li>
+            <li><a href="/view-buses/">View Buses</a></li>
+            <li><a href="/view-planes/">View Planes</a></li>
+            <li><a href="/view-trains/">View Trains</a></li>
+            <li><a href="/add-bus/">Add Bus</a></li>
+            <li><a href="/add-plane/">Add Plane</a></li>
+            <li><a href="/add-train/">Add Train</a></li>
+            <li><a href="/upload-csv/">Upload CSV</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

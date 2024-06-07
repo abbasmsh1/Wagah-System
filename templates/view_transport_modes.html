@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>All Transport Modes</h1>
+<ul>
+    {% for transport in transports %}
+    <li>{{ transport.name }} - {{ transport.type }} - {{ transport.departure }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

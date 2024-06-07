@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>All Planes</h1>
+<ul>
+    {% for plane in planes %}
+    <li>{{ plane.name }} - {{ plane.departure_datetime }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}
