@@ -1,63 +1,82 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    select {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px; /* Adjust font size for better readability */
+        margin-bottom: 10px; /* Adjust margin to match the input fields */
+        border: 1px solid #ccc;
+        border-radius: 5px; /* Adjust border radius for a modern look */
+        background-color: #fff;
+        appearance: none; /* Remove default browser styling */
+        -webkit-appearance: none; /* For Safari */
+        -moz-appearance: none; /* For Firefox */
+    }
+    option {
+        padding: 10px;
+        font-size: 16px; /* Adjust font size for better readability */
+    }
+</style>
+
 <h1>Bus Booking</h1>
-<form id="searchForm" method="get" action="/bus-booking/">
-    <label for="its">Search by ITS:</label>
-    <input type="number" id="its" name="its" required>
-    <button type="submit">Search</button>
-</form>
+<div class="container">
+    <form id="searchForm" method="get" action="/bus-booking/">
+        <label for="its">Search by ITS:</label>
+        <input type="number" id="its" name="its" required>
+        <button type="submit">Search</button>
+    </form>
 
-{% if person %}
-<h2>Master Table Details</h2>
-<table>
-    <tr>
-        <th>ITS</th>
-        <th>Name</th>
-        <th>Mobile</th>
-    </tr>
-    <tr>
-        <td>{{ person.ITS }}</td>
-        <td>{{ person.first_name }}</td>
-        <td>{{ person.phone }}</td>
-    </tr>
-</table>
+    {% if person %}
+    <h2>Master Table Details</h2>
+    <table>
+        <tr>
+            <th>ITS</th>
+            <th>Name</th>
+            <th>Mobile</th>
+        </tr>
+        <tr>
+            <td>{{ person.ITS }}</td>
+            <td>{{ person.first_name }}</td>
+            <td>{{ person.phone }}</td>
+        </tr>
+    </table>
 
-<h2>Book a Bus</h2>
-<form id="bookingForm" action="/book-bus/" method="post">
-    <input type="hidden" name="its" value="{{ person.ITS }}">
-    <label for="type">Type:</label>
-    <select id="type" name="type" required>
-        <option value="business">Business</option>
-        <option value="executive">Executive</option>
-    </select><br>
-    <label for="bus_number">Bus Number:</label>
-    <select id="bus_number" name="bus_number" required>
-        {% for bus in buses %}
-            {% if bus.no_of_seats > 0 %}
-                <option value="{{ bus.bus_number }}">{{ bus.bus_number }}</option>
-            {% endif %}
-        {% endfor %}
-    </select><br>
-    <label for="no_of_seats">Number of Seats:</label>
-    <input type="number" id="no_of_seats" name="no_of_seats" value="1" readonly><br>
-    <label for="seats_left">Seats Left:</label>
-    <span id="seats_left"></span><br>
-    <button type="submit">Book Bus</button>
-</form>
+    <h2>Book a Bus</h2>
+    <form id="bookingForm" action="/book-bus/" method="post">
+        <input type="hidden" name="its" value="{{ person.ITS }}">
+        <label for="type">Type:</label>
+        <select id="type" name="type" required>
+            <option value="business">Business</option>
+            <option value="executive">Executive</option>
+        </select><br>
+        <label for="bus_number">Bus Number:</label>
+        <select id="bus_number" name="bus_number" required>
+            {% for bus in buses %}
+                {% if bus.no_of_seats > 0 %}
+                    <option value="{{ bus.bus_number }}">{{ bus.bus_number }}</option>
+                {% endif %}
+            {% endfor %}
+        </select><br>
+        <label for="no_of_seats">Number of Seats:</label>
+        <input type="number" id="no_of_seats" name="no_of_seats" value="1" readonly><br>
+        <button type="submit">Book Bus</button>
+    </form>
 
-{% if error %}
-<p style="color:red;">{{ error }}</p>
-{% endif %}
-{% if message %}
-<p style="color:green;">{{ message }}</p>
-{% endif %}
+    {% if error %}
+    <p style="color:red;">{{ error }}</p>
+    {% endif %}
+    {% if message %}
+    <p style="color:green;">{{ message }}</p>
+    {% endif %}
 
-{% endif %}
+    {% endif %}
 
-{% if form_error %}
-<p style="color:red;">{{ form_error }}</p>
-{% endif %}
+    {% if form_error %}
+    <p style="color:red;">{{ form_error }}</p>
+    {% endif %}
+</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {

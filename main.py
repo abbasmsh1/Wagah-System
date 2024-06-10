@@ -425,9 +425,10 @@ async def register_group(
         return templates.TemplateResponse("group_registration.html", {"request": request, "error": "Failed to register group. Please try again."})
 
 
-@app.get("/view-all-groups/", response_class=HTMLResponse)
-async def view_all_groups(request: Request, db: Session = Depends(get_db)):
-    groups = db.query(Group).all()
+# Get all groups
+@app.get("/view-all-groups", response_class=HTMLResponse)
+async def get_all_groups(request: Request, db: Session = Depends(get_db)):
+    groups = db.query(GroupInfo).all()
     return templates.TemplateResponse("view_all_groups.html", {"request": request, "groups": groups})
 
 

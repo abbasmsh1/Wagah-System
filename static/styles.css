@@ -68,12 +68,19 @@ form label {
     margin-bottom: 5px;
 }
 
-form input {
+form input, form select {
     width: 100%;
     padding: 8px;
     margin-bottom: 10px;
     border: 1px solid #ccc;
     border-radius: 3px;
+}
+
+form select {
+    appearance: none; /* Remove default arrow in some browsers */
+    background: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><polygon points="0,0 20,0 10,10" style="fill:%23333;"/></svg>') no-repeat right 10px center;
+    background-size: 10px;
+    padding-right: 30px; /* Space for the arrow */
 }
 
 form button {
