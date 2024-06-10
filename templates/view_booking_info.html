@@ -6,20 +6,26 @@
     <thead>
         <tr>
             <th>ITS</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Passport No.</th>
             <th>Bus Number</th>
             <th>Issued</th>
             <th>Departed</th>
-            <th>Self Issued</th>
+            <th>Seat Number</th>
         </tr>
     </thead>
     <tbody>
-        {% for booking in booking_info %}
+        {% for booking, master in booking_info %}
         <tr>
             <td>{{ booking.ITS }}</td>
-            <td>{{ booking.Mode }}</td>
+            <td>{{ master.first_name }} {{ master.last_name }}</td>
+            <td>{{ master.phone }}</td>
+            <td>{{ master.passport_No }}</td>
+            <td>{{ booking.bus_number }}</td>
             <td>{{ "Yes" if booking.Issued else "No" }}</td>
             <td>{{ "Yes" if booking.Departed else "No" }}</td>
-            <td>{{ "Yes" if booking.Self_Issued else "No" }}</td>
+            <td>{{ booking.seat_number }}</td>
         </tr>
         {% endfor %}
     </tbody>

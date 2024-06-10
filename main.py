@@ -1,4 +1,6 @@
-from fastapi import FastAPI, Depends, Request, Form, HTTPException, File, UploadFile, APIRouter, Request,  Query, Path
+from fastapi import FastAPI, Depends, Request, Form, HTTPException, File, UploadFile, APIRouter
+from fastapi import Query, Path
+from typing import List  # Add this import
 from fastapi.responses import RedirectResponse,HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -24,9 +26,14 @@ def get_db():
     finally:
         db.close()
 
+# Main Index code
+
 @app.get("/")
 def read_root(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
+
+
+# Customs Form
 
 @app.get("/master-form")
 def get_master_form(request: Request):
@@ -34,53 +41,50 @@ def get_master_form(request: Request):
 
 @app.get("/master/")
 def get_master_by_its(request: Request, its: int, db: Session = Depends(get_db)):
-    master = db.query(Master).filter(Master.ITS == its).first()
+    print("Master data updated")
+    master = db.query(Master).filter(Master.ITS == int(its)).first()
     if not master:
         raise HTTPException(status_code=404, detail="Master not found")
     return templates.TemplateResponse("master.html", {"request": request, "master": master})
 
-@app.get("/mark-as-arrived-form/", response_class=HTMLResponse)
-async def get_mark_as_arrived_form(request: Request):
-    return templates.TemplateResponse("arrive.html", {"request": request})
-
-@app.post("/mark_as_arrived/", response_class=HTMLResponse)
-async def mark_as_arrived(request: Request, its: int = Form(...), db: Session = Depends(get_db)):
-    master = db.query(Master).filter(Master.ITS == its).first()
-    if master:
-        master.arrived = 1
-        db.commit()
-        db.refresh(master)
-        return templates.TemplateResponse("arrive.html", {"request": request, "master": master})
-    else:
-        return templates.TemplateResponse("arrive.html", {"request": request, "error": "No record found for the given ITS"})
-
 @app.post("/master/update", response_class=HTMLResponse)
-async def update_master(request: Request,
-                        its: int = Form(...),
-                        first_name: str = Form(...),
-                        middle_name: str = Form(None),
-                        last_name: str = Form(...),
-                        passport_No: str = Form(...),
-                        passport_Expiry: str = Form(...),
-                        Visa_No: str = Form(None),
-                        db: Session = Depends(get_db)):
-    master = db.query(Master).filter(Master.ITS == its).first()
-    if master:
-        master.first_name = first_name
-        master.middle_name = middle_name
-        master.last_name = last_name
-        master.passport_No = passport_No
-        master.passport_Expiry = datetime.strptime(passport_Expiry, "%Y-%m-%d").date()
-        master.Visa_No = Visa_No
-        db.commit()
-    return RedirectResponse(url=f"/master?its={its}", status_code=303)
+async def update_master(
+    request: Request,
+    its: int = Form(...),
+    first_name: str = Form(...),
+    middle_name: str = Form(None),
+    last_name: str = Form(...),
+    passport_No: str = Form(...),
+    passport_Expiry: str = Form(...),
+    Visa_No: str = Form(None),
+    db: Session = Depends(get_db)
+):
+    print("In Master")
+    master = db.query(Master).filter(Master.ITS == int(its)).first()
+    if not master:
+        raise HTTPException(status_code=404, detail="Master not found")
+    
+    master.first_name = first_name
+    master.middle_name = middle_name
+    master.last_name = last_name
+    master.passport_No = passport_No
+    master.passport_Expiry = datetime.strptime(passport_Expiry, "%Y-%m-%d").date()
+    master.Visa_No = Visa_No
+    
+    db.commit()
+    print("Committed")
+    return templates.TemplateResponse("master.html", {"request": request, "master": master})
 
 @app.get("/master/info/", response_class=HTMLResponse)
-async def get_master_info(request: Request, its: int = Query(..., description="ITS of the master to retrieve"), db: Session = Depends(get_db)):
+async def get_master_info(
+    request: Request, 
+    its: int = Query(..., description="ITS of the master to retrieve"), 
+    db: Session = Depends(get_db)
+):
     master = db.query(Master).filter(Master.ITS == its).first()
     if not master:
         raise HTTPException(status_code=404, detail="Master not found")
-    return templates.TemplateResponse("master_info.html", {"request": request, "master": master})
+    return templates.TemplateResponse("master.html", {"request": request, "master": master})
 
 
 @app.get("/masters/")
@@ -90,7 +94,26 @@ def get_masters(request: Request, page: int = 1, db: Session = Depends(get_db)):
     total_masters = db.query(func.count(Master.ITS)).scalar()
     return templates.TemplateResponse("masters.html", {"request": request, "masters": masters, "total_masters": total_masters, "page": page, "page_size": page_size})
 
-   
+
+# Mark as Arrived
+@app.get("/mark-as-arrived-form/", response_class=HTMLResponse)
+async def get_mark_as_arrived_form(request: Request):
+    return templates.TemplateResponse("arrive.html", {"request": request})
+
+@app.post("/mark_as_arrived/", response_class=HTMLResponse)
+async def mark_as_arrived(request: Request, its: int = Form(...), db: Session = Depends(get_db)):
+    master = db.query(Master).filter(Master.ITS == its).first()
+    if master:
+        master.arrived = True
+        master.timestamp = datetime.now()
+        db.commit()
+        db.refresh(master)
+        return templates.TemplateResponse("arrive.html", {"request": request, "master": master})
+    else:
+        return templates.TemplateResponse("arrive.html", {"request": request, "error": "No record found for the given ITS"})
+
+# assign SIM
+
 @app.route("/assign-sim-form", methods=["GET", "POST"])
 async def get_assign_sim_form(request: Request, its: int = Form(...)):
     if request.method == "POST":
@@ -130,87 +153,136 @@ async def update_phone(request: Request, its: int = Form(...), phone_number: str
     db.refresh(master)
     return templates.TemplateResponse("assign_sim.html", {"request": request, "master": master, "message": "Phone number updated successfully"})
 
+# Bus Booking 
 
-@app.get("/assign-transport-form")
-def get_assign_transport_form(request: Request):
-    return templates.TemplateResponse("assign_transport.html", {"request": request})
+@app.get("/bus-booking/", response_class=HTMLResponse)
+async def get_bus_booking_form(request: Request, its: int = Query(None), db: Session = Depends(get_db)):
+    person = None
+    buses = db.query(Bus).all()  # Fetch all buses
+    search = its  # To display in the template if no person found
 
-@app.post("/assign-transport/")
-def assign_transport(request: Request, its: int = Form(...), transport_id: int = Form(...), db: Session = Depends(get_db)):
-    transport = db.query(Transport).filter(Transport.id == transport_id).first()
-    if not transport:
-        raise HTTPException(status_code=404, detail="Transport not found")
+    if its:
+        person = db.query(Master).filter(Master.ITS == its).first()
     
-    booking_info = BookingInfo(
-        ITS=its,
-        Mode=transport_id,
-        Issued=True,
-        Departed=False,
-        Self_Issued=True
-    )
-    db.add(booking_info)
-    db.commit()
-    db.refresh(booking_info)
-    return templates.TemplateResponse("assign_transport.html", {"request": request, "booking_info": booking_info, "message": "Transport assigned successfully"})
+    return templates.TemplateResponse("bus_booking.html", {"request": request, "person": person, "buses": buses, "search": search})
 
-@app.get("/verify-departure-form")
-def get_verify_departure_form(request: Request):
-    return templates.TemplateResponse("verify_departure.html", {"request": request})
+from sqlalchemy.exc import IntegrityError
 
-@app.get("/verify-departure/")
-def verify_departure(request: Request, its: int, db: Session = Depends(get_db)):
-    booking_info = db.query(BookingInfo).filter(BookingInfo.ITS == its).first()
-    if not booking_info:
-        raise HTTPException(status_code=404, detail="Booking info not found")
-    return templates.TemplateResponse("verify_departure.html", {"request": request, "booking_info": booking_info})
+@app.post("/book-bus/", response_class=HTMLResponse)
+async def post_book_bus(
+    request: Request,
+    its: int = Form(...),
+    bus_number: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    try:
+        # Check if bus exists and fetch its details
+        bus = db.query(Bus).filter(Bus.bus_number == bus_number).first()
+        if not bus:
+            raise HTTPException(status_code=404, detail=f"Bus {bus_number} not found")
 
-@app.get("/add-transport-form")
-def get_add_transport_form(request: Request):
-    return templates.TemplateResponse("add_transport.html", {"request": request})
+        # Check if there are available seats
+        if bus.no_of_seats <= 0:
+            raise HTTPException(status_code=400, detail="No available seats for this bus")
 
-@app.post("/add-transport/")
-def add_transport(request: Request, name: str = Form(...), type: str = Form(...), db: Session = Depends(get_db)):
-    transport = Transport(name=name, type=type)
-    db.add(transport)
-    db.commit()
-    db.refresh(transport)
-    return templates.TemplateResponse("add_transport.html", {"request": request, "message": "Transport added successfully"})
+        # Fetch the next available seat number
+        booked_seats = db.query(BookingInfo.seat_number).filter(
+            BookingInfo.bus_number == bus_number
+        ).all()
+        booked_seats = [seat[0] for seat in booked_seats if seat[0] is not None]
+        next_seat_number = 1
+        while next_seat_number in booked_seats:
+            next_seat_number += 1
 
-@app.get("/add-schedule-form")
-def get_add_schedule_form(request: Request):
-    return templates.TemplateResponse("add_schedule.html", {"request": request})
+        # Book the seat
+        new_booking = BookingInfo(
+            ITS=its,
+            Mode=1,  # assuming '1' represents 'bus' in your context
+            Issued=True,
+            Departed=False,
+            Self_Issued=True,
+            seat_number=next_seat_number,
+            bus_number=bus_number
+        )
+        db.add(new_booking)
+        db.commit()
 
-@app.post("/add-schedule/")
-def add_schedule(request: Request, transport_id: int = Form(...), departure_time: str = Form(...), arrival_time: str = Form(...), route: str = Form(...), db: Session = Depends(get_db)):
-    departure_time = datetime.strptime(departure_time, '%Y-%m-%dT%H:%M')
-    arrival_time = datetime.strptime(arrival_time, '%Y-%m-%dT%H:%M')
-    schedule = Schedule(transport_id=transport_id, departure_time=departure_time, arrival_time=arrival_time, route=route)
-    db.add(schedule)
-    db.commit()
-    db.refresh(schedule)
-    return templates.TemplateResponse("add_schedule.html", {"request": request, "message": "Schedule added successfully"})
+        # Decrement available seats
+        bus.no_of_seats -= 1
+        db.commit()
 
+        # Retrieve person and buses for template
+        person = db.query(Master).filter(Master.ITS == its).first()
+        buses = db.query(Bus).all()
 
-@app.get("/view-transport-modes/")
-def view_transport_modes(request: Request, db: Session = Depends(get_db)):
-    transports = db.query(Transport).all()
-    return templates.TemplateResponse("view_transport_modes.html", {"request": request, "transports": transports})
+        return templates.TemplateResponse(
+            "bus_booking.html",
+            {
+                "request": request,
+                "person": person,
+                "buses": buses,
+                "error": "No available seats for this bus"  # Pass the error message here
+            },
+        )
+
+    except IntegrityError as e:
+        db.rollback()
+        person = db.query(Master).filter(Master.ITS == its).first()
+        buses = db.query(Bus).all()
+        return templates.TemplateResponse(
+            "bus_booking.html",
+            {
+                "request": request,
+                "person": person,
+                "buses": buses,
+                "form_error": "An error occurred while booking: Seat already booked, please try again."
+            },
+        )
+
+    except Exception as e:
+        db.rollback()
+        person = db.query(Master).filter(Master.ITS == its).first()
+        buses = db.query(Bus).all()
+        return templates.TemplateResponse(
+            "bus_booking.html",
+            {
+                "request": request,
+                "person": person,
+                "buses": buses,
+                "form_error": "An error occurred while booking, please try again."
+            },
+        )
+
+# View booking Info
+
+@app.get("/view-booking-info/", response_class=HTMLResponse)
+async def view_booking_info(request: Request, db: Session = Depends(get_db)):
+    # Join BookingInfo with Master to get related data
+    booking_info = db.query(BookingInfo, Master).join(Master).all()
+    return templates.TemplateResponse("view_booking_info.html", {"request": request, "booking_info": booking_info})
+
+# view busses
 
 @app.get("/view-buses/")
 def view_buses(request: Request, db: Session = Depends(get_db)):
     buses = db.query(Bus).all()
     return templates.TemplateResponse("view_buses.html", {"request": request, "buses": buses})
 
+# view planes
+
 @app.get("/view-planes/")
 def view_planes(request: Request, db: Session = Depends(get_db)):
     planes = db.query(Plane).all()
     return templates.TemplateResponse("view_planes.html", {"request": request, "planes": planes})
+
+# view trains
 
 @app.get("/view-trains/")
 def view_trains(request: Request, db: Session = Depends(get_db)):
     trains = db.query(Train).all()
     return templates.TemplateResponse("view_trains.html", {"request": request, "trains": trains})
 
+# add buss
 
 @app.get("/add-bus/")
 def get_add_bus(request: Request):
@@ -234,16 +306,8 @@ def post_add_bus(request: Request, no_of_seats: int = Form(...), type: str = For
     db.commit()
     return RedirectResponse(url="/view-buses/", status_code=303)
 
-@app.get("/add-train/")
-def get_add_train(request: Request):
-    return templates.TemplateResponse("add_train.html", {"request": request})
 
-@app.post("/add-train/")
-def post_add_train(request: Request, company: str = Form(...), type: str = Form(...), departure_time: str = Form(...), db: Session = Depends(get_db)):
-    new_train = Train(company=company, type=type, departure_time=datetime.strptime(departure_time, '%Y-%m-%d').date())
-    db.add(new_train)
-    db.commit()
-    return RedirectResponse(url="/view-trains/", status_code=303)
+# add plane
 
 @app.get("/add-plane/")
 def get_add_plane(request: Request):
@@ -255,6 +319,22 @@ def post_add_plane(request: Request, company: str = Form(...), type: str = Form(
     db.add(new_plane)
     db.commit()
     return RedirectResponse(url="/view-planes/", status_code=303)
+
+
+# add train
+
+@app.get("/add-train/")
+def get_add_train(request: Request):
+    return templates.TemplateResponse("add_train.html", {"request": request})
+
+@app.post("/add-train/")
+def post_add_train(request: Request, company: str = Form(...), type: str = Form(...), departure_time: str = Form(...), db: Session = Depends(get_db)):
+    new_train = Train(company=company, type=type, departure_time=datetime.strptime(departure_time, '%Y-%m-%d').date())
+    db.add(new_train)
+    db.commit()
+    return RedirectResponse(url="/view-trains/", status_code=303)
+
+# upload csv
 
 @app.get("/upload-csv/")
 def get_upload_csv(request: Request):
@@ -304,67 +384,57 @@ async def post_upload_csv(request: Request, file: UploadFile = File(...), db: Se
     db.commit()
     return RedirectResponse(url="/", status_code=303)
 
-@app.get("/bus-booking/", response_class=HTMLResponse)
-async def get_bus_booking_form(request: Request, its: int = Query(None), db: Session = Depends(get_db)):
-    person = None
-    buses = db.query(Bus).all()  # Fetch all buses
-    search = its  # To display in the template if no person found
+# Group Registration
 
-    if its:
-        person = db.query(Master).filter(Master.ITS == its).first()
-    
-    return templates.TemplateResponse("bus_booking.html", {"request": request, "person": person, "buses": buses, "search": search})
+@app.get("/register-group/", response_class=HTMLResponse)
+async def get_group_registration_form(request: Request):
+    return templates.TemplateResponse("group_registration.html", {"request": request})
 
-@app.post("/book-bus/", response_class=HTMLResponse)
-async def post_book_bus(request: Request, its: int = Form(...), bus_number: int = Form(...), no_of_seats: int = Form(...), type: str = Form(...), db: Session = Depends(get_db)):
-    bus = db.query(Bus).filter(Bus.bus_number == bus_number).first()
-    if not bus:
-        raise HTTPException(status_code=404, detail="Bus not found")
-    
-    # Fetch the number of remaining seats from the database
-    remaining_seats = bus.no_of_seats
-    
-    # Check if there are enough seats left
-    if remaining_seats < no_of_seats:
-        message = f"Not enough seats available. Remaining seats: {remaining_seats}"
-        return templates.TemplateResponse("bus_booking.html", {"request": request, "message": message})
-    
-    # Create a new booking info record
-    booking_info = BookingInfo(
-        ITS=its,
-        Mode=bus.bus_id,  # Use the primary key of the bus
-        Issued=True,
-        Departed=False,
-        Self_Issued=True
-    )
-    
-    # Reduce the number of available seats in the bus
-    bus.no_of_seats -= no_of_seats
-    
-    db.add(booking_info)
-    db.commit()
-    db.refresh(booking_info)
-    
-    message = "Bus booked successfully."
-    person = db.query(Master).filter(Master.ITS == its).first()
-    buses = db.query(Bus).all()  # Fetch all buses again to display in the form
+# Route to handle group registration form submission
+@app.post("/register-group/", response_class=HTMLResponse)
+async def register_group(
+    request: Request,
+    leader_its: int = Form(...),
+    member_its: List[int] = Form(...),
+    db: Session = Depends(get_db)
+):
+    try:
+        # Check if the leader exists
+        leader = db.query(Master).filter(Master.ITS == leader_its).first()
+        if not leader:
+            raise HTTPException(status_code=404, detail="Leader not found")
 
-    return templates.TemplateResponse("bus_booking.html", {"request": request, "person": person, "buses": buses, "message": message})
+        # Create a new group
+        new_group = Group(leader_ITS=leader_its)
+        db.add(new_group)
+        db.commit()
 
-# Add a new route to view all booking information
-@app.get("/view-booking-info/", response_class=HTMLResponse)
-async def view_booking_info(request: Request, db: Session = Depends(get_db)):
-    booking_info = db.query(BookingInfo).all()
-    return templates.TemplateResponse("view_booking_info.html", {"request": request, "booking_info": booking_info})
+        # Add members to the group
+        for member_its in member_its:
+            member = db.query(Master).filter(Master.ITS == member_its).first()
+            if member:
+                group_info = GroupInfo(group_ID=new_group.ID, ITS=member_its)
+                db.add(group_info)
+
+        db.commit()
+
+        return templates.TemplateResponse("group_registration.html", {"request": request, "message": "Group registered successfully"})
+
+    except Exception as e:
+        db.rollback()
+        return templates.TemplateResponse("group_registration.html", {"request": request, "error": "Failed to register group. Please try again."})
+
+from fastapi import APIRouter
+
+router = APIRouter()
+
+@router.get("/view-all-groups/")
+async def view_all_groups(request: Request, db: Session = Depends(get_db)):
+    groups = get_all_groups(db)
+    return templates.TemplateResponse("view_all_groups.html", {"request": request, "groups": groups})
 
 
-@app.get("/get-group-members/")
-async def get_group_members(its: int, db: Session = Depends(get_db)):
-    group_members = db.query(Master).join(GroupInfo, Master.ITS == GroupInfo.ITS).filter(GroupInfo.ID == its).all()
-    members_list = [{"ITS": member.ITS, "first_name": member.first_name} for member in group_members]
-    return JSONResponse(content={"group_members": members_list})
-
-
+# APIs
 
 @app.get("/{its}")
 def get_master(its: int, db: Session = Depends(get_db)):
@@ -381,45 +451,6 @@ def get_master(its: int, db: Session = Depends(get_db)):
         "passport_Expiry": str(master.passport_Expiry),  # Convert to string for JSON serialization
         "Visa_No": master.Visa_No
     })
-
-# Update the route definition for the set group form
-@app.get("/set-group-form/{its}", response_class=HTMLResponse)
-async def get_set_group_form(request: Request, its: int):
-    return templates.TemplateResponse("set_group.html", {"request": request, "its": its})
-
-
-@app.post("/set-group/")
-async def set_group(request: Request, group_leader_its: int = Form(...), member_its_list: str = Form(...), db: Session = Depends(get_db)):
-    # Retrieve the group leader from the database
-    group_leader = db.query(Master).filter(Master.ITS == group_leader_its).first()
-    if not group_leader:
-        raise HTTPException(status_code=404, detail="Group leader not found")
-    
-    # Split the ITS list and convert to integers
-    member_its_numbers = list(map(int, member_its_list.split(',')))
-    
-    # Check if all members exist
-    members = db.query(Master).filter(Master.ITS.in_(member_its_numbers)).all()
-    if len(members) != len(member_its_numbers):
-        raise HTTPException(status_code=404, detail="Some members not found")
-
-    # Create a new group in the database
-    group = Group(no_Members=len(member_its_numbers) + 1)  # Add 1 for the group leader
-    db.add(group)
-    db.commit()
-    db.refresh(group)
-
-    # Add the group leader to GroupInfo
-    group_info_leader = GroupInfo(ID=group.ID, ITS=group_leader_its)
-    db.add(group_info_leader)
-
-    # Add the group members to GroupInfo
-    for member in members:
-        group_info_member = GroupInfo(ID=group.ID, ITS=member.ITS)
-        db.add(group_info_member)
-
-    db.commit()
-    return templates.TemplateResponse("set_group.html", {"request": request, "message": "Group created successfully"})
 
 
 if __name__ == "__main__":

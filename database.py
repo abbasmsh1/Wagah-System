@@ -40,17 +40,20 @@ class Master(Base):
     timestamp = Column(DateTime, default=func.now())
 
 # Define the Group model with a composite primary key
+# Define the Group model with a composite primary key
 class Group(Base):
     __tablename__ = "group"
     ID = Column(Integer, primary_key=True, index=True)
-    ITS = Column(Integer, ForeignKey('master.ITS'), primary_key=True, index=True)
-    no_Members = Column(Integer, index=True)
+    leader_ITS = Column(Integer, ForeignKey('master.ITS'), index=True)
+    leader = relationship("Master", foreign_keys=[leader_ITS])
+    members = relationship("Master", secondary="group_info")
 
-# Define the Group_Info model with a composite primary key
+# Define the GroupInfo model with a composite primary key
 class GroupInfo(Base):
     __tablename__ = "group_info"
     ID = Column(Integer, primary_key=True, index=True)
-    ITS = Column(Integer, ForeignKey('master.ITS'), primary_key=True, index=True)
+    group_ID = Column(Integer, ForeignKey('group.ID'), index=True)
+    ITS = Column(Integer, ForeignKey('master.ITS'), index=True)
 
 # Define the Booking_Info model with a composite primary key
 from typing import Optional
@@ -61,7 +64,7 @@ class BookingInfo(Base):
     ITS = Column(Integer, ForeignKey('master.ITS'), primary_key=True, index=True)
     Issued = Column(Boolean)
     Departed = Column(Boolean)
-    Self_Issued = Column(Boolean)
+    Self_Issued = Column(Boolean, default=False)
     seat_number = Column(Integer)  # Add seat number column
     bus_number = Column(Integer)  # Add bus number column
 

@@ -9,28 +9,58 @@
 </form>
 
 {% if person %}
-    <h2>Person Details</h2>
-    <p>ITS: {{ person.ITS }}</p>
-    <p>Name: {{ person.first_name }} {{ person.middle_name }} {{ person.last_name }}</p>
-    <p>Phone: {{ person.phone }}</p>
+<h2>Master Table Details</h2>
+<table>
+    <tr>
+        <th>ITS</th>
+        <th>Name</th>
+        <th>Mobile</th>
+    </tr>
+    <tr>
+        <td>{{ person.ITS }}</td>
+        <td>{{ person.first_name }}</td>
+        <td>{{ person.phone }}</td>
+    </tr>
+</table>
 
-    <h2>Book a Train</h2>
-    <form id="bookingForm" action="/book-train/" method="post">
-        <input type="hidden" name="its" value="{{ person.ITS }}">
-        <label for="train_id">Select Train:</label>
-        <select id="train_id" name="train_id" required>
-            {% for train in trains %}
-                <option value="{{ train.train_id }}">{{ train.company }} - {{ train.type }}</option>
-            {% endfor %}
-        </select><br>
-        <!-- You can add additional fields here if needed -->
-        <button type="submit">Book Train</button>
-    </form>
-{% elif search %}
-    <p>No person found with ITS number {{ search }}</p>
+<h2>Book a Train</h2>
+<form id="bookingForm" action="/book-train/" method="post">
+    <input type="hidden" name="its" value="{{ person.ITS }}">
+    <label for="type">Type:</label>
+    <select id="type" name="type" required>
+        <option value="first_class">First Class</option>
+        <option value="second_class">Second Class</option>
+    </select><br>
+    <label for="train_number">Train Number:</label>
+    <select id="train_number" name="train_number" required>
+        {% for train in trains %}
+            <option value="{{ train.train_number }}">{{ train.train_number }}</option>
+        {% endfor %}
+    </select><br>
+    <label for="no_of_seats">Number of Seats:</label>
+    <input type="number" id="no_of_seats" name="no_of_seats" value="1" readonly><br>
+    <label for="seats_left">Seats Left:</label>
+    <span id="seats_left"></span><br>
+    <button type="submit">Book Train</button>
+</form>
+
 {% endif %}
 
-{% if message %}
-    <p>{{ message }}</p>
-{% endif %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Function to fetch and display seats left for the selected train
+    document.getElementById("train_number").addEventListener("change", function() {
+        const trainNumber = this.value;
+        fetch(`/get-train-info/?train_number=${trainNumber}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("seats_left").textContent = data.seatsLeft;
+            })
+            .catch(error => console.error("Error fetching train info:", error));
+    });
+
+    // Fetch and display train info based on the default selected train number
+    document.getElementById("train_number").dispatchEvent(new Event("change"));
+});
+</script>
 {% endblock %}

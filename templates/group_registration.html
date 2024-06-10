@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Register Group</h1>
+    {% if message %}
+        <p style="color: green;">{{ message }}</p>
+    {% endif %}
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    <form method="post">
+        <label for="leader_its">Leader ITS:</label><br>
+        <input type="number" id="leader_its" name="leader_its" required><br><br>
+        <label for="member_its">Member ITS (separate multiple ITS with commas):</label><br>
+        <input type="text" id="member_its" name="member_its" required><br><br>
+        <button type="submit">Register Group</button>
+    </form>
+</body>
+</html>
+
+{% endblock %}
