@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>All Registered Groups</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Group ID</th>
+                <th>Leader ITS</th>
+                <!-- Add more columns as needed -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in groups %}
+            <tr>
+                <td>{{ group.ID }}</td>
+                <td>{{ group.leader_ITS }}</td>
+                <!-- Add more columns as needed -->
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

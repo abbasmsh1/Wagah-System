@@ -424,13 +424,10 @@ async def register_group(
         db.rollback()
         return templates.TemplateResponse("group_registration.html", {"request": request, "error": "Failed to register group. Please try again."})
 
-from fastapi import APIRouter
 
-router = APIRouter()
-
-@router.get("/view-all-groups/")
+@app.get("/view-all-groups/", response_class=HTMLResponse)
 async def view_all_groups(request: Request, db: Session = Depends(get_db)):
-    groups = get_all_groups(db)
+    groups = db.query(Group).all()
     return templates.TemplateResponse("view_all_groups.html", {"request": request, "groups": groups})
 
 
