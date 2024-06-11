@@ -1,12 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
+
 <h2>Mark as Arrived</h2>
-<form method="post" action="/mark_as_arrived/">
-    <label for="its">ITS:</label><br>
-    <input type="text" id="its" name="its" required><br>
-    <input type="submit" value="Mark as Arrived">
+<form action="/mark-as-arrived/" method="get">
+    <label for="its">ITS:</label>
+    <!-- Use default attribute to autofill the ITS if it's present in the link -->
+    <input type="number" id="its" name="its" {% if request.query_params.its %} value="{{ request.query_params.its }}" {% endif %} required>
+    <button type="submit">Mark as Arrived</button>
 </form>
+
+{% if message %}
+<p>{{ message }}</p>
+{% elif error %}
+<p>{{ error }}</p>
+{% endif %}
 
 {% if master %}
 <h2>Arrival Information</h2>
@@ -16,28 +24,25 @@
         <td>{{ master.ITS }}</td>
     </tr>
     <tr>
-        <th>First Name</th>
-        <td>{{ master.first_name }}</td>
+        <th>Name</th>
+        <td>{{ master.first_name }} {{ master.middle_name or "" }} {{ master.last_name }}</td>
     </tr>
     <tr>
-        <th>Middle Name</th>
-        <td>{{ master.middle_name }}</td>
+        <th>Passport Number</th>
+        <td>{{ master.passport_No }}</td>
     </tr>
     <tr>
-        <th>Last Name</th>
-        <td>{{ master.last_name }}</td>
+        <th>Visa Number</th>
+        <td>{{ master.Visa_No }}</td>
     </tr>
     <tr>
         <th>Arrival Status</th>
-        <td>{{ "Yes" if master.arrived else "No" }}</td>
+        <td>{{ "Arrived" if master.arrived else "Not Arrived" }}</td>
     </tr>
     <tr>
-        <th>Arrival Time</th>
+        <th>Timestamp</th>
         <td>{{ master.timestamp }}</td>
     </tr>
 </table>
-{% elif error %}
-<p>{{ error }}</p>
 {% endif %}
-
 {% endblock %}

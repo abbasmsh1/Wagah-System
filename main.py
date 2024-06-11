@@ -6,12 +6,13 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
-from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Transport, Bus, Plane, Train, GroupInfo, Group
+from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Transport, Bus, Plane, Train, GroupInfo, Group, ProcessedMaster
 import os
 import csv
 import io
 from datetime import datetime
 from fastapi.responses import JSONResponse
+from datetime import datetime
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -59,11 +60,28 @@ async def update_master(
     Visa_No: str = Form(None),
     db: Session = Depends(get_db)
 ):
-    print("In Master")
     master = db.query(Master).filter(Master.ITS == int(its)).first()
     if not master:
         raise HTTPException(status_code=404, detail="Master not found")
     
+    # Move data to ProcessedMaster table
+    processed_master = ProcessedMaster(
+        ITS=master.ITS,
+        first_name=master.first_name,
+        middle_name=master.middle_name,
+        last_name=master.last_name,
+        DOB=master.DOB,
+        passport_No=master.passport_No,
+        passport_Expiry=master.passport_Expiry,
+        Visa_No=master.Visa_No,
+        Mode_of_Transport=master.Mode_of_Transport,
+        phone=master.phone,
+        arrived=master.arrived,
+        timestamp=master.timestamp
+    )
+    db.add(processed_master)
+    
+    # Update data in Master table
     master.first_name = first_name
     master.middle_name = middle_name
     master.last_name = last_name
@@ -72,7 +90,6 @@ async def update_master(
     master.Visa_No = Visa_No
     
     db.commit()
-    print("Committed")
     return templates.TemplateResponse("master.html", {"request": request, "master": master})
 
 @app.get("/master/info/", response_class=HTMLResponse)
@@ -86,31 +103,48 @@ async def get_master_info(
         raise HTTPException(status_code=404, detail="Master not found")
     return templates.TemplateResponse("master.html", {"request": request, "master": master})
 
-
-@app.get("/masters/")
-def get_masters(request: Request, page: int = 1, db: Session = Depends(get_db)):
+# Add a new route to display data from the Master table in lists of 10
+@app.get("/masters/", response_class=HTMLResponse)
+async def list_masters(request: Request, page: int = Query(1), db: Session = Depends(get_db)):
+    # Paginate the data
     page_size = 10
-    masters = db.query(Master).offset((page - 1) * page_size).limit(page_size).all()
+    offset = (page - 1) * page_size
+    masters = db.query(Master).offset(offset).limit(page_size).all()
+
+    # Get the total number of masters for pagination
     total_masters = db.query(func.count(Master.ITS)).scalar()
-    return templates.TemplateResponse("masters.html", {"request": request, "masters": masters, "total_masters": total_masters, "page": page, "page_size": page_size})
+
+    return templates.TemplateResponse(
+        "masters.html",
+        {
+            "request": request,
+            "masters": masters,
+            "page": page,
+            "page_size": page_size,
+            "total_masters": total_masters
+        },
+    )
+
 
 
 # Mark as Arrived
-@app.get("/mark-as-arrived-form/", response_class=HTMLResponse)
-async def get_mark_as_arrived_form(request: Request):
-    return templates.TemplateResponse("arrive.html", {"request": request})
-
-@app.post("/mark_as_arrived/", response_class=HTMLResponse)
-async def mark_as_arrived(request: Request, its: int = Form(...), db: Session = Depends(get_db)):
+@app.get("/mark-as-arrived/")
+async def mark_as_arrived(its: int, db: Session = Depends(get_db)):
     master = db.query(Master).filter(Master.ITS == its).first()
     if master:
         master.arrived = True
         master.timestamp = datetime.now()
         db.commit()
         db.refresh(master)
-        return templates.TemplateResponse("arrive.html", {"request": request, "master": master})
+        message = f"ITS {its} marked as arrived successfully"
     else:
-        return templates.TemplateResponse("arrive.html", {"request": request, "error": "No record found for the given ITS"})
+        message = f"No record found for ITS {its}"
+    return RedirectResponse(url=f"/mark-as-arrived-form/?its={its}&message={message}")
+
+@app.get("/mark-as-arrived-form/")
+async def get_mark_as_arrived_form(request: Request, its: int = None, message: str = None, db: Session = Depends(get_db)):
+    master = db.query(Master).filter(Master.ITS == its).first()
+    return templates.TemplateResponse("arrive.html", {"request": request, "master": master, "message": message})
 
 # assign SIM
 
@@ -255,10 +289,18 @@ async def post_book_bus(
 
 # View booking Info
 
+# View booking Info
+from fastapi import Query
+from typing import Optional
+
 @app.get("/view-booking-info/", response_class=HTMLResponse)
-async def view_booking_info(request: Request, db: Session = Depends(get_db)):
-    # Join BookingInfo with Master to get related data
-    booking_info = db.query(BookingInfo, Master).join(Master).all()
+async def view_booking_info(request: Request, bus_number: Optional[int] = Query(None), db: Session = Depends(get_db)):
+    # Filter by bus number if provided
+    if bus_number:
+        booking_info = db.query(BookingInfo, Master).join(Master).filter(BookingInfo.bus_number == bus_number).all()
+    else:
+        # If no bus number provided, fetch all booking info
+        booking_info = db.query(BookingInfo, Master).join(Master).all()
     return templates.TemplateResponse("view_booking_info.html", {"request": request, "booking_info": booking_info})
 
 # view busses
@@ -451,6 +493,48 @@ def get_master(its: int, db: Session = Depends(get_db)):
     })
 
 
+router = APIRouter()
+PAGE_SIZE = 10
+
+@app.get("/processed-masters/", response_class=HTMLResponse)
+async def get_processed_masters(request: Request, page: int = 1, db: Session = Depends(get_db)):
+    total_count = db.query(func.count(ProcessedMaster.ITS)).scalar()
+    processed_masters = (
+        db.query(ProcessedMaster)
+        .offset((page - 1) * PAGE_SIZE)
+        .limit(PAGE_SIZE)
+        .all()
+    )
+    return templates.TemplateResponse(
+        "processed_masters.html", 
+        {
+            "request": request, 
+            "processed_masters": processed_masters, 
+            "page": page,
+            "page_size": PAGE_SIZE,
+            "total_count": total_count
+        }
+    )
+
+@app.post("/print-processed-masters/", response_class=HTMLResponse)
+async def print_processed_masters(page: int = Form(...), db: Session = Depends(get_db)):
+    processed_masters = (
+        db.query(ProcessedMaster)
+        .offset((page - 1) * PAGE_SIZE)
+        .limit(PAGE_SIZE)
+        .all()
+    )
+
+    if not processed_masters:
+        raise HTTPException(status_code=400, detail="No processed masters found for printing")
+
+    # Render HTML for printing
+    html_content = "<h2>Selected Processed Masters</h2><ul>"
+    for master in processed_masters:
+        html_content += f"<li>ITS: {master.ITS}, Name: {master.first_name} {master.last_name}</li>"
+    html_content += "</ul>"
+
+    return HTMLResponse(content=html_content)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))

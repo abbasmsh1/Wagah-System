@@ -157,6 +157,21 @@ class Schedule(Base):
     route = Column(String, index=True)
     transport = relationship("Transport")
 
+class ProcessedMaster(Base):
+    __tablename__ = "processed_master"
+    id = Column(Integer, primary_key=True, index=True)
+    ITS = Column(Integer, ForeignKey('master.ITS'), unique=True, index=True)
+    first_name = Column(String, index=True)
+    middle_name = Column(String, index=True)
+    last_name = Column(String, index=True)
+    DOB = Column(Date)
+    passport_No = Column(String, index=True)
+    passport_Expiry = Column(Date, index=True)
+    Visa_No = Column(String, index=True)
+    Mode_of_Transport = Column(String, index=True)
+    phone = Column(String, index=True)
+    arrived = Column(Boolean, default=False)
+    timestamp = Column(DateTime, default=func.now())
 
 
 # Create all tables in the database
