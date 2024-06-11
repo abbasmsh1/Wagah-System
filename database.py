@@ -157,6 +157,14 @@ class Schedule(Base):
     route = Column(String, index=True)
     transport = relationship("Transport")
 
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    password = Column(String)
+    designation = Column(String)
+    
 class ProcessedMaster(Base):
     __tablename__ = "processed_master"
     id = Column(Integer, primary_key=True, index=True)
@@ -172,8 +180,10 @@ class ProcessedMaster(Base):
     phone = Column(String, index=True)
     arrived = Column(Boolean, default=False)
     timestamp = Column(DateTime, default=func.now())
+    processed_by = Column(String, ForeignKey('users.username'))
 
 
+    
 # Create all tables in the database
 Base.metadata.create_all(bind=engine)
 

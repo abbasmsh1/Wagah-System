@@ -8,6 +8,16 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Function to retrieve all users from the database
+def get_users():
+    db = SessionLocal()
+    try:
+        users = db.query(User).all()
+        return users
+    finally:
+        db.close()
+
+
 # Function to add a new user to the database
 def add_user(username: str, password: str, designation: str):
     db = SessionLocal()
@@ -34,6 +44,13 @@ async def add_new_user(request: Request, username: str = Form(...), password: st
         return templates.TemplateResponse("add_user.html", {"request": request, "message": message})
     else:
         return templates.TemplateResponse("add_user.html", {"request": request, "message": message}, status_code=400)
+
+# Route to display all users
+@app.get("/users/", response_class=HTMLResponse)
+async def display_users(request: Request):
+    users = get_users()
+    return templates.TemplateResponse("users.html", {"request": request, "users": users})
+
 
 if __name__ == "__main__":
     import uvicorn

@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
-from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Transport, Bus, Plane, Train, GroupInfo, Group, ProcessedMaster
+from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Transport, Bus, Plane, Train, GroupInfo, Group, ProcessedMaster, User
 import os
 import csv
 import io
@@ -27,18 +27,53 @@ def get_db():
     finally:
         db.close()
 
-# Main Index code
-
+# Login route
 @app.get("/")
-def read_root(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
+def login_form(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@app.post("/login/")
+async def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == username).first()
+    if user and user.password == password:
+        response = RedirectResponse(url="/home", status_code=303)
+        response.set_cookie(key="username", value=username)
+        return response
+    return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid username or password"})
+
+# Logout route
+@app.get("/logout/")
+async def logout(request: Request):
+    response = RedirectResponse(url="/login/", status_code=303)
+    response.delete_cookie("username")
+    return response
+
+# Get current user
+def get_current_user(request: Request, db: Session = Depends(get_db)):
+    username = request.cookies.get("username")
+    if not username:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+
+# Main Index code with login check
+@app.get("/home")
+def read_root(request: Request, current_user: User = Depends(get_current_user)):
+    return templates.TemplateResponse("home.html", {"request": request, "user": current_user})
 
 
 # Customs Form
 
 @app.get("/master-form")
-def get_master_form(request: Request):
-    return templates.TemplateResponse("master.html", {"request": request})
+def get_master_form(request: Request, current_user: User = Depends(get_current_user)):
+    
+    if (current_user.designation.lower() == "admin")  or  (current_user.designation.lower() == "custom"):
+        return templates.TemplateResponse("master.html", {"request": request})
+    raise HTTPException(status_code=403, detail="Not authorized")
+    
+    
 
 @app.get("/master/")
 def get_master_by_its(request: Request, its: int, db: Session = Depends(get_db)):
@@ -58,7 +93,8 @@ async def update_master(
     passport_No: str = Form(...),
     passport_Expiry: str = Form(...),
     Visa_No: str = Form(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     master = db.query(Master).filter(Master.ITS == int(its)).first()
     if not master:
@@ -77,7 +113,8 @@ async def update_master(
         Mode_of_Transport=master.Mode_of_Transport,
         phone=master.phone,
         arrived=master.arrived,
-        timestamp=master.timestamp
+        timestamp=master.timestamp,
+        processed_by=current_user.username  # Save the username of the current user
     )
     db.add(processed_master)
     
@@ -91,6 +128,7 @@ async def update_master(
     
     db.commit()
     return templates.TemplateResponse("master.html", {"request": request, "master": master})
+
 
 @app.get("/master/info/", response_class=HTMLResponse)
 async def get_master_info(
@@ -142,9 +180,12 @@ async def mark_as_arrived(its: int, db: Session = Depends(get_db)):
     return RedirectResponse(url=f"/mark-as-arrived-form/?its={its}&message={message}")
 
 @app.get("/mark-as-arrived-form/")
-async def get_mark_as_arrived_form(request: Request, its: int = None, message: str = None, db: Session = Depends(get_db)):
+async def get_mark_as_arrived_form(request: Request, its: int = None, message: str = None, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    
+    #if (current_user.designation.lower() == "admin")  or  (current_user.designation.lower() == "arrival"):
     master = db.query(Master).filter(Master.ITS == its).first()
     return templates.TemplateResponse("arrive.html", {"request": request, "master": master, "message": message})
+    #raise HTTPException(status_code=403, detail="Not authorized")
 
 # assign SIM
 
@@ -496,8 +537,15 @@ def get_master(its: int, db: Session = Depends(get_db)):
 router = APIRouter()
 PAGE_SIZE = 10
 
+# Get users
+# def get_users(db: Session) -> List[User]:
+#     return db.query(User).all()
+
+
 @app.get("/processed-masters/", response_class=HTMLResponse)
 async def get_processed_masters(request: Request, page: int = 1, db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    users = list(users)
     total_count = db.query(func.count(ProcessedMaster.ITS)).scalar()
     processed_masters = (
         db.query(ProcessedMaster)
@@ -512,9 +560,11 @@ async def get_processed_masters(request: Request, page: int = 1, db: Session = D
             "processed_masters": processed_masters, 
             "page": page,
             "page_size": PAGE_SIZE,
-            "total_count": total_count
+            "total_count": total_count,
+            "users": users  # Pass the users list to the template
         }
     )
+
 
 @app.post("/print-processed-masters/", response_class=HTMLResponse)
 async def print_processed_masters(page: int = Form(...), db: Session = Depends(get_db)):

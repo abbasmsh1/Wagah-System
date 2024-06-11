@@ -2,6 +2,18 @@
 
 {% block content %}
 <h2>Processed Masters</h2>
+
+<form action="" method="get" id="filterForm">
+    <label for="processed_by">Processed By:</label>
+    <select id="processed_by" name="processed_by">
+        <option value="">--Select--</option>
+        {% for user in users %}
+        <option value="{{ user.username }}" {% if user.username == processed_by %}selected{% endif %}>{{ user.username }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Filter</button>
+</form>
+
 <table>
     <tr>
         <th>ITS</th>
@@ -11,10 +23,9 @@
         <th>Passport Number</th>
         <th>Passport Expiry Date</th>
         <th>Visa Number</th>
-        <th>Arrived</th>
-        <th>Timestamp</th>
     </tr>
     {% for master in processed_masters %}
+    {% if not processed_by or master.processed_by == processed_by %}
     <tr>
         <td>{{ master.ITS }}</td>
         <td>{{ master.first_name }}</td>
@@ -23,24 +34,23 @@
         <td>{{ master.passport_No }}</td>
         <td>{{ master.passport_Expiry }}</td>
         <td>{{ master.Visa_No }}</td>
-        <td>{{ master.arrived }}</td>
-        <td>{{ master.timestamp }}</td>
     </tr>
+    {% endif %} 
     {% endfor %}
 </table>
 
 <div>
-    {% if page > 1 %}
-    <a href="?page={{ page - 1 }}">Previous</a>
+    {% if processed_masters.has_previous %}
+    <a href="?page={{ processed_masters.previous_page_number }}&processed_by={{ processed_by }}">Previous</a>
     {% endif %}
 
-    {% if processed_masters|length == page_size %}
-    <a href="?page={{ page + 1 }}">Next</a>
+    {% if processed_masters.has_next %}
+    <a href="?page={{ processed_masters.next_page_number }}&processed_by={{ processed_by }}">Next</a>
     {% endif %}
 </div>
 
 <form action="/print-processed-masters/" method="post">
-    <input type="hidden" name="page" value="{{ page }}">
-    <button type="submit">Print This Page</button>
+    <input type="hidden" name="processed_by" value="{{ processed_by }}">
+    <button type="submit">Print All</button>
 </form>
 {% endblock %}

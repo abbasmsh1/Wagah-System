@@ -40,14 +40,46 @@
             <th>Visa Number</th>
             <td><input type="text" id="Visa_No" name="Visa_No" value="{{ master.Visa_No }}"></td>
         </tr>
-   
     </table>
     <button type="submit">Save</button>
     <button type="button" onclick="printForm()">Print</button>
 </form>
 {% endif %}
 
+<div id="processedCountDisplay">
+    <h3>Processed ITS Entries: <span id="processedCountSpan">{{ processedCount }}</span></h3>
+    <button type="button" id="printProcessedButton" onclick="printProcessedITS()">Print Processed Entries</button>
+</div>
+
 <script>
+let processedCount = localStorage.getItem('processedCount') ? parseInt(localStorage.getItem('processedCount')) : 0;
+let processedITSList = JSON.parse(localStorage.getItem('processedITSList')) || [];
+
+document.getElementById('processedCountSpan').innerText = processedCount;
+
+function incrementProcessedCount() {
+    processedCount++;
+    
+    const itsEntry = {
+        its: document.getElementById('its').value,
+        firstName: document.getElementById('first_name').value,
+        lastName: document.getElementById('last_name').value,
+        passportNo: document.getElementById('passport_No').value,
+        visaNo: document.getElementById('Visa_No').value
+    };
+    
+    processedITSList.push(itsEntry);
+    localStorage.setItem('processedCount', processedCount);
+    localStorage.setItem('processedITSList', JSON.stringify(processedITSList));
+    
+    document.getElementById('processedCountSpan').innerText = processedCount;
+    
+    if (processedCount >= 10) {
+        alert('You have processed 10 ITS entries. Printing...');
+        printProcessedITS();
+    }
+}
+
 function printForm() {
     var printContents = document.getElementById('masterForm').innerHTML;
     var originalContents = document.body.innerHTML;
@@ -55,5 +87,32 @@ function printForm() {
     window.print();
     document.body.innerHTML = originalContents;
 }
+
+function printProcessedITS() {
+    // Customize the print format for processed ITS entries
+    var printContents = '<h2>Processed ITS Entries</h2><table border="1"><thead><tr><th>ITS</th><th>Name</th><th>Passport Number</th><th>Visa Number</th></tr></thead><tbody>';
+    processedITSList.forEach(function(entry) {
+        printContents += `<tr><td>${entry.its}</td><td>${entry.firstName} ${entry.lastName}</td><td>${entry.passportNo}</td><td>${entry.visaNo}</td></tr>`;
+    });
+    printContents += '</tbody></table>';
+    
+    var originalContents = document.body.innerHTML;
+    document.body.innerHTML = printContents;
+    window.print();
+    document.body.innerHTML = originalContents;
+    
+    // Clear the processed entries
+    processedCount = 0;
+    processedITSList = [];
+    localStorage.setItem('processedCount', processedCount);
+    localStorage.setItem('processedITSList', JSON.stringify(processedITSList));
+    document.getElementById('processedCountSpan').innerText = processedCount;
+}
+
+// Attach the incrementProcessedCount function to form submission
+document.getElementById('masterForm').addEventListener('submit', function(event) {
+    incrementProcessedCount();
+});
+
 </script>
 {% endblock %}
