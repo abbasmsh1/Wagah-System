@@ -646,6 +646,7 @@ async def print_processed_masters(page: int = Form(...), db: Session = Depends(g
     html_content += "</ul>"
 
     return HTMLResponse(content=html_content)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))

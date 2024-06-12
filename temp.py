@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 import threading
 from fastapi import FastAPI, HTTPException
 
-DATABASE_URL = "sqlite:///./database.db"
+DATABASE_URL = os.getenv("DATABASE_URL")
 BACKUP_DIR = 'backups'
 
 def get_engine():
@@ -37,7 +37,7 @@ def backup_database():
     for table_name in metadata.tables.keys():
         backup_table(engine, table_name)
 
-schedule.every(5).minutes.do(backup_database)
+schedule.every(1).minutes.do(backup_database)
 
 def restore_table(engine, table_name, backup_file):
     with sqlite3.connect(engine.url.database) as conn:
