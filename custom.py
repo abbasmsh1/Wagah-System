@@ -129,6 +129,9 @@ async def update_master(
             'visaNo': Visa_No
         })
 
+        if len(processed_its_entries) >= 10:
+            return await print_processed_its(request)
+
     except IntegrityError:
         db.rollback()
         return templates.TemplateResponse("master_.html", {"request": request, "error": "Record already exists"})
@@ -145,7 +148,7 @@ async def get_master_info(request: Request, its: int = Query(...), db: Session =
     return templates.TemplateResponse("master_.html", {"request": request, "master": master, "processedCount": processed_count})
 
 @app.get("/print-processed-its/")
-def print_processed_its():
+async def print_processed_its(request: Request):
     response_content = """
     <html>
         <body>

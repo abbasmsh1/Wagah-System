@@ -77,25 +77,27 @@
                 location.reload();
             }
 
-            function printProcessedITS() {
-                let printContents = '<h2>Processed ITS Entries</h2><table border="1"><thead><tr><th>ITS</th><th>Name</th><th>Passport Number</th><th>Visa Number</th></tr></thead><tbody>';
-                processedITSList.forEach(function(entry) {
-                    printContents += `<tr><td>${entry.its}</td><td>${entry.firstName} ${entry.lastName}</td><td>${entry.passportNo}</td><td>${entry.visaNo}</td></tr>`;
-                });
-                printContents += '</tbody></table>';
+            async function printProcessedITS() {
+                let response = await fetch('/print-processed-its/');
+                if (response.ok) {
+                    let html = await response.text();
+                    let printWindow = window.open('', '', 'width=800,height=600');
+                    printWindow.document.write(html);
+                    printWindow.document.close();
+                    printWindow.print();
+                    processedITSList = [];
+                    localStorage.setItem('processedITSList', JSON.stringify(processedITSList));
+                    processedCount = 0;
+                    localStorage.setItem('processedCount', processedCount);
+                    document.getElementById('processedCountSpan').innerText = processedCount;
+                } else {
+                    console.error('Failed to print processed ITS entries');
+                }
+            }
 
-                const originalContents = document.body.innerHTML;
-                document.body.innerHTML = printContents;
-                window.print();
-                document.body.innerHTML = originalContents;
-                location.reload();
-
-                // Clear the processed entries
-                processedCount = 0;
-                processedITSList = [];
-                localStorage.setItem('processedCount', processedCount);
-                localStorage.setItem('processedITSList', JSON.stringify(processedITSList));
-                document.getElementById('processedCountSpan').innerText = processedCount;
+            // Automatically print when the list reaches 10 entries
+            if (processedCount >= 10) {
+                printProcessedITS();
             }
         </script>
     </div>
