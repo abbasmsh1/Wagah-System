@@ -533,6 +533,61 @@ def get_master(its: int, db: Session = Depends(get_db)):
         "Visa_No": master.Visa_No
     })
 
+from fastapi import Depends
+
+@app.get("/get_masters/")
+def get_all_masters(db: Session = Depends(get_db)):
+    masters = db.query(Master).all()
+    if not masters:
+        raise HTTPException(status_code=404, detail="No masters found")
+    
+    masters_data = [{"ITS": master.ITS} for master in masters]
+    
+    return {"masters": masters_data}
+
+@app.post("/create-booking/", response_class=JSONResponse)
+async def create_booking(
+    its: int = Form(...),
+    seat_number: int = Form(...),
+    bus_number: int = Form(...),
+    db: Session = Depends(get_db)
+):
+    # Check if ITS exists
+    person = db.query(Master).filter(Master.ITS == its).first()
+    if not person:
+        raise HTTPException(status_code=404, detail="Master not found")
+
+    # Check if bus exists
+    bus = db.query(Bus).filter(Bus.bus_number == bus_number).first()
+    if not bus:
+        raise HTTPException(status_code=404, detail="Bus not found")
+
+    # Check if the seat is available
+    existing_booking = db.query(BookingInfo).filter(BookingInfo.bus_number == bus_number, BookingInfo.seat_number == seat_number).first()
+    if existing_booking:
+        raise HTTPException(status_code=400, detail="Seat already booked")
+
+    # Create new booking
+    new_booking = BookingInfo(
+        ITS=its,
+        Mode=1,  # assuming '1' represents 'bus' in your context
+        Issued=True,
+        Departed=False,
+        Self_Issued=True,
+        seat_number=seat_number,
+        bus_number=bus_number
+    )
+
+    # Add the new booking to the session and commit
+    db.add(new_booking)
+    db.commit()
+
+    # Decrement available seats
+    bus.no_of_seats -= 1
+    db.commit()
+
+    return JSONResponse(content={"message": "Booking created successfully"})
+
 
 router = APIRouter()
 PAGE_SIZE = 10
@@ -543,7 +598,12 @@ PAGE_SIZE = 10
 
 
 @app.get("/processed-masters/", response_class=HTMLResponse)
-async def get_processed_masters(request: Request, page: int = 1, db: Session = Depends(get_db)):
+async def get_processed_masters(
+    request: Request, 
+    page: int = 1, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
     users = db.query(User).all()
     users = list(users)
     total_count = db.query(func.count(ProcessedMaster.ITS)).scalar()
@@ -561,7 +621,8 @@ async def get_processed_masters(request: Request, page: int = 1, db: Session = D
             "page": page,
             "page_size": PAGE_SIZE,
             "total_count": total_count,
-            "users": users  # Pass the users list to the template
+            "users": users,  # Pass the users list to the template
+            "current_user": current_user  # Pass the current user to the template
         }
     )
 
