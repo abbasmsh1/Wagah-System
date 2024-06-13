@@ -99,3 +99,7 @@ button:hover {
     font-size: 16px;
     text-decoration: none;
 }
+
+table {
+    margin:30px auto;
+}

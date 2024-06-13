@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arrived ITS List</title>
+    <link rel="stylesheet" href="/static/custom.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Arrived ITS List</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ITS</th>
+                    <th>Name</th>
+                    <th>Passport Number</th>
+                    <th>Visa Number</th>
+                    <th>Arrival Status</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for master in arrived_masters %}
+                <tr>
+                    <td>{{ master.ITS }}</td>
+                    <td>{{ master.first_name }} {{ master.middle_name or "" }} {{ master.last_name }}</td>
+                    <td>{{ master.passport_No }}</td>
+                    <td>{{ master.Visa_No }}</td>
+                    <td>{{ "Arrived" if master.arrived else "Not Arrived" }}</td>
+                    <td>{{ master.timestamp }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div>
+            <form action="/mark-as-arrived-form/" method="get">
+                <button type="submit" class="button" style = " margin:20px;">Back</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
