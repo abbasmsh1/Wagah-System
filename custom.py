@@ -4,7 +4,6 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import func
 from database import SessionLocal, Master, ProcessedMaster, User
 import os
 from datetime import datetime
@@ -13,8 +12,6 @@ app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-
-processed_its_entries = []
 
 def get_db():
     db = SessionLocal()
@@ -52,23 +49,23 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
     return user
 
 @app.get("/master-form/")
-def get_master_form(request: Request, current_user: User = Depends(get_current_user)):
+def get_master_form(request: Request, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if current_user.designation.lower() in ["admin", "custom"]:
-        processed_count = len(processed_its_entries)
+        processed_count = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).count()
         return templates.TemplateResponse("master_.html", {"request": request, "processedCount": processed_count})
     raise HTTPException(status_code=403, detail="Not authorized")
 
 @app.get("/master/")
-def get_master_by_its(request: Request, its: int, db: Session = Depends(get_db)):
+def get_master_by_its(request: Request, its: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     master = db.query(Master).filter(Master.ITS == its).first()
     if not master:
         return templates.TemplateResponse("master_.html", {"request": request, "error": "Master not found"})
-    processed_count = len(processed_its_entries)
+    processed_count = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).count()
     return templates.TemplateResponse("master_.html", {"request": request, "master": master, "processedCount": processed_count})
 
 @app.get("/master/check-duplicate")
-def check_duplicate(its: int):
-    is_duplicate = any(entry['its'] == its for entry in processed_its_entries)
+def check_duplicate(its: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    is_duplicate = db.query(ProcessedMaster).filter(ProcessedMaster.ITS == its, ProcessedMaster.processed_by == current_user.username).count() > 0
     return JSONResponse(content={'isDuplicate': is_duplicate})
 
 @app.post("/master/update", response_class=HTMLResponse)
@@ -84,9 +81,9 @@ async def update_master(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    is_duplicate = any(entry['its'] == its for entry in processed_its_entries)
+    is_duplicate = db.query(ProcessedMaster).filter(ProcessedMaster.ITS == its, ProcessedMaster.processed_by == current_user.username).count() > 0
     if is_duplicate:
-        processed_count = len(processed_its_entries)
+        processed_count = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).count()
         return templates.TemplateResponse("master_.html", {"request": request, "error": "Record already processed", "processedCount": processed_count})
 
     master = db.query(Master).filter(Master.ITS == its).first()
@@ -121,34 +118,30 @@ async def update_master(
         db.add(processed_master)
         db.commit()
 
-        processed_its_entries.append({
-            'its': its,
-            'firstName': first_name,
-            'lastName': last_name,
-            'passportNo': passport_No,
-            'visaNo': Visa_No
-        })
+        processed_count = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).count()
 
-        if len(processed_its_entries) >= 10:
-            return await print_processed_its(request)
+        if processed_count >= 10:
+            return await print_processed_its(request, current_user, db)  # Pass db to print_processed_its
 
     except IntegrityError:
         db.rollback()
         return templates.TemplateResponse("master_.html", {"request": request, "error": "Record already exists"})
 
-    processed_count = len(processed_its_entries)
+    processed_count = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).count()
     return templates.TemplateResponse("master_.html", {"request": request, "processedCount": processed_count})
 
 @app.get("/master/info/", response_class=HTMLResponse)
-async def get_master_info(request: Request, its: int = Query(...), db: Session = Depends(get_db)):
+async def get_master_info(request: Request, its: int = Query(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     master = db.query(Master).filter(Master.ITS == its).first()
     if not master:
         return templates.TemplateResponse("master_.html", {"request": request, "error": "Master not found"})
-    processed_count = len(processed_its_entries)
+    processed_count = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).count()
     return templates.TemplateResponse("master_.html", {"request": request, "master": master, "processedCount": processed_count})
 
 @app.get("/print-processed-its/")
-async def print_processed_its(request: Request):
+async def print_processed_its(request: Request, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    processed_entries = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).all()
+
     response_content = """
     <html>
         <body>
@@ -164,13 +157,13 @@ async def print_processed_its(request: Request):
                 </thead>
                 <tbody>
     """
-    for entry in processed_its_entries:
+    for entry in processed_entries:
         response_content += f"""
         <tr>
-            <td>{entry['its']}</td>
-            <td>{entry['firstName']} {entry['lastName']}</td>
-            <td>{entry['passportNo']}</td>
-            <td>{entry['visaNo']}</td>
+            <td>{entry.ITS}</td>
+            <td>{entry.first_name} {entry.last_name}</td>
+            <td>{entry.passport_No}</td>
+            <td>{entry.Visa_No}</td>
         </tr>
         """
     response_content += """
@@ -180,8 +173,10 @@ async def print_processed_its(request: Request):
     </html>
     """
 
-    processed_its_entries.clear()
+    db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).delete()
+    db.commit()
     return HTMLResponse(content=response_content)
+
 
 if __name__ == "__main__":
     import uvicorn

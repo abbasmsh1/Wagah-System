@@ -1,14 +1,34 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Home</title>
-    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Routes</title>
 </head>
 <body>
-    <h1>Welcome to the User Management System</h1>
-    <a href="/search">Search for a User</a><br>
-    <a href="/upload">Upload New User</a><br>
-    <a href="/upload_csv">Upload Users via CSV</a><br>
-    <a href="/users_paginated">View Paginated Users</a>
+    <h1>Delete Routes</h1>
+    <ul>
+        <li><a href="#" onclick="deleteRecords('/master')">Delete all Master records</a></li>
+        <li><a href="#" onclick="deleteRecords('/group')">Delete all Group records</a></li>
+        <li><a href="#" onclick="deleteRecords('/group_info')">Delete all GroupInfo records</a></li>
+        <li><a href="#" onclick="deleteRecords('/booking_info')">Delete all BookingInfo records</a></li>
+        <li><a href="#" onclick="deleteRecords('/transport')">Delete all Transport records</a></li>
+        <li><a href="#" onclick="deleteRecords('/schedule')">Delete all Schedule records</a></li>
+        <li><a href="#" onclick="deleteRecords('/user')">Delete all User records</a></li>
+        <li><a href="#" onclick="deleteRecords('/processed_master')">Delete all ProcessedMaster records</a></li>
+    </ul>
+    <script>
+        async function deleteRecords(endpoint) {
+            if (confirm(`Are you sure you want to delete all records from the ${endpoint.substring(1)} table?`)) {
+                try {
+                    const response = await fetch(endpoint, { method: 'DELETE' });
+                    const data = await response.json();
+                    alert(data.message);
+                } catch (error) {
+                    alert('An error occurred: ' + error);
+                }
+            }
+        }
+    </script>
 </body>
 </html>
