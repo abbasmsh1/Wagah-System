@@ -3,47 +3,54 @@
 {% block content %}
 <h2>Processed Masters</h2>
 
-<h3>Processed by: {{ current_user.username }}</h3>
+<form action="?" method="get">
+  <label for="user">Username:</label>  
+  <select name="user" id="user">
+    <option value="">All Users</option>
+    {% for user in users %}
+      <option value="{{ user.id }}" {% if user.id == request.query_params.get('user') %}selected{% endif %}>{{ user.username }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Filter</button>
+</form>
+
+{% set selected_user = request.query_params.get('user') %}
+{% set selected_user_obj = users|selectattr("id", "equalto", selected_user)|first %}
 
 <table>
-    <tr>
-        <th>ITS</th>
-        <th>First Name</th>
-        <th>Middle Name</th>
-        <th>Last Name</th>
-        <th>Passport Number</th>
-        <th>Passport Expiry Date</th>
-        <th>Visa Number</th>
-        <th>Processed By</th>
-    </tr>
-    {% for master in processed_masters %}
-    {% if master.processed_by == current_user.username %}
-    <tr>
-        <td>{{ master.ITS }}</td>
-        <td>{{ master.first_name }}</td>
-        <td>{{ master.middle_name }}</td>
-        <td>{{ master.last_name }}</td>
-        <td>{{ master.passport_No }}</td>
-        <td>{{ master.passport_Expiry }}</td>
-        <td>{{ master.Visa_No }}</td>
-        <td>{{ master.processed_by }}</td>
-    </tr>
-    {% endif %} 
-    {% endfor %}
+  <tr>
+    <th>ITS</th>
+    <th>First Name</th>
+    <th>Middle Name</th>
+    <th>Last Name</th>
+    <th>Passport Number</th>
+    <th>Passport Expiry Date</th>
+    <th>Visa Number</th>
+    <th>Processed By</th>
+  </tr>
+  {% for master in processed_masters %}
+  {% if not selected_user_obj or master.processed_by == selected_user_obj.username %}
+  <tr>
+    <td>{{ master.ITS }}</td>
+    <td>{{ master.first_name }}</td>
+    <td>{{ master.middle_name }}</td>
+    <td>{{ master.last_name }}</td>
+    <td>{{ master.passport_No }}</td>
+    <td>{{ master.passport_Expiry }}</td>
+    <td>{{ master.Visa_No }}</td>
+    <td>{{ master.processed_by }}</td>
+  </tr>
+  {% endif %}
+  {% endfor %}
 </table>
 
 <div>
-    {% if page > 1 %}
-    <a href="?page={{ page - 1 }}">Previous</a>
-    {% endif %}
+  {% if page > 1 %}
+  <a href="?page={{ page - 1 }}&user={{ selected_user }}">Previous</a>
+  {% endif %}
 
-    {% if page * page_size < total_count %}
-    <a href="?page={{ page + 1 }}">Next</a>
-    {% endif %}
+  {% if page * page_size < total_count %}
+  <a href="?page={{ page + 1 }}&user={{ selected_user }}">Next</a>
+  {% endif %}
 </div>
-
-<form action="/print-processed-masters/" method="post">
-    <input type="hidden" name="processed_by" value="{{ current_user.username }}">
-    <button type="submit">Print All</button>
-</form>
 {% endblock %}

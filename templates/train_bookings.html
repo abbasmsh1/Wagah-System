@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Train Bookings</h2>
+<table border="1">
+  <tr>
+    <th>Train Name</th>
+    <th>Booking Count</th>
+    <th>Passenger ITS</th>
+    <th>First Name</th>
+    <th>Middle Name</th>
+    <th>Last Name</th>
+    <th>Phone</th>
+    <th>Passport No</th>
+    <th>Visa No</th>
+  </tr>
+  {% for booking in bookings %}
+  <tr>
+    <td>{{ booking.train_name }}</td>
+    <td>{{ booking.booking_count }}</td>
+    <td>{{ booking.ITS }}</td>
+    <td>{{ booking.first_name }}</td>
+    <td>{{ booking.middle_name }}</td>
+    <td>{{ booking.last_name }}</td>
+    <td>{{ booking.phone }}</td>
+    <td>{{ booking.passport_No }}</td>
+    <td>{{ booking.Visa_No }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

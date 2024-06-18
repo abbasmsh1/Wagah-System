@@ -6,13 +6,15 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
-from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Transport, Bus, Plane, Train, GroupInfo, Group, ProcessedMaster, User
+from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Transport, Bus, Plane, Train, GroupInfo, Group, ProcessedMaster, User, TrainDetails
 import os
 import csv
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi.responses import JSONResponse
 from datetime import datetime
+from urllib.parse import unquote
+
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -34,7 +36,7 @@ def read_root(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
 
-# Customs Form
+# immigration Form
 
 @app.get("/master-form")
 def get_master_form(request: Request):
@@ -376,8 +378,9 @@ def get_add_train(request: Request):
     return templates.TemplateResponse("add_train.html", {"request": request})
 
 @app.post("/add-train/")
-def post_add_train(request: Request, company: str = Form(...), type: str = Form(...), departure_time: str = Form(...), db: Session = Depends(get_db)):
-    new_train = Train(company=company, type=type, departure_time=datetime.strptime(departure_time, '%Y-%m-%d').date())
+def post_add_train(request: Request, train_name: str = Form(...), departure_time: str = Form(...), db: Session = Depends(get_db)):
+    parsed_time = datetime.strptime(departure_time, '%H:%M').time()
+    new_train = Train(train_name=train_name, departure_time=parsed_time)
     db.add(new_train)
     db.commit()
     return RedirectResponse(url="/view-trains/", status_code=303)
@@ -510,13 +513,22 @@ def get_all_masters(db: Session = Depends(get_db)):
     
     return {"masters": masters_data}
 
-@app.post("/create-booking/", response_class=JSONResponse)
+@app.get("/create-booking/", response_class=JSONResponse)
 async def create_booking(
-    its: int = Form(...),
-    seat_number: int = Form(...),
-    bus_number: int = Form(...),
+    request: Request,
     db: Session = Depends(get_db)
 ):
+    print("Entered Function")
+    # Decode URL-encoded query parameters
+    query_string = str(request.url).split('?')[-1]
+    print(query_string)
+    params = query_string.split('&')
+    print(params)
+
+    its = int(params[0])
+    seat_number = int(params[2])
+    bus_number = int(params[1])
+
     # Check if ITS exists
     person = db.query(Master).filter(Master.ITS == its).first()
     if not person:
@@ -624,7 +636,96 @@ def get_booking_info_for_bus(bus_number: int = Path(...), db: Session = Depends(
 @app.get("/bus/")
 def get_bus_info(db: Session = Depends(get_db)):
     bus = db.query(Bus).all()
+    if not bus:
+        raise HTTPException(status_code=404, detail="No Bus information found")
+    return JSONResponse(content=[{
+        "bus_number": busses.bus_number,
+        "bus_type": busses.type
+    } for busses in bus])
     
+
+@app.get("/train-booking-form/", response_class=HTMLResponse)
+async def get_train_booking_form(request: Request, its: int = Query(None), db: Session = Depends(get_db)):
+    person = None
+    trains = db.query(Train).all()  # Fetch all trains
+    search = its  # To display in the template if no person found
+
+    if its:
+        person = db.query(Master).filter(Master.ITS == its).first()
+    
+    return templates.TemplateResponse("train_booking_form.html", {"request": request, "person": person, "trains": trains, "search": search})
+
+@app.post("/book-train-details/", response_class=HTMLResponse)
+async def book_train_details(
+    request: Request,
+    its: int = Form(...),
+    train_number: str = Form(...),
+    seat_number: int = Form(...),
+    coach_number: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    try:
+        train = db.query(Train).filter(Train.train_number == train_number).first()
+        if not train:
+            raise HTTPException(status_code=404, detail="Train not found")
+
+        new_train_details = TrainDetails(
+            train_number=train_number,
+            seat_number=seat_number,
+            coach_number=coach_number
+        )
+        db.add(new_train_details)
+        db.commit()
+        db.refresh(new_train_details)
+
+        new_booking = BookingInfo(
+            ITS=its,
+            Mode=3,
+            Issued=True,
+            Departed=False,
+            Self_Issued=True,
+            train_details_id=new_train_details.id
+        )
+        db.add(new_booking)
+        db.commit()
+
+        person = db.query(Master).filter(Master.ITS == its).first()
+        return templates.TemplateResponse("train_booking_form.html", {"request": request, "person": person, "trains": db.query(Train).all(), "message": "Train booked successfully"})
+    except Exception as e:
+        db.rollback()
+        person = db.query(Master).filter(Master.ITS == its).first()
+        return templates.TemplateResponse("train_booking_form.html", {"request": request, "person": person, "trains": db.query(Train).all(), "error": f"Failed to book the train: {str(e)}"})
+
+
+@app.get("/train-bookings/", response_class=HTMLResponse)
+async def get_train_bookings(request: Request, db: Session = Depends(get_db)):
+    trains = db.query(Train).all()
+    train_data = [{
+        "id": train.id,
+        "train_name": train.train_name,
+        "departure_time": train.departure_time.isoformat()
+    } for train in trains]
+    return templates.TemplateResponse("train_bookings.html", {"request": request, "trains": train_data})
+
+# Define a function to fetch aggregated train bookings with ITS details
+def get_train_bookings_with_details(db: Session) -> List[dict]:
+    train_bookings = db.query(TrainDetails).all()
+    result = []
+    for booking in train_bookings:
+        master_details = db.query(Master).filter(Master.ITS == booking.ITS).first()
+        if master_details:
+            result.append({
+                "train_name": booking.train_number,
+                "ITS": master_details.ITS,
+                "first_name": master_details.first_name,
+                "middle_name": master_details.middle_name,
+                "last_name": master_details.last_name,
+                "phone": master_details.phone,
+                "passport_No": master_details.passport_No,
+                "Visa_No": master_details.Visa_No
+            })
+    return result
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))

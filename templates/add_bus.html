@@ -4,9 +4,29 @@
 <h2>Add New Bus</h2>
 <form action="/add-bus/" method="post">
     <label for="no_of_seats">Number of Seats:</label>
-    <input type="number" id="no_of_seats" name="no_of_seats" required>
+    <input type="number" id="no_of_seats" name="no_of_seats" required readonly>
+    
     <label for="type">Type:</label>
-    <input type="text" id="type" name="type" required>
+    <select id="type" name="type" required onchange="updateSeats()">
+        <option value="">Select Type</option>
+        <option value="Business">Business</option>
+        <option value="Executive">Executive</option>
+    </select>
+    
     <button type="submit">Add Bus</button>
 </form>
+
+<script>
+    function updateSeats() {
+        var type = document.getElementById("type").value;
+        var seatsInput = document.getElementById("no_of_seats");
+        if (type === "Business") {
+            seatsInput.value = 36;
+        } else if (type === "Executive") {
+            seatsInput.value = 30;
+        } else {
+            seatsInput.value = '';
+        }
+    }
+</script>
 {% endblock %}

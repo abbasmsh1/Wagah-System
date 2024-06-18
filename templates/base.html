@@ -5,19 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FastAPI App</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        /* Add this CSS for dropdown menus */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f1f1f1;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+        .dropdown-content a:hover {
+            background-color: #ddd;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+    </style>
 </head>
 <body>
     <nav>
         <ul>
-            <li><a href="/home/">Home</a></li>
-            <li><a href="/master-form">Customs Form</a></li>
-            <li><a href="/mark-as-arrived-form/">Mark as Arrived</a></li>
-            <li><a href="/assign-sim-form">Assign SIM</a></li>
-            <li><a href = "/bus-booking/">Bus Booking </a></li>
-            <li><a href="/view-booking-info/">view booking info</a></li>
-            <li><a href="/view-buses/">View Buses</a></li>
-            <li><a href="/add-bus/">Add Bus</a></li>
-            <li><a href="/upload-csv/">Upload CSV</a></li>
+            <li><a href="/">Home</a></li>
+            <li class="dropdown">
+                <a href="/master-form">immigration Form</a>
+                <div class="dropdown-content">
+                    <a href="/master-form">Master Form</a>
+                    <a href="/masters/">Master List</a>
+                    <a href="/processed-masters/">Processed Masters</a>
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="/mark-as-arrived-form/">SIM and Scanning</a>
+                <div class="dropdown-content">
+                    <a href="/mark-as-arrived-form/">Mark as Arrived Form</a>
+                    <a href="/assign-sim-form">Assign SIM Form</a>
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="/bus-booking/">Bus Booking</a>
+                <div class="dropdown-content">
+                    <a href="/bus-booking/">Book Bus</a>
+                    <a href="/view-buses/">View Buses</a>
+                    <a href="/add-bus/">Add Bus</a>
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="/train-booking-form/">Train Booking</a>
+                <div class="dropdown-content">
+                    <a href="/train-booking-form/">Book Train</a>
+                    <a href="/view-trains/">View Trains</a>
+                    <a href="/add-train/">Add Train</a>
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="/bus-booking/">Plane Booking</a>
+                <div class="dropdown-content">
+                    <a href="/bus-booking/">Book Plane</a>
+                    <a href="/view-trains/">View Plane</a>
+                    <a href="/add-train/">Add Plane</a>
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="/view-booking-info/">View Booking Info</a>
+                <div class="dropdown-content">
+                    <a href="/bus-booking/">Bus Info</a>
+                    <a href="book-train-details/">Train Info</a>
+                    <a href="/add-bus/">Plane Info</a>
+                    <a href="/add-bus/">Shuttle Info</a>
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="/upload-csv/">Upload CSV</a>
+                <div class="dropdown-content">
+                    <a href="/upload-csv/">Upload CSV</a>
+                </div>
+            </li>
         </ul>
     </nav>
     <div class="container">
