@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
-from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Transport, Bus, Plane, Train, GroupInfo, Group, ProcessedMaster, User, TrainDetails
+from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Transport, Bus, Plane, Train, ProcessedMaster, User, TrainDetails
 import os
 import csv
 import io
@@ -14,6 +14,22 @@ from datetime import datetime, timedelta
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from urllib.parse import unquote
+
+def compress_its(its: int) -> str:
+    try:
+        its = str(its)
+        print(len(its))
+        if len(its) == 12:
+            indices = [6, 5, 2, 7, 4, 0, 9, 8]
+            compressed_its = ''.join(its[i] for i in indices)
+            return int(compressed_its)
+        elif len(its) == 8:
+            return int(its)
+        else:
+            print("Error")
+    except:
+        return its
+
 
 app = FastAPI()
 
@@ -47,6 +63,7 @@ def get_master_form(request: Request):
 @app.get("/master/")
 def get_master_by_its(request: Request, its: int, db: Session = Depends(get_db)):
     print("Master data updated")
+    its = compress_its(its)
     master = db.query(Master).filter(Master.ITS == int(its)).first()
     if not master:
         raise HTTPException(status_code=404, detail="Master not found")
@@ -64,6 +81,7 @@ async def update_master(
     Visa_No: str = Form(None),
     db: Session = Depends(get_db)
 ):
+    its = compress_its(its)
     master = db.query(Master).filter(Master.ITS == int(its)).first()
     if not master:
         raise HTTPException(status_code=404, detail="Master not found")
@@ -104,6 +122,7 @@ async def get_master_info(
     its: int = Query(..., description="ITS of the master to retrieve"), 
     db: Session = Depends(get_db)
 ):
+    its = compress_its(its)
     master = db.query(Master).filter(Master.ITS == its).first()
     if not master:
         raise HTTPException(status_code=404, detail="Master not found")
@@ -136,6 +155,7 @@ async def list_masters(request: Request, page: int = Query(1), db: Session = Dep
 # Mark as Arrived
 @app.get("/mark-as-arrived/")
 async def mark_as_arrived(its: int, db: Session = Depends(get_db)):
+    its = compress_its(its)
     master = db.query(Master).filter(Master.ITS == its).first()
     if master:
         master.arrived = True
@@ -149,7 +169,7 @@ async def mark_as_arrived(its: int, db: Session = Depends(get_db)):
 
 @app.get("/mark-as-arrived-form/")
 async def get_mark_as_arrived_form(request: Request, its: int = None, message: str = None, db: Session = Depends(get_db)):
-    
+    its = compress_its(its)
     master = db.query(Master).filter(Master.ITS == its).first()
     return templates.TemplateResponse("arrive.html", {"request": request, "master": master, "message": message})
 
@@ -160,6 +180,7 @@ async def get_mark_as_arrived_form(request: Request, its: int = None, message: s
 async def get_assign_sim_form(request: Request, its: int = Form(...)):
     if request.method == "POST":
         db = SessionLocal()
+        its = compress_its(its)
         master = db.query(Master).filter(Master.ITS == its).first()
         if not master:
             raise HTTPException(status_code=404, detail="Master not found")
@@ -170,6 +191,7 @@ async def get_assign_sim_form(request: Request, its: int = Form(...)):
 
 @app.post("/assign-sim/", response_class=HTMLResponse)
 async def assign_sim(request: Request, its: int = Form(...), db: Session = Depends(get_db)):
+    its = compress_its(its)
     master = db.query(Master).filter(Master.ITS == its).first()
     if not master:
         raise HTTPException(status_code=404, detail="Master not found")
@@ -180,6 +202,7 @@ async def assign_sim(request: Request, its: int = Form(...), db: Session = Depen
 
 @app.post("/update-phone/", response_class=HTMLResponse)
 async def update_phone(request: Request, its: int = Form(...), phone_number: str = Form(...), db: Session = Depends(get_db)):
+    its = compress_its(its)
     existing_master = db.query(Master).filter(Master.phone == phone_number).first()
     if existing_master and existing_master.ITS != its:
         error_message = "This phone number is already assigned to another ITS"
@@ -202,8 +225,9 @@ async def get_bus_booking_form(request: Request, its: int = Query(None), db: Ses
     person = None
     buses = db.query(Bus).all()  # Fetch all buses
     search = its  # To display in the template if no person found
-
+    
     if its:
+        its = compress_its(its)
         person = db.query(Master).filter(Master.ITS == its).first()
     
     return templates.TemplateResponse("bus_booking.html", {"request": request, "person": person, "buses": buses, "search": search})
@@ -217,6 +241,7 @@ async def post_book_bus(
     bus_number: str = Form(...),
     db: Session = Depends(get_db)
 ):
+    its = compress_its(its)
     try:
         # Check if bus exists and fetch its details
         bus = db.query(Bus).filter(Bus.bus_number == bus_number).first()
@@ -435,58 +460,13 @@ async def post_upload_csv(request: Request, file: UploadFile = File(...), db: Se
     db.commit()
     return RedirectResponse(url="/", status_code=303)
 
-# Group Registration
-
-@app.get("/register-group/", response_class=HTMLResponse)
-async def get_group_registration_form(request: Request):
-    return templates.TemplateResponse("group_registration.html", {"request": request})
-
-# Route to handle group registration form submission
-@app.post("/register-group/", response_class=HTMLResponse)
-async def register_group(
-    request: Request,
-    leader_its: int = Form(...),
-    member_its: List[int] = Form(...),
-    db: Session = Depends(get_db)
-):
-    try:
-        # Check if the leader exists
-        leader = db.query(Master).filter(Master.ITS == leader_its).first()
-        if not leader:
-            raise HTTPException(status_code=404, detail="Leader not found")
-
-        # Create a new group
-        new_group = Group(leader_ITS=leader_its)
-        db.add(new_group)
-        db.commit()
-
-        # Add members to the group
-        for member_its in member_its:
-            member = db.query(Master).filter(Master.ITS == member_its).first()
-            if member:
-                group_info = GroupInfo(group_ID=new_group.ID, ITS=member_its)
-                db.add(group_info)
-
-        db.commit()
-
-        return templates.TemplateResponse("group_registration.html", {"request": request, "message": "Group registered successfully"})
-
-    except Exception as e:
-        db.rollback()
-        return templates.TemplateResponse("group_registration.html", {"request": request, "error": "Failed to register group. Please try again."})
-
-
-# Get all groups
-@app.get("/view-all-groups", response_class=HTMLResponse)
-async def get_all_groups(request: Request, db: Session = Depends(get_db)):
-    groups = db.query(GroupInfo).all()
-    return templates.TemplateResponse("view_all_groups.html", {"request": request, "groups": groups})
 
 
 # APIs
 
 @app.get("/{its}")
 def get_master(its: int, db: Session = Depends(get_db)):
+    its = compress_its(its)
     master = db.query(Master).filter(Master.ITS == its).first()
     if not master:
         return JSONResponse(status_code=404, content={"error": "Master not found"})
