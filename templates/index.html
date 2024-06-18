@@ -4,19 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Delete Routes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin: auto;
+            padding: 20px;
+        }
+        .card {
+            background-color: rgba(255, 176, 79);
+            padding: 20px;
+            height: 10vh;
+            width: 10vw;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer; /* Add cursor pointer for better UX */
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .card:hover {
+            background-color: #f0f0f0;
+        }
+        .card a {
+            text-decoration: none;
+            color: #333;
+        }
+    </style>
 </head>
 <body>
     <h1>Delete Routes</h1>
-    <ul>
-        <li><a href="#" onclick="deleteRecords('/master')">Delete all Master records</a></li>
-        <li><a href="#" onclick="deleteRecords('/group')">Delete all Group records</a></li>
-        <li><a href="#" onclick="deleteRecords('/group_info')">Delete all GroupInfo records</a></li>
-        <li><a href="#" onclick="deleteRecords('/booking_info')">Delete all BookingInfo records</a></li>
-        <li><a href="#" onclick="deleteRecords('/transport')">Delete all Transport records</a></li>
-        <li><a href="#" onclick="deleteRecords('/schedule')">Delete all Schedule records</a></li>
-        <li><a href="#" onclick="deleteRecords('/user')">Delete all User records</a></li>
-        <li><a href="#" onclick="deleteRecords('/processed_master')">Delete all ProcessedMaster records</a></li>
-    </ul>
+    <div class="container">
+        <div class="card" onclick="deleteRecords('/delete_all_except_users')"><a href="#">Refresh ALL DATA</a></div>
+        <div class="card" onclick="deleteRecords('/master')"><a href="#">Delete all Master records</a></div>
+        <div class="card" onclick="deleteRecords('/group')"><a href="#">Delete all Group records</a></div>
+        <div class="card" onclick="deleteRecords('/group_info')"><a href="#">Delete all GroupInfo records</a></div>
+        <div class="card" onclick="deleteRecords('/booking_info')"><a href="#">Delete all BookingInfo records</a></div>
+        <div class="card" onclick="deleteRecords('/transport')"><a href="#">Delete all Transport records</a></div>
+        <div class="card" onclick="deleteRecords('/schedule')"><a href="#">Delete all Schedule records</a></div>
+        <div class="card" onclick="deleteRecords('/user')"><a href="#">Delete all User records</a></div>
+        <div class="card" onclick="deleteRecords('/processed_master')"><a href="#">Delete all ProcessedMaster records</a></div>
+        <div class="card" onclick="deleteRecords('/bus')"><a href="#">Delete all Bus records</a></div>
+        <div class="card" onclick="deleteRecords('/train')"><a href="#">Delete all Train records</a></div>
+        <div class="card" onclick="deleteRecords('/plane')"><a href="#">Delete all Plane records</a></div>
+    </div>
     <script>
         async function deleteRecords(endpoint) {
             if (confirm(`Are you sure you want to delete all records from the ${endpoint.substring(1)} table?`)) {

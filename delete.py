@@ -28,7 +28,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 # Import your SQLAlchemy models here
-from database import Base, Master, Group, GroupInfo, BookingInfo, Transport, Bus, Train, Plane, Shuttle, Schedule, User, ProcessedMaster
+from database import Base, Master, BookingInfo, Transport, Bus, Train, Plane, Shuttle, Schedule, User, ProcessedMaster
 
 # Create the FastAPI app
 app = FastAPI()
@@ -49,23 +49,12 @@ def get_db():
 def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+# Define delete endpoints for each table
 @app.delete("/master")
 def delete_all_master(db: Session = Depends(get_db)):
     db.query(Master).delete()
     db.commit()
     return JSONResponse(content={"message": "All records deleted successfully from Master table"})
-
-@app.delete("/group")
-def delete_all_group(db: Session = Depends(get_db)):
-    db.query(Group).delete()
-    db.commit()
-    return JSONResponse(content={"message": "All records deleted successfully from Group table"})
-
-@app.delete("/group_info")
-def delete_all_group_info(db: Session = Depends(get_db)):
-    db.query(GroupInfo).delete()
-    db.commit()
-    return JSONResponse(content={"message": "All records deleted successfully from GroupInfo table"})
 
 @app.delete("/booking_info")
 def delete_all_booking_info(db: Session = Depends(get_db)):
@@ -96,6 +85,42 @@ def delete_all_processed_master(db: Session = Depends(get_db)):
     db.query(ProcessedMaster).delete()
     db.commit()
     return JSONResponse(content={"message": "All records deleted successfully from ProcessedMaster table"})
+
+@app.delete("/bus")
+def delete_all_bus(db: Session = Depends(get_db)):
+    db.query(Bus).delete()
+    db.commit()
+    return JSONResponse(content={"message": "All records deleted successfully from Bus table"})
+
+@app.delete("/train")
+def delete_all_train(db: Session = Depends(get_db)):
+    db.query(Train).delete()
+    db.commit()
+    return JSONResponse(content={"message": "All records deleted successfully from Train table"})
+
+@app.delete("/plane")
+def delete_all_plane(db: Session = Depends(get_db)):
+    db.query(Plane).delete()
+    db.commit()
+    return JSONResponse(content={"message": "All records deleted successfully from Plane table"})
+
+@app.delete("/delete_all_except_users")
+def delete_all_except_users(db: Session = Depends(get_db)):
+    try:
+        db.query(Master).delete()
+        db.query(BookingInfo).delete()
+        db.query(Transport).delete()
+        db.query(Schedule).delete()
+        db.query(ProcessedMaster).delete()
+        db.query(Bus).delete()
+        db.query(Train).delete()
+        db.query(Plane).delete()
+        
+        db.commit()
+        return JSONResponse(content={"message": "All records deleted successfully except from Users table"})
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
 
 # Run the application
 if __name__ == "__main__":

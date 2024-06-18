@@ -169,6 +169,7 @@ async def print_processed_its(request: Request, current_user: User = Depends(get
     response_content += """
                 </tbody>
             </table>
+            group Number 5
         </body>
     </html>
     """

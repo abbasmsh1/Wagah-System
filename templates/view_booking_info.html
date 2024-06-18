@@ -23,7 +23,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for booking, master in booking_info %}
+        {% for booking, master in booking_info |sort(attribute='seat_number') %}
         <tr>
             <td>{{ booking.ITS }}</td>
             <td>{{ master.first_name }} {{ master.last_name }}</td>
