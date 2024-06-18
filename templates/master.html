@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Customs Info</h1>
+<h1>immigration Info</h1>
 <form action="/master/info" method="get">
     <label for="its">ITS:</label>
     <input type="number" id="its" name="its" required>
@@ -9,7 +9,7 @@
 </form>
 
 {% if master %}
-<h2>Customs Information</h2>
+<h2>immigration Information</h2>
 <form action="/master/update" method="post" id="masterForm">
     <table>
         <tr>

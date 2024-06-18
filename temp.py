@@ -10,13 +10,14 @@ from fastapi import FastAPI, HTTPException
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 BACKUP_DIR = 'backups'
+EXTERNAL_DIR = 'F:/backups'  # Use forward slashes for Windows path
 
 def get_engine():
     return create_engine(DATABASE_URL)
 
 def backup_table(engine, table_name):
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    backup_file = os.path.join(BACKUP_DIR, f"{table_name}_backup_{timestamp}.sql")
+    backup_file = os.path.join(BACKUP_DIR, f"{table_name}_backup.sql")
 
     with sqlite3.connect(engine.url.database) as conn:
         with open(backup_file, 'w') as f:
@@ -24,7 +25,14 @@ def backup_table(engine, table_name):
                 if line.startswith(f'INSERT INTO "{table_name}"'):
                     f.write(f'{line}\n')
 
-    print(f"Backup for table {table_name} created at {backup_file}")
+    backup_file_external = os.path.join(EXTERNAL_DIR, f"{table_name}_backup.sql")
+    with sqlite3.connect(engine.url.database) as conn:
+        with open(backup_file_external, 'w') as f:
+            for line in conn.iterdump():
+                if line.startswith(f'INSERT INTO "{table_name}"'):
+                    f.write(f'{line}\n')
+
+    print(f"Backup for table {table_name} created at {backup_file} and {backup_file_external}")
 
 def backup_database():
     if not os.path.exists(BACKUP_DIR):
@@ -53,7 +61,6 @@ def restore_table(engine, table_name, backup_file):
 
     print(f"Data for table {table_name} restored from {backup_file}")
 
-
 def run_scheduler():
     while True:
         schedule.run_pending()
@@ -69,11 +76,12 @@ def startup_event():
 @app.post("/restore-table/")
 async def restore_table_endpoint(table_name: str, backup_file: str):
     engine = get_engine()
-    if not os.path.exists(backup_file):
+    external_backup_file = os.path.join(EXTERNAL_DIR, backup_file)
+    if not os.path.exists(external_backup_file):
         raise HTTPException(status_code=404, detail="Backup file not found")
     
     try:
-        restore_table(engine, table_name, backup_file)
+        restore_table(engine, table_name, external_backup_file)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     

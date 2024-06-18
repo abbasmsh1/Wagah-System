@@ -1,6 +1,6 @@
 import os
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, Column, Integer, String, Date, Boolean, ForeignKey, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, Date, Boolean, ForeignKey, DateTime, Time
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from dotenv import load_dotenv
@@ -57,7 +57,30 @@ class GroupInfo(Base):
 
 # Define the Booking_Info model with a composite primary key
 from typing import Optional
+# In your models.py or database.py where your SQLAlchemy models are defined
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 
+class Train(Base):
+    __tablename__ = "train"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    train_name = Column(String, nullable=False)
+    departure_time = Column(Time, nullable=False)
+
+    train_details = relationship("TrainDetails", back_populates="train")
+
+# Define the TrainDetails model
+class TrainDetails(Base):
+    __tablename__ = "train_details"
+    id = Column(Integer, primary_key=True, index=True)
+    train_id = Column(Integer, ForeignKey("train.id"))
+    seat_number = Column(Integer, nullable=False)
+    coach_number = Column(String, nullable=False)
+
+    train = relationship("Train", back_populates="train_details")
+    booking_info = relationship("BookingInfo", back_populates="train_details")
+
+# Define the BookingInfo model
 class BookingInfo(Base):
     __tablename__ = "booking_info"
     Mode = Column(Integer, primary_key=True, index=True)
@@ -65,8 +88,11 @@ class BookingInfo(Base):
     Issued = Column(Boolean)
     Departed = Column(Boolean)
     Self_Issued = Column(Boolean, default=False)
-    seat_number = Column(Integer)  # Add seat number column
-    bus_number = Column(Integer)  # Add bus number column
+    seat_number = Column(Integer)
+    bus_number = Column(Integer)
+    train_details_id = Column(Integer, ForeignKey("train_details.id"), nullable=True)
+
+    train_details = relationship("TrainDetails", back_populates="booking_info")
 
     @staticmethod
     def fill_form(db_session: Session, its: int, seat_number: int, bus_number: int):
@@ -117,15 +143,6 @@ class Bus(Transport):
     type = Column(String, index=True,nullable=True)
     __mapper_args__ = {
         'polymorphic_identity': 'bus',
-    }
-
-class Train(Transport):
-    __tablename__ = "train"
-    train_id = Column(Integer, ForeignKey('transport.id'), primary_key=True)
-    company = Column(String, nullable=True)
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'train',
     }
 
 class Plane(Transport):
