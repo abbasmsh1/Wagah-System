@@ -82,6 +82,13 @@ async def update_master(
     db: Session = Depends(get_db)
 ):
     its = compress_its(its)
+    
+    # Check if the ITS is already processed
+    if db.query(ProcessedMaster).filter(ProcessedMaster.ITS == int(its)).first():
+        error_message = "This ITS entry has already been processed."
+        master = db.query(Master).filter(Master.ITS == int(its)).first()
+        return templates.TemplateResponse("master.html", {"request": request, "master": master, "error_message": error_message})
+    
     master = db.query(Master).filter(Master.ITS == int(its)).first()
     if not master:
         raise HTTPException(status_code=404, detail="Master not found")
@@ -114,6 +121,8 @@ async def update_master(
     
     db.commit()
     return templates.TemplateResponse("master.html", {"request": request, "master": master})
+
+
 
 
 @app.get("/master/info/", response_class=HTMLResponse)
@@ -556,31 +565,40 @@ PAGE_SIZE = 10
 
 @app.get("/processed-masters/", response_class=HTMLResponse)
 async def get_processed_masters(
-    request: Request, 
-    page: int = 1, 
+    request: Request,
+    page: int = 1,
+    user: str = None,  # Accept username from query parameter
     db: Session = Depends(get_db)
 ):
     users = db.query(User).all()
-    users = list(users)
     total_count = db.query(func.count(ProcessedMaster.ITS)).scalar()
+
+    # Base query for processed masters
+    query = db.query(ProcessedMaster)
+
+    # Apply username filter if username is provided
+    if user:
+        query = query.filter(ProcessedMaster.processed_by == user)
+
+    # Retrieve processed masters for the current page
     processed_masters = (
-        db.query(ProcessedMaster)
-        .offset((page - 1) * PAGE_SIZE)
+        query.offset((page - 1) * PAGE_SIZE)
         .limit(PAGE_SIZE)
         .all()
     )
+
     return templates.TemplateResponse(
-        "processed_masters.html", 
+        "processed_masters.html",
         {
-            "request": request, 
-            "processed_masters": processed_masters, 
+            "request": request,
+            "processed_masters": processed_masters,
             "page": page,
             "page_size": PAGE_SIZE,
             "total_count": total_count,
-            "users": users,  # Pass the users list to the template# Pass the current user to the template
+            "users": users,
+            "selected_user": user,  # Pass the selected username to the template
         }
     )
-
 
 @app.post("/print-processed-masters/", response_class=HTMLResponse)
 async def print_processed_masters(page: int = Form(...), db: Session = Depends(get_db)):
@@ -705,6 +723,13 @@ def get_train_bookings_with_details(db: Session) -> List[dict]:
                 "Visa_No": master_details.Visa_No
             })
     return result
+
+@app.get("/api/check_processed_its", response_model=bool)
+async def check_processed_its(its: int, db: Session = Depends(get_db)):
+    its = compress_its(its)
+    exists = db.query(ProcessedMaster).filter(ProcessedMaster.ITS == int(its)).first() is not None
+    return exists
+
 
 if __name__ == "__main__":
     import uvicorn

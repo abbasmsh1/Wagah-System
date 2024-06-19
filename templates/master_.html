@@ -6,7 +6,30 @@
     <title>Immigration Forms</title>
     <link rel="stylesheet" href="/static/custom.css">
 </head>
+<script>
+    let groupNumbers = {};
+    
+    async function updateProcessedCount() {
+        const response = await fetch("/api/processed-count/");
+        const data = await response.json();
+        groupNumbers = data.groupNumbers;
+    }
 
+    function getGroupNumber(username) {
+        if (!(username in groupNumbers)) {
+            const availableGroups = Object.keys(groupNumbers).filter(group => groupNumbers[group] < 10);
+            if (availableGroups.length > 0) {
+                groupNumbers[username] = Math.min(...availableGroups);
+            } else {
+                groupNumbers[username] = Math.max(...Object.values(groupNumbers)) + 1;
+            }
+            groupNumbers[username] = groupNumbers[username] || 1;
+        }
+        return groupNumbers[username];
+    }
+
+    window.onload = updateProcessedCount;
+</script>
 <body>
     <div class="container">
         <h1>Immigration Info</h1>
@@ -22,7 +45,7 @@
         {% endif %}
 
         {% if master %}
-        <h2>immigration Information</h2>
+        <h2>Immigration Information</h2>
         <form action="/master/update" method="post" id="masterForm">
             <table>
                 <tr>
@@ -65,10 +88,6 @@
         </div>
 
         <script>
-            let processedITSList = JSON.parse(localStorage.getItem('processedITSList')) || [];
-            let processedCount = localStorage.getItem('processedCount') || 0;
-            document.getElementById('processedCountSpan').innerText = processedCount;
-
             function printForm() {
                 const printContents = document.getElementById('masterForm').outerHTML;
                 const originalContents = document.body.innerHTML;
@@ -86,17 +105,13 @@
                     printWindow.document.write(html);
                     printWindow.document.close();
                     printWindow.print();
-                    processedITSList = [];
-                    localStorage.setItem('processedITSList', JSON.stringify(processedITSList));
-                    processedCount = 0;
-                    localStorage.setItem('processedCount', processedCount);
-                    document.getElementById('processedCountSpan').innerText = processedCount;
                 } else {
                     console.error('Failed to print processed ITS entries');
                 }
             }
 
             // Automatically print when the list reaches 10 entries
+            const processedCount = {{ processedCount }};
             if (processedCount >= 10) {
                 printProcessedITS();
             }
