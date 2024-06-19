@@ -13,6 +13,8 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+group_numbers = {}
+
 def get_db():
     db = SessionLocal()
     try:
@@ -138,14 +140,23 @@ async def get_master_info(request: Request, its: int = Query(...), db: Session =
     processed_count = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).count()
     return templates.TemplateResponse("master_.html", {"request": request, "master": master, "processedCount": processed_count})
 
-@app.get("/print-processed-its/")
+@app.get("/print-processed-its/", response_class=HTMLResponse)
 async def print_processed_its(request: Request, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    global group_numbers
+
+    if current_user.username not in group_numbers:
+        group_numbers[current_user.username] = max(group_numbers.values(), default=0) + 1
+
     processed_entries = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).all()
 
-    response_content = """
+    response_content = f"""
     <html>
+        <head>
+            <title>Processed ITS Entries</title>
+        </head>
         <body>
             <h2>Processed ITS Entries</h2>
+            <h3>Group Number: {group_numbers[current_user.username]}</h3>
             <table border="1">
                 <thead>
                     <tr>
@@ -169,15 +180,15 @@ async def print_processed_its(request: Request, current_user: User = Depends(get
     response_content += """
                 </tbody>
             </table>
-            group Number 5
         </body>
     </html>
     """
 
+    # Clear processed entries for the user after printing
     db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).delete()
     db.commit()
-    return HTMLResponse(content=response_content)
 
+    return HTMLResponse(content=response_content)
 
 if __name__ == "__main__":
     import uvicorn

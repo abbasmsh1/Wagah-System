@@ -1,16 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>immigration Info</h1>
+<h1>Immigration Info</h1>
 <form action="/master/info" method="get">
     <label for="its">ITS:</label>
     <input type="number" id="its" name="its" required>
     <button type="submit">Get Info</button>
 </form>
 
+{% if error_message %}
+    <div style="color: red;">{{ error_message }}</div>
+{% endif %}
+
 {% if master %}
-<h2>immigration Information</h2>
-<form action="/master/update" method="post" id="masterForm">
+<h2>Immigration Information</h2>
+<form id="masterForm">
     <table>
         <tr>
             <th>ITS</th>
@@ -51,28 +55,47 @@
     <button type="button" id="printProcessedButton" onclick="printProcessedITS()">Print Processed Entries</button>
 </div>
 
+<div id="error_message" style="color: red;"></div>
+
 <script>
 let processedCount = localStorage.getItem('processedCount') ? parseInt(localStorage.getItem('processedCount')) : 0;
 let processedITSList = JSON.parse(localStorage.getItem('processedITSList')) || [];
 
 document.getElementById('processedCountSpan').innerText = processedCount;
 
+async function checkProcessedITS(its) {
+    const response = await fetch(`/api/check_processed_its?its=${its}`);
+    return await response.json();
+}
+
 function incrementProcessedCount() {
-    processedCount++;
+    const its = document.getElementById('its').value;
+    const firstName = document.getElementById('first_name').value;
+    const lastName = document.getElementById('last_name').value;
+    const passportNo = document.getElementById('passport_No').value;
+    const visaNo = document.getElementById('Visa_No').value;
     
     const itsEntry = {
-        its: document.getElementById('its').value,
-        firstName: document.getElementById('first_name').value,
-        lastName: document.getElementById('last_name').value,
-        passportNo: document.getElementById('passport_No').value,
-        visaNo: document.getElementById('Visa_No').value
+        its: its,
+        firstName: firstName,
+        lastName: lastName,
+        passportNo: passportNo,
+        visaNo: visaNo
     };
-    
+
+    // Check if the ITS entry already exists in the local storage
+    if (processedITSList.some(entry => entry.its === its)) {
+        document.getElementById('error_message').innerText = 'This ITS entry has already been processed.';
+        return;
+    }
+
     processedITSList.push(itsEntry);
+    processedCount++;
     localStorage.setItem('processedCount', processedCount);
     localStorage.setItem('processedITSList', JSON.stringify(processedITSList));
     
     document.getElementById('processedCountSpan').innerText = processedCount;
+    document.getElementById('error_message').innerText = ''; // Clear error message
     
     if (processedCount >= 10) {
         alert('You have processed 10 ITS entries. Printing...');
@@ -110,8 +133,19 @@ function printProcessedITS() {
 }
 
 // Attach the incrementProcessedCount function to form submission
-document.getElementById('masterForm').addEventListener('submit', function(event) {
-    incrementProcessedCount();
+document.getElementById('masterForm').addEventListener('submit', async function(event) {
+    event.preventDefault(); // Prevent default form submission
+    
+    const its = document.getElementById('its').value;
+    const alreadyProcessed = await checkProcessedITS(its);
+
+    if (alreadyProcessed) {
+        document.getElementById('error_message').innerText = 'This ITS entry has already been processed.';
+    } else {
+        incrementProcessedCount();
+        // Submit the form if ITS is not already processed
+        event.target.submit();
+    }
 });
 
 </script>
