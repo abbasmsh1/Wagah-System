@@ -6,13 +6,29 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
-from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Transport, Bus, Plane, Train, GroupInfo, Group, ProcessedMaster, User
+from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Transport, Bus, Plane, Train, ProcessedMaster, User
 import os
 import csv
 import io
 from datetime import datetime
 from fastapi.exceptions import RequestValidationError
 from pydantic.error_wrappers import ValidationError
+
+def compress_its(its: int) -> str:
+    try:
+        its = str(its)
+        print(len(its))
+        if len(its) == 12:
+            indices = [6, 5, 2, 7, 4, 0, 9, 8]
+            compressed_its = ''.join(its[i] for i in indices)
+            return int(compressed_its)
+        elif len(its) == 8:
+            return int(its)
+        else:
+            print("Error")
+    except:
+        return its
+
 
 app = FastAPI()
 
@@ -62,6 +78,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
 
 @app.route("/assign-sim-form/", methods=["GET", "POST"])
 async def get_assign_sim_form(request: Request, its: int = Form(...)):
+    its = compress_its(its)
     if request.method == "POST":
         db = SessionLocal()
         master = db.query(Master).filter(Master.ITS == its).first()
@@ -74,6 +91,7 @@ async def get_assign_sim_form(request: Request, its: int = Form(...)):
 
 @app.post("/assign-sim/", response_class=HTMLResponse)
 async def assign_sim(request: Request, its: int = Form(...), db: Session = Depends(get_db)):
+    its = compress_its(its)
     master = db.query(Master).filter(Master.ITS == its).first()
     if not master:
         raise HTTPException(status_code=404, detail="Master not found")
@@ -84,6 +102,7 @@ async def assign_sim(request: Request, its: int = Form(...), db: Session = Depen
 
 @app.post("/update-phone/", response_class=HTMLResponse)
 async def update_phone(request: Request, its: int = Form(...), phone_number: str = Form(...), db: Session = Depends(get_db)):
+    its=compress_its(its)
     existing_master = db.query(Master).filter(Master.phone == phone_number).first()
     if existing_master and existing_master.ITS != its:
         error_message = "This phone number is already assigned to another ITS"
@@ -99,31 +118,31 @@ async def update_phone(request: Request, its: int = Form(...), phone_number: str
     db.refresh(master)
     return templates.TemplateResponse("assign_sim_.html", {"request": request, "master": master, "message": "Phone number updated successfully"})
 
-async def http_exception_handler(request: Request, exc: HTTPException):
-    if exc.status_code == 404:
-        return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
-    return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
+# async def http_exception_handler(request: Request, exc: HTTPException):
+#     if exc.status_code == 404:
+#         return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+#     return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
 
-@app.exception_handler(Exception)
-async def general_exception_handler(request: Request, exc: Exception):
-    return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
+# @app.exception_handler(Exception)
+# async def general_exception_handler(request: Request, exc: Exception):
+#     return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
 
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+# @app.exception_handler(RequestValidationError)
+# async def validation_exception_handler(request: Request, exc: RequestValidationError):
+#     return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
 
-# Middleware to catch all other 404 errors
-@app.middleware("http")
-async def custom_404_handler(request: Request, call_next):
-    response = await call_next(request)
-    if response.status_code == 404:
-        return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
-    return response
+# # Middleware to catch all other 404 errors
+# @app.middleware("http")
+# async def custom_404_handler(request: Request, call_next):
+#     response = await call_next(request)
+#     if response.status_code == 404:
+#         return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+#     return response
 
-# Fallback route for undefined paths
-@app.get("/{full_path:path}")
-async def fallback_404(request: Request):
-    return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+# # Fallback route for undefined paths
+# @app.get("/{full_path:path}")
+# async def fallback_404(request: Request):
+#     return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
 
 if __name__ == "__main__":
     import uvicorn
