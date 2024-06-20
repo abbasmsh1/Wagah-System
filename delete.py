@@ -8,7 +8,8 @@ from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 from fastapi.templating import Jinja2Templates
 import os
-
+from fastapi.exceptions import RequestValidationError
+from pydantic.error_wrappers import ValidationError
 # Load environment variables
 load_dotenv()
 
@@ -121,6 +122,32 @@ def delete_all_except_users(db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
+
+async def http_exception_handler(request: Request, exc: HTTPException):
+    if exc.status_code == 404:
+        return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+    return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+
+# Middleware to catch all other 404 errors
+@app.middleware("http")
+async def custom_404_handler(request: Request, call_next):
+    response = await call_next(request)
+    if response.status_code == 404:
+        return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+    return response
+
+# Fallback route for undefined paths
+@app.get("/{full_path:path}")
+async def fallback_404(request: Request):
+    return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
 
 # Run the application
 if __name__ == "__main__":
