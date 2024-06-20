@@ -11,6 +11,8 @@ import os
 import csv
 import io
 from datetime import datetime
+from fastapi.exceptions import RequestValidationError
+from pydantic.error_wrappers import ValidationError
 
 app = FastAPI()
 
@@ -81,6 +83,32 @@ async def get_mark_as_arrived_form(request: Request, its: int = None, message: s
 async def arrived_list(request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     arrived_masters = db.query(Master).filter(Master.arrived == True).order_by(desc(Master.timestamp)).all()
     return templates.TemplateResponse("arrived_list.html", {"request": request, "arrived_masters": arrived_masters})
+
+async def http_exception_handler(request: Request, exc: HTTPException):
+    if exc.status_code == 404:
+        return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+    return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+
+# Middleware to catch all other 404 errors
+@app.middleware("http")
+async def custom_404_handler(request: Request, call_next):
+    response = await call_next(request)
+    if response.status_code == 404:
+        return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+    return response
+
+# Fallback route for undefined paths
+@app.get("/{full_path:path}")
+async def fallback_404(request: Request):
+    return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
 
 if __name__ == "__main__":
     import uvicorn
