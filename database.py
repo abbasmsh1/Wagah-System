@@ -95,17 +95,6 @@ class Train(Base):
 
     train_details = relationship("TrainDetails", back_populates="train")
 
-# Define the TrainDetails model
-class TrainDetails(Base):
-    __tablename__ = "train_details"
-    id = Column(Integer, primary_key=True, index=True)
-    train_id = Column(Integer, ForeignKey("train.id"))
-    seat_number = Column(Integer, nullable=False)
-    coach_number = Column(String, nullable=False)
-
-    train = relationship("Train", back_populates="train_details")
-    booking_info = relationship("BookingInfo", back_populates="train_details")
-
 # Define the BookingInfo model
 class BookingInfo(Base):
     __tablename__ = "booking_info"
@@ -116,9 +105,8 @@ class BookingInfo(Base):
     Self_Issued = Column(Boolean, default=False)
     seat_number = Column(Integer)
     bus_number = Column(Integer)
-    train_details_id = Column(Integer, ForeignKey("train_details.id"), nullable=True)
-
-    train_details = relationship("TrainDetails", back_populates="booking_info")
+    train_id = Column(Integer, ForeignKey("train.id"), nullable=True)
+    coach_number = Column(Integer)
 
     @staticmethod
     def fill_form(db_session: Session, its: int, seat_number: int, bus_number: int):

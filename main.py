@@ -1,3 +1,7 @@
+import warnings
+
+warnings.filterwarnings("ignore")
+
 from fastapi import FastAPI, Depends, Request, Form, HTTPException, File, UploadFile, APIRouter
 from fastapi import Query, Path
 from typing import List  # Add this import
@@ -5,8 +9,8 @@ from fastapi.responses import RedirectResponse,HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc
-from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Transport, Bus, Plane, Train, ProcessedMaster, User, TrainDetails
+from sqlalchemy import func, desc, text
+from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Transport, Bus, Plane, Train, ProcessedMaster, User
 import os
 import csv
 import io
@@ -16,6 +20,8 @@ from datetime import datetime
 from urllib.parse import unquote
 from fastapi.exceptions import RequestValidationError
 from pydantic.error_wrappers import ValidationError
+from sqlalchemy.orm import Session, joinedload
+from datetime import timedelta
 
 def compress_its(its: int) -> str:
     try:
@@ -643,120 +649,120 @@ def get_bus_info(db: Session = Depends(get_db)):
         "bus_type": busses.type
     } for busses in bus])
     
-
 @app.get("/train-booking-form/", response_class=HTMLResponse)
-async def get_train_booking_form(request: Request, its: int = Query(None), db: Session = Depends(get_db)):
+async def post_train_booking_form(request: Request, its: int = None, db: Session = Depends(get_db)):
+    print(its)
     person = None
-    trains = db.query(Train).all()  # Fetch all trains
-    search = its  # To display in the template if no person found
-
-    if its:
-        person = db.query(Master).filter(Master.ITS == its).first()
     
-    return templates.TemplateResponse("train_booking_form.html", {"request": request, "person": person, "trains": trains, "search": search})
-
-@app.post("/book-train-details/", response_class=HTMLResponse)
-async def book_train_details(
-    request: Request,
-    its: int = Form(...),
-    train_number: str = Form(...),
-    seat_number: int = Form(...),
-    coach_number: str = Form(...),
-    db: Session = Depends(get_db)
-):
-    try:
-        train = db.query(Train).filter(Train.train_number == train_number).first()
-        if not train:
-            raise HTTPException(status_code=404, detail="Train not found")
-
-        new_train_details = TrainDetails(
-            train_number=train_number,
-            seat_number=seat_number,
-            coach_number=coach_number
-        )
-        db.add(new_train_details)
-        db.commit()
-        db.refresh(new_train_details)
-
-        new_booking = BookingInfo(
-            ITS=its,
-            Mode=3,
-            Issued=True,
-            Departed=False,
-            Self_Issued=True,
-            train_details_id=new_train_details.id
-        )
-        db.add(new_booking)
-        db.commit()
-
+    if its:
+        its = compress_its(its)
+        print(its)
         person = db.query(Master).filter(Master.ITS == its).first()
-        return templates.TemplateResponse("train_booking_form.html", {"request": request, "person": person, "trains": db.query(Train).all(), "message": "Train booked successfully"})
-    except Exception as e:
-        db.rollback()
-        person = db.query(Master).filter(Master.ITS == its).first()
-        return templates.TemplateResponse("train_booking_form.html", {"request": request, "person": person, "trains": db.query(Train).all(), "error": f"Failed to book the train: {str(e)}"})
-
-
-@app.get("/train-bookings/", response_class=HTMLResponse)
-async def get_train_bookings(request: Request, db: Session = Depends(get_db)):
     trains = db.query(Train).all()
-    train_data = [{
-        "id": train.id,
-        "train_name": train.train_name,
-        "departure_time": train.departure_time.isoformat()
-    } for train in trains]
-    return templates.TemplateResponse("train_bookings.html", {"request": request, "trains": train_data})
+    search = its if its else ""
 
-# Define a function to fetch aggregated train bookings with ITS details
-def get_train_bookings_with_details(db: Session) -> List[dict]:
-    train_bookings = db.query(TrainDetails).all()
-    result = []
-    for booking in train_bookings:
-        master_details = db.query(Master).filter(Master.ITS == booking.ITS).first()
-        if master_details:
-            result.append({
-                "train_name": booking.train_number,
-                "ITS": master_details.ITS,
-                "first_name": master_details.first_name,
-                "middle_name": master_details.middle_name,
-                "last_name": master_details.last_name,
-                "phone": master_details.phone,
-                "passport_No": master_details.passport_No,
-                "Visa_No": master_details.Visa_No
-            })
-    return result
+    return templates.TemplateResponse("train_booking_form.html", {
+        "request": request,
+        "person": person,
+        "trains": trains,
+        "search": search
+    })
 
+@app.get("/train_info/", response_class=HTMLResponse)
+async def view_train_booking(request: Request, db: Session = Depends(get_db)):
+    # Query to get BookingInfo
+    booking_query = db.query(
+        BookingInfo.train_id,
+        BookingInfo.ITS,
+        BookingInfo.seat_number,
+        BookingInfo.coach_number
+    ).filter(BookingInfo.Mode == 2).subquery()
+    
+    # Query to get Master details
+    master_query = db.query(
+        Master.ITS.label('master_ITS'),
+        Master.first_name,
+        Master.passport_number,
+        Master.phone
+    ).subquery()
+    
+    # Query to get Train details
+    train_query = db.query(
+        Train.id.label('train_id'),
+        Train.train_name,
+        Train.departure_time
+    ).subquery()
+    
+    # Perform union of the queries
+    result = db.query(
+        booking_query.c.train_id,
+        master_query.c.first_name,
+        master_query.c.passport_number,
+        master_query.c.phone,
+        booking_query.c.ITS,
+        booking_query.c.seat_number,
+        booking_query.c.coach_number,
+        train_query.c.train_name,
+        train_query.c.departure_time,
+        (train_query.c.departure_time - text('INTERVAL 2 HOUR')).label('shuttle_time')
+    ).join(
+        master_query, master_query.c.master_ITS == booking_query.c.ITS
+    ).join(
+        train_query, train_query.c.train_id == booking_query.c.train_id
+    ).all()
+    
+    booking_details = [
+        {
+            "train_id": row.train_id,
+            "train_name": row.train_name,
+            "departure_time": row.departure_time,
+            "shuttle_time": row.shuttle_time,
+            "ITS": row.ITS,
+            "passenger_name": row.first_name,
+            "passport_number": row.passport_number,
+            "phone_number": row.phone,
+            "seat_number": row.seat_number,
+            "coach_number": row.coach_number
+        }
+        for row in result
+    ]
+    
+    if not booking_details:
+        print("No bookings")
+    
+    return templates.TemplateResponse('train_bookings.html', {"request": request, "bookings": booking_details})
+            
 @app.get("/api/check_processed_its", response_model=bool)
 async def check_processed_its(its: int, db: Session = Depends(get_db)):
     its = compress_its(its)
     exists = db.query(ProcessedMaster).filter(ProcessedMaster.ITS == int(its)).first() is not None
     return exists
 
-async def http_exception_handler(request: Request, exc: HTTPException):
-    if exc.status_code == 404:
-        return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
-    return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
+# async def http_exception_handler(request: Request, exc: HTTPException):
+#     if exc.status_code == 404:
+#         return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+#     return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
 
-@app.exception_handler(Exception)
-async def general_exception_handler(request: Request, exc: Exception):
-    return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
+# @app.exception_handler(Exception)
+# async def general_exception_handler(request: Request, exc: Exception):
+#     return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
 
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+# @app.exception_handler(RequestValidationError)
+# async def validation_exception_handler(request: Request, exc: RequestValidationError):
+#     return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
 
-# Middleware to catch all other 404 errors
-@app.middleware("http")
-async def custom_404_handler(request: Request, call_next):
-    response = await call_next(request)
-    if response.status_code == 404:
-        return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
-    return response
+# # Middleware to catch all other 404 errors
+# @app.middleware("http")
+# async def custom_404_handler(request: Request, call_next):
+#     response = await call_next(request)
+#     if response.status_code == 404:
+#         return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+#     return response
 
-# Fallback route for undefined paths
-@app.get("/{full_path:path}")
-async def fallback_404(request: Request):
-    return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+# # Fallback route for undefined paths
+# @app.get("/{full_path:path}")
+# async def fallback_404(request: Request):
+#     return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
 
 
 if __name__ == "__main__":
