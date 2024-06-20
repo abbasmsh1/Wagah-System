@@ -213,10 +213,10 @@ async def custom_404_handler(request: Request, call_next):
         return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
     return response
 
-# Fallback route for undefined paths
-@app.get("/{full_path:path}")
-async def fallback_404(request: Request):
-    return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+# # Fallback route for undefined paths
+# @app.get("/{full_path:path}")
+# async def fallback_404(request: Request):
+#     return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
 
 if __name__ == "__main__":
     import uvicorn
