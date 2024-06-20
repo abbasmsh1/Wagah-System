@@ -2,26 +2,27 @@
 
 {% block content %}
     <h1>Train Booking Form</h1>
-    {% if error %}
-        <p style="color:red;">{{ error }}</p>
+    {% if form_error %}
+        <p style="color:red;">{{ form_error }}</p>
     {% endif %}
     {% if message %}
         <p style="color:green;">{{ message }}</p>
     {% endif %}
-
-    {% if not person %}
     <form id="searchForm" method="get" action="/train-booking-form/">
         <label for="its">Search by ITS:</label>
-        <input type="number" id="its" name="its" required>
+        <input type="number" id="its" name="its" value="{{ search }}" required>
         <button type="submit">Search</button>
     </form>
-    {% else %}
-        <form method="post" action="/book-train-details/">
+    {% if person %}
+       
+        <form method="get" action="/book-train-details/">
             <input type="hidden" name="its" value="{{ person.ITS }}">
             <label for="train_number">Train Number:</label>
             <select name="train_number" required>
                 {% for train in trains %}
-                    <option value="{{ train.train_number }}">{{ train.train_name }} ({{ train.departure_time }})</option>
+                    <option value="{{ train.id }}">
+                        {{ train.train_name }} ({{ train.departure_time.strftime('%H:%M') }})
+                    </option>
                 {% endfor %}
             </select>
             <br>

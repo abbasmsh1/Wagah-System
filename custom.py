@@ -15,6 +15,21 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+def compress_its(its: int) -> str:
+    try:
+        its = str(its)
+        print(len(its))
+        if len(its) == 12:
+            indices = [6, 5, 2, 7, 4, 0, 9, 8]
+            compressed_its = ''.join(its[i] for i in indices)
+            return int(compressed_its)
+        elif len(its) == 8:
+            return int(its)
+        else:
+            print("Error")
+    except:
+        return its
+
 group_numbers = {}
 
 def get_db():
@@ -61,6 +76,7 @@ def get_master_form(request: Request, current_user: User = Depends(get_current_u
 
 @app.get("/master/")
 def get_master_by_its(request: Request, its: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    its = compress_its(its)
     master = db.query(Master).filter(Master.ITS == its).first()
     if not master:
         return templates.TemplateResponse("master_.html", {"request": request, "error": "Master not found"})
@@ -69,6 +85,7 @@ def get_master_by_its(request: Request, its: int, db: Session = Depends(get_db),
 
 @app.get("/master/check-duplicate")
 def check_duplicate(its: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    its = compress_its(its)
     is_duplicate = db.query(ProcessedMaster).filter(ProcessedMaster.ITS == its, ProcessedMaster.processed_by == current_user.username).count() > 0
     return JSONResponse(content={'isDuplicate': is_duplicate})
 
@@ -85,6 +102,7 @@ async def update_master(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    its = compress_its(its)
     is_duplicate = db.query(ProcessedMaster).filter(ProcessedMaster.ITS == its, ProcessedMaster.processed_by == current_user.username).count() > 0
     if is_duplicate:
         processed_count = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).count()
@@ -136,6 +154,7 @@ async def update_master(
 
 @app.get("/master/info/", response_class=HTMLResponse)
 async def get_master_info(request: Request, its: int = Query(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    its = compress_its(its)
     master = db.query(Master).filter(Master.ITS == its).first()
     if not master:
         return templates.TemplateResponse("master_.html", {"request": request, "error": "Master not found"})
