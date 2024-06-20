@@ -17,6 +17,9 @@
           <th>Phone Number</th>
           <th>Seat Number</th>
           <th>Coach Number</th>
+          <th>Shuttle Number</th>
+          <th>Shuttle Time</th>
+
         </tr>
       </thead>
       <tbody>
@@ -24,13 +27,15 @@
         <tr>
           <td>{{ booking.train_id }}</td>
           <td>{{ booking.train_name }}</td>
-          <td>{{ booking.departure_time.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td>{{ booking.departure_time.strftime('%H:%M') }}</td>
           <td>{{ booking.ITS }}</td>
           <td>{{ booking.passenger_name }}</td>
           <td>{{ booking.passport_number }}</td>
           <td>{{ booking.phone_number }}</td>
           <td>{{ booking.seat_number }}</td>
           <td>{{ booking.coach_number }}</td>
+          <td>T{{ booking.train_id }}
+          <td>{{ booking.shuttle_time }}</td>
         </tr>
         {% endfor %}
       </tbody>

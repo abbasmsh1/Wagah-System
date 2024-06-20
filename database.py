@@ -69,8 +69,7 @@ class Plane(Transport):
     __tablename__ = "plane"
     plane_id = Column(Integer, ForeignKey('transport.id'), primary_key=True)
     company = Column(String, nullable=True)
-    type = Column(String, index=True)
-
+    departure_time = Column(Time, nullable=False)
     __mapper_args__ = {
         'polymorphic_identity': 'plane',
     }
@@ -93,7 +92,6 @@ class Train(Base):
     train_name = Column(String, nullable=False)
     departure_time = Column(Time, nullable=False)
 
-    train_details = relationship("TrainDetails", back_populates="train")
 
 # Define the BookingInfo model
 class BookingInfo(Base):
@@ -106,6 +104,7 @@ class BookingInfo(Base):
     seat_number = Column(Integer)
     bus_number = Column(Integer)
     train_id = Column(Integer, ForeignKey("train.id"), nullable=True)
+    plane_id = Column(Integer, ForeignKey("plane.plane_id"), nullable=True)
     coach_number = Column(Integer)
 
     @staticmethod
