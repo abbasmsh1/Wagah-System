@@ -1,0 +1,1 @@
+INSERT INTO "train" VALUES(1,'Tezgam','00:00:00.000000');

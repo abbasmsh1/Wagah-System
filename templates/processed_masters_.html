@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>
+      Processed Masters
+    </title>
+    <link rel="stylesheet" href="/static/custom.css">
+  </head>
+<body>
+  <div class="container" style="min-width:80%;">
+<h2>Processed Masters</h2>
+
+<form action="" method="get">
+  <label for="user">Username:</label>  
+  <select name="user" id="user">
+    <option value="">All Users</option>
+    {% for user in users %}
+      <option value="{{ user.username }}" {% if user.username == selected_user %}selected{% endif %}>{{ user.username }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Filter</button>
+</form>
+
+<table>
+  <tr>
+    <th>ITS</th>
+    <th>First Name</th>
+    <th>Middle Name</th>
+    <th>Last Name</th>
+    <th>Passport Number</th>
+    <th>Passport Expiry Date</th>
+    <th>Visa Number</th>
+    <th>Processed By</th>
+  </tr>
+  {% for master in processed_masters %}
+    {% if not selected_user or master.processed_by == selected_user %}
+    <tr>
+      <td>{{ master.ITS }}</td>
+      <td>{{ master.first_name }}</td>
+      <td>{{ master.middle_name }}</td>
+      <td>{{ master.last_name }}</td>
+      <td>{{ master.passport_No }}</td>
+      <td>{{ master.passport_Expiry }}</td>
+      <td>{{ master.Visa_No }}</td>
+      <td>{{ master.processed_by }}</td>
+    </tr>
+    {% endif %}
+  {% endfor %}
+</table>
+
+{% if processed_masters %}
+<div>
+  {% if page > 1 %}
+  <a href="?page={{ page - 1 }}&user={{ selected_user }}">Previous</a>
+  {% endif %}
+
+  Page {{ page }}
+
+  {% if (page * page_size) < total_count %}
+  <a href="?page={{ page + 1 }}&user={{ selected_user }}">Next</a>
+  {% endif %}
+</div>
+{% endif %}
+
+  <form action="/print" method="post">
+    <input type="hidden" name="selected_user" value="{{ selected_user }}">
+    <button type="submit">Print</button>
+  </form>
+  <button type="button" onclick="window.location.href='/master-form/'">Back</button>
+
+
+</div>
+</body>
+</html>

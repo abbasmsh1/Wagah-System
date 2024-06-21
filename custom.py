@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from database import SessionLocal, Master, ProcessedMaster, User
 import os
+from sqlalchemy import func
 from datetime import datetime
 from fastapi.exceptions import RequestValidationError
 from pydantic.error_wrappers import ValidationError
@@ -210,32 +211,45 @@ async def print_processed_its(request: Request, current_user: User = Depends(get
     db.commit()
 
     return HTMLResponse(content=response_content)
+PAGE_SIZE = 10
 
-async def http_exception_handler(request: Request, exc: HTTPException):
-    if exc.status_code == 404:
-        return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
-    return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
+@app.get("/processed-masters/", response_class=HTMLResponse)
+async def get_processed_masters(
+    request: Request,
+    page: int = 1,
+    user: str = None,  # Accept username from query parameter
+    db: Session = Depends(get_db)
+):
+    users = db.query(User).all()
+    total_count = db.query(func.count(ProcessedMaster.ITS)).scalar()
 
-@app.exception_handler(Exception)
-async def general_exception_handler(request: Request, exc: Exception):
-    return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
+    # Base query for processed masters
+    query = db.query(ProcessedMaster)
 
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+    # Apply username filter if username is provided
+    if user:
+        query = query.filter(ProcessedMaster.processed_by == user)
 
-# Middleware to catch all other 404 errors
-@app.middleware("http")
-async def custom_404_handler(request: Request, call_next):
-    response = await call_next(request)
-    if response.status_code == 404:
-        return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
-    return response
+    # Retrieve processed masters for the current page
+    processed_masters = (
+        query.offset((page - 1) * PAGE_SIZE)
+        .limit(PAGE_SIZE)
+        .all()
+    )
 
-# # Fallback route for undefined paths
-# @app.get("/{full_path:path}")
-# async def fallback_404(request: Request):
-#     return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+    return templates.TemplateResponse(
+        "processed_masters_.html",
+        {
+            "request": request,
+            "processed_masters": processed_masters,
+            "page": page,
+            "page_size": PAGE_SIZE,
+            "total_count": total_count,
+            "users": users,
+            "selected_user": user,  # Pass the selected username to the template
+        }
+    )
+
 
 if __name__ == "__main__":
     import uvicorn

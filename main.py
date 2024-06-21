@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, text
-from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Transport, Bus, Plane, Train, ProcessedMaster, User
+from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Bus, Plane, Train, ProcessedMaster, User
 import os
 import csv
 import io
@@ -680,7 +680,6 @@ async def print_processed_masters(page: int = Form(...), db: Session = Depends(g
 
 @app.get("/booking-info/{bus_number}/")
 def get_booking_info_for_bus(bus_number: int = Path(...), db: Session = Depends(get_db)):
-    its = compress_its(its)
     bookings = db.query(BookingInfo).filter(BookingInfo.bus_number == bus_number).all()
     if not bookings:
         raise HTTPException(status_code=404, detail="No booking information found for the specified bus ID")
