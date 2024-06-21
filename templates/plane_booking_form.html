@@ -1,27 +1,27 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Train Booking Form</h1>
+    <h1>Plane Booking Form</h1>
     {% if form_error %}
         <p style="color:red;">{{ form_error }}</p>
     {% endif %}
     {% if message %}
         <p style="color:green;">{{ message }}</p>
     {% endif %}
-    <form id="searchForm" method="get" action="/train-booking-form/">
+    <form id="searchForm" method="get" action="/plane-booking-form/">
         <label for="its">Search by ITS:</label>
         <input type="number" id="its" name="its" value="{{ search }}" required>
         <button type="submit">Search</button>
     </form>
     {% if person %}
        
-        <form method="get" action="/book-train-details/">
+        <form method="get" action="/book-plane-details/">
             <input type="hidden" name="its" value="{{ person.ITS }}">
-            <label for="train_number">Train Number:</label>
-            <select name="train_number" required>
-                {% for train in trains %}
-                    <option value="{{ train.id }}">
-                        {{ train.train_name }} ({{ train.departure_time.strftime('%H:%M') }})
+            <label for="plane_name">Plane Name:</label>
+            <select name="plane_name" required>
+                {% for plane in planes %}
+                    <option value="{{ plane.plane_id }}">
+                        {{ plane.company }} ({{ plane.departure_time.strftime('%H:%M') }})
                     </option>
                 {% endfor %}
             </select>
@@ -29,13 +29,7 @@
             <label for="seat_number">Seat Number:</label>
             <input type="number" name="seat_number" required>
             <br>
-            <label for="coach_number">Coach Number:</label>
-            <input type="text" name="coach_number" required>
-            <br>
-            <label for="cabin_number">Cabin Number:</label>
-            <input type="text" name="cabin_number" required>
-            <br>
-            <button type="submit">Book Train</button>
+            <button type="submit">Book Plane</button>
         </form>
     {% endif %}
 {% endblock %}

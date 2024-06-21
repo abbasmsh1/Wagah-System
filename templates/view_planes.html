@@ -3,8 +3,19 @@
 {% block content %}
 <h1>All Planes</h1>
 <ul>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Departure Time</th>
+        </tr>
     {% for plane in planes %}
-    <li>{{ plane.name }} - {{ plane.departure_datetime }}</li>
+        <tr>
+            <td>{{ plane.plane_id }} </td>
+            <td>{{ plane.company }}</td>
+            <td>{{ plane.departure_time }}</td>
+        </tr>
     {% endfor %}
+    </table>
 </ul>
 {% endblock %}

@@ -29,7 +29,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 # Import your SQLAlchemy models here
-from database import Base, Master, BookingInfo, Transport, Bus, Train, Plane, Shuttle, Schedule, User, ProcessedMaster
+from database import Base, Master, BookingInfo, Transport, Bus, Train, Plane, Schedule, User, ProcessedMaster
 
 # Create the FastAPI app
 app = FastAPI()

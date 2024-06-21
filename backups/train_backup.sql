@@ -1,3 +1,0 @@
-INSERT INTO "train" VALUES(1,'Tezgam','12:00:00.000000');
-INSERT INTO "train" VALUES(2,'Green Line','17:30:00.000000');
-INSERT INTO "train" VALUES(3,'Tezgam','03:30:00.000000');

@@ -1,0 +1,2 @@
+INSERT INTO "plane" VALUES(1,'PIA','13:00:00.000000');
+INSERT INTO "plane" VALUES(2,'serene air','14:00:00.000000');
