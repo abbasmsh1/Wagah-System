@@ -82,7 +82,7 @@ class Train(Base):
 # Define the BookingInfo model
 class BookingInfo(Base):
     __tablename__ = "booking_info"
-    Mode = Column(Integer, primary_key=True, index=True)
+    Mode = Column(Integer, index=True)
     ITS = Column(Integer, ForeignKey('master.ITS'), primary_key=True, index=True)
     Issued = Column(Boolean)
     Departed = Column(Boolean)
