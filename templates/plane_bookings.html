@@ -1,23 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Train Bookings</h2>
+<h2>Plane Bookings</h2>
 {% if not bookings %}
-    <p>No train bookings found.</p>
+    <p>No Plane bookings found.</p>
 {% else %}
     <table border="1">
       <thead>
         <tr>
-          <th>Train ID</th>
-          <th>Train Name</th>
+          <th>Plane ID</th>
+          <th>Plane Name</th>
           <th>Departure Time</th>
           <th>Passenger ITS</th>
           <th>Passenger Name</th>
           <th>Passport Number</th>
           <th>Phone Number</th>
           <th>Seat Number</th>
-          <th>Coach Number</th>
-          <th>Cabin Number</th>
           <th>Shuttle Number</th>
           <th>Shuttle Time</th>
 
@@ -26,17 +24,15 @@
       <tbody>
         {% for booking in bookings %}
         <tr>
-          <td>{{ booking.train_id }}</td>
-          <td>{{ booking.train_name }}</td>
+          <td>{{ booking.plane_id }}</td>
+          <td>{{ booking.plane_name }}</td>
           <td>{{ booking.departure_time.strftime('%H:%M') }}</td>
           <td>{{ booking.ITS }}</td>
           <td>{{ booking.passenger_name }}</td>
           <td>{{ booking.passport_number }}</td>
           <td>{{ booking.phone_number }}</td>
           <td>{{ booking.seat_number }}</td>
-          <td>{{ booking.coach_number }}</td>
-          <td>{{ booking.cabin_number }}</td>
-          <td>T{{ booking.train_id }}
+          <td>P{{ booking.plane_id }}
           <td>{{ booking.shuttle_time }}</td>
         </tr>
         {% endfor %}

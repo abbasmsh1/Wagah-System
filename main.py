@@ -22,6 +22,7 @@ from fastapi.exceptions import RequestValidationError
 from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session, joinedload
 from datetime import timedelta
+from datetime import time
 
 def compress_its(its: int) -> str:
     try:
@@ -240,6 +241,7 @@ async def update_phone(request: Request, its: int = Form(...), phone_number: str
 @app.get("/bus-booking/", response_class=HTMLResponse)
 async def get_bus_booking_form(request: Request, its: int = Query(None), db: Session = Depends(get_db)):
     person = None
+    its = compress_its(its)
     buses = db.query(Bus).all()  # Fetch all buses
     search = its  # To display in the template if no person found
     
@@ -372,6 +374,52 @@ def view_trains(request: Request, db: Session = Depends(get_db)):
     trains = db.query(Train).all()
     return templates.TemplateResponse("view_trains.html", {"request": request, "trains": trains})
 
+# view report count
+
+@app.get("/view-count/")
+def view_all_count(request: Request, db: Session = Depends(get_db)):
+    try:
+        # Count of processed masters
+        processed_count = db.query(func.count(ProcessedMaster.id)).scalar()
+        
+        # count of masters who have done arrival scanning
+        arrived_count = db.query(func.count(Master.ITS)).filter(Master.arrived == True).scalar()
+
+        # count of masters who has been assinged a sim
+        sim_count = db.query(func.count(Master.ITS)).filter(Master.phone.is_not(None), Master.phone != '').scalar()
+
+        # Count of unique masters who booked a bus seat
+        bus_booking_count = db.query(func.count(func.distinct(Master.ITS))).\
+            join(BookingInfo, Master.ITS == BookingInfo.ITS).\
+            filter(BookingInfo.Mode == 1).\
+            scalar()
+        
+        # count of unique masters who booked a train seat
+        train_booking_count = db.query(func.count(func.distinct(Master.ITS))).\
+            join(BookingInfo, Master.ITS == BookingInfo.ITS).\
+            filter(BookingInfo.train_id.isnot(None)).\
+            scalar()
+        
+        # count of unique masters who booked a plane seat
+        plane_booking_count = db.query(func.count(Master.ITS)).\
+            join(BookingInfo, Master.ITS == BookingInfo.ITS).\
+            filter(BookingInfo.plane_id.isnot(None)).\
+            scalar()
+
+        # Render the template and pass the data
+        return templates.TemplateResponse("view_count.html", {
+            "request": request,
+            "processed_count": processed_count,
+            "bus_booking_count": bus_booking_count,
+            "arrived_count": arrived_count,
+            "sim_count": sim_count,
+            "train_booking_count": train_booking_count,
+            "plane_booking_count": plane_booking_count
+        })
+    except Exception as e:
+        return {"error": str(e)}
+
+
 # add buss
 
 @app.get("/add-bus/")
@@ -397,23 +445,26 @@ def post_add_bus(request: Request, no_of_seats: int = Form(...), type: str = For
     return RedirectResponse(url="/view-buses/", status_code=303)
 
 
-# add plane
-
-@app.get("/add-plane/")
-def get_add_plane(request: Request):
+# Define the routes
+@app.get("/add-plane/", response_class=HTMLResponse)
+async def get_add_plane(request: Request):
     return templates.TemplateResponse("add_plane.html", {"request": request})
 
-@app.post("/add_plane/")
-def post_add_plane(request: Request, company: str = Form(...), departure_time: str = Form(...), db: Session = Depends(get_db)):
-    print(company)
-    new_plane = Plane(company=company, departure_time=datetime.strptime(departure_time, '%H:%M').date())
+@app.post("/add-plane/")
+async def post_add_plane(
+    request: Request,
+    company: str = Form(...),
+    departure_time: str = Form(...),  # Expecting the time in HH:MM format
+    db: Session = Depends(get_db)
+):
+    # Parse the departure time string to a time object
+    parsed_time = datetime.strptime(departure_time, '%H:%M').time()
+    new_plane = Plane(company=company, departure_time=parsed_time)
     db.add(new_plane)
     db.commit()
     return RedirectResponse(url="/view-planes/", status_code=303)
 
-
 # add train
-
 @app.get("/add-train/")
 def get_add_train(request: Request):
     return templates.TemplateResponse("add_train.html", {"request": request})
@@ -629,6 +680,7 @@ async def print_processed_masters(page: int = Form(...), db: Session = Depends(g
 
 @app.get("/booking-info/{bus_number}/")
 def get_booking_info_for_bus(bus_number: int = Path(...), db: Session = Depends(get_db)):
+    its = compress_its(its)
     bookings = db.query(BookingInfo).filter(BookingInfo.bus_number == bus_number).all()
     if not bookings:
         raise HTTPException(status_code=404, detail="No booking information found for the specified bus ID")
@@ -650,9 +702,7 @@ def get_bus_info(db: Session = Depends(get_db)):
     
 @app.get("/train-booking-form/", response_class=HTMLResponse)
 async def post_train_booking_form(request: Request, its: int = None, db: Session = Depends(get_db)):
-    print(its)
     person = None
-    
     if its:
         its = compress_its(its)
         print(its)
@@ -675,8 +725,10 @@ async def post_book_train(
     train_number: int,
     seat_number: int ,
     coach_number: str,
+    cabin_number: str,
     db: Session = Depends(get_db)
 ):
+    its=compress_its(its)
     try:
         # Check if ITS exists and fetch its details
         person = db.query(Master).filter(Master.ITS == its).first()
@@ -697,7 +749,8 @@ async def post_book_train(
             Self_Issued=True,
             seat_number=seat_number,
             train_id=train_number,
-            coach_number=coach_number
+            coach_number=coach_number,
+            cabin_number = cabin_number
         )
         db.add(new_booking)
         db.commit()
@@ -765,7 +818,8 @@ async def view_train_booking(request: Request, db: Session = Depends(get_db)):
         BookingInfo.train_id,
         BookingInfo.ITS,
         BookingInfo.seat_number,
-        BookingInfo.coach_number
+        BookingInfo.coach_number,
+        BookingInfo.cabin_number
     ).filter(BookingInfo.Mode == 2).subquery()
     
     # Query to get Master details
@@ -792,6 +846,7 @@ async def view_train_booking(request: Request, db: Session = Depends(get_db)):
         booking_query.c.ITS,
         booking_query.c.seat_number,
         booking_query.c.coach_number,
+        booking_query.c.cabin_number,
         train_query.c.train_name,
         train_query.c.departure_time,
         func.strftime('%H:%M:%S', func.datetime(train_query.c.departure_time, '-2 hours')).label('shuttle_time')
@@ -812,7 +867,8 @@ async def view_train_booking(request: Request, db: Session = Depends(get_db)):
             "passport_number": row.passport_No,
             "phone_number": row.phone,
             "seat_number": row.seat_number,
-            "coach_number": row.coach_number
+            "coach_number": row.coach_number,
+            "cabin_number": row.cabin_number
         }
         for row in result
     ]
@@ -853,6 +909,176 @@ async def check_processed_its(its: int, db: Session = Depends(get_db)):
 # @app.get("/{full_path:path}")
 # async def fallback_404(request: Request):
 #     return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+
+
+@app.get("/plane-booking-form/", response_class=HTMLResponse)
+async def post_plane_booking_form(request: Request, its: int = None, db: Session = Depends(get_db)):
+    print(its)
+    person = None
+    
+    if its:
+        its = compress_its(its)
+        print(its)
+        person = db.query(Master).filter(Master.ITS == its).first()
+    planes = db.query(Plane).all()
+    search = its if its else ""
+
+    return templates.TemplateResponse("plane_booking_form.html", {
+        "request": request,
+        "person": person,
+        "planes": planes,
+        "search": search
+    })
+    
+    
+@app.get("/book-plane-details/", response_class=HTMLResponse)
+async def post_book_train(
+    request: Request,
+    its: int,
+    plane_name: str,
+    seat_number: int ,
+    db: Session = Depends(get_db)
+):
+    try:
+        # Check if ITS exists and fetch its details
+        person = db.query(Master).filter(Master.ITS == its).first()
+        if not person:
+            raise HTTPException(status_code=404, detail=f"ITS {its} not found")
+
+        # Check if train exists and fetch its details
+        plane = db.query(Plane).filter(Plane.plane_id == plane_name).first()
+        if not plane:
+            raise HTTPException(status_code=404, detail=f"Plane {plane_name} not found")
+
+        # Book the train seat
+        new_booking = BookingInfo(
+            ITS=its,
+            Mode=3,  # Assuming '2' represents 'train' in your context
+            Issued=True,
+            Departed=False,
+            Self_Issued=True,
+            seat_number=seat_number,
+            plane_id=plane_name
+        )
+        db.add(new_booking)
+        db.commit()
+
+        # Retrieve person and trains for template
+        planes = db.query(Plane).all()
+
+        return templates.TemplateResponse(
+            "plane_booking_form.html",
+            {
+                "request": request,
+                "person": person,
+                "planes": planes,
+                "message": "Plane booked successfully"
+            },
+        )
+
+    except IntegrityError:
+        db.rollback()
+        person = db.query(Master).filter(Master.ITS == its).first()
+        planes = db.query(Plane).all()
+        return templates.TemplateResponse(
+            "plane_booking_form.html",
+            {
+                "request": request,
+                "person": person,
+                "planes": planes,
+                "form_error": "An error occurred while booking: Seat already booked, please try again."
+            },
+        )
+
+    except HTTPException as e:
+        person = db.query(Master).filter(Master.ITS == its).first()
+        planes = db.query(Plane).all()
+        return templates.TemplateResponse(
+            "plane_booking_form.html",
+            {
+                "request": request,
+                "person": person,
+                "planes": planes,
+                "form_error": f"An error occurred while booking: {e.detail}"
+            },
+        )
+
+    except Exception:
+        db.rollback()
+        person = db.query(Master).filter(Master.ITS == its).first()
+        planes = db.query(Plane).all()
+        return templates.TemplateResponse(
+            "plane_booking_form.html",
+            {
+                "request": request,
+                "person": person,
+                "planes": planes,
+                "form_error": "An unexpected error occurred while booking, please try again."
+            },
+        )   
+
+from sqlalchemy import func
+
+@app.get("/plane_info/", response_class=HTMLResponse)
+async def view_plane_booking(request: Request, db: Session = Depends(get_db)):
+    # Query to get BookingInfo
+    booking_query = db.query(
+        BookingInfo.plane_id,
+        BookingInfo.ITS,
+        BookingInfo.seat_number
+    ).filter(BookingInfo.Mode == 3).subquery()
+    
+    # Query to get Master details
+    master_query = db.query(
+        Master.ITS.label('master_ITS'),
+        Master.first_name,
+        Master.passport_No,
+        Master.phone
+    ).subquery()
+    
+    # Query to get Train details
+    plane_query = db.query(
+        Plane.plane_id.label('plane_id'),
+        Plane.company,
+        Plane.departure_time
+    ).subquery()
+    
+    # Perform union of the queries and calculate the shuttle time
+    result = db.query(
+        booking_query.c.plane_id,
+        master_query.c.first_name,
+        master_query.c.passport_No,
+        master_query.c.phone,
+        booking_query.c.ITS,
+        booking_query.c.seat_number,
+        plane_query.c.company,
+        plane_query.c.departure_time,
+        func.strftime('%H:%M:%S', func.datetime(plane_query.c.departure_time, '-4 hours')).label('shuttle_time')
+    ).join(
+        master_query, master_query.c.master_ITS == booking_query.c.ITS
+    ).join(
+        plane_query, plane_query.c.plane_id == booking_query.c.plane_id
+    ).all()
+    
+    booking_details = [
+        {
+            "plane_id": row.plane_id,
+            "plane_name": row.company,
+            "departure_time": row.departure_time,
+            "shuttle_time": row.shuttle_time,
+            "ITS": row.ITS,
+            "passenger_name": row.first_name,
+            "passport_number": row.passport_No,
+            "phone_number": row.phone,
+            "seat_number": row.seat_number
+        }
+        for row in result
+    ]
+    
+    if not booking_details:
+        print("No bookings")
+    
+    return templates.TemplateResponse('plane_bookings.html', {"request": request, "bookings": booking_details})
 
 
 if __name__ == "__main__":

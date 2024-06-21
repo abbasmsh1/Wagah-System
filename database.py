@@ -44,7 +44,7 @@ class Master(Base):
 class Transport(Base):
     __tablename__ = "transport"
     id = Column(Integer, primary_key=True, index=True)
-    departure_time = Column(Date, nullable=True)
+    departure_time = Column(Time, nullable=True)
     type = Column(String, nullable=False)
     transport_type = Column(String, nullable=False)
 
@@ -65,25 +65,11 @@ class Bus(Transport):
     }
 
 # Define the Plane model
-class Plane(Transport):
+class Plane(Base):
     __tablename__ = "plane"
-    plane_id = Column(Integer, ForeignKey('transport.id'), primary_key=True)
+    plane_id = Column(Integer, primary_key=True, autoincrement=True)
     company = Column(String, nullable=True)
     departure_time = Column(Time, nullable=False)
-    __mapper_args__ = {
-        'polymorphic_identity': 'plane',
-    }
-
-# Define the Shuttle model
-class Shuttle(Transport):
-    __tablename__ = "shuttle"
-    shuttle_id = Column(Integer, ForeignKey('transport.id'), primary_key=True)
-    destination = Column(String, nullable=False)
-    no_of_seats = Column(Integer, nullable=False)
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'shuttle',
-    }
 
 # Define the Train model
 class Train(Base):
@@ -105,7 +91,8 @@ class BookingInfo(Base):
     bus_number = Column(Integer)
     train_id = Column(Integer, ForeignKey("train.id"), nullable=True)
     plane_id = Column(Integer, ForeignKey("plane.plane_id"), nullable=True)
-    coach_number = Column(Integer)
+    coach_number = Column(String)
+    cabin_number = Column(String)
 
     @staticmethod
     def fill_form(db_session: Session, its: int, seat_number: int, bus_number: int):

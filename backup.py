@@ -24,13 +24,15 @@ def backup_table(engine, table_name):
             for line in conn.iterdump():
                 if line.startswith(f'INSERT INTO "{table_name}"'):
                     f.write(f'{line}\n')
-
-    backup_file_external = os.path.join(EXTERNAL_DIR, f"{table_name}_backup.sql")
-    with sqlite3.connect(engine.url.database) as conn:
-        with open(backup_file_external, 'w') as f:
-            for line in conn.iterdump():
-                if line.startswith(f'INSERT INTO "{table_name}"'):
-                    f.write(f'{line}\n')
+    try:
+        backup_file_external = os.path.join(EXTERNAL_DIR, f"{table_name}_backup.sql")
+        with sqlite3.connect(engine.url.database) as conn:
+            with open(backup_file_external, 'w') as f:
+                for line in conn.iterdump():
+                    if line.startswith(f'INSERT INTO "{table_name}"'):
+                        f.write(f'{line}\n')
+    except:
+        pass
 
     print(f"Backup for table {table_name} created at {backup_file} and {backup_file_external}")
 
