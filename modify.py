@@ -14,6 +14,20 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+def compress_its(its: int) -> str:
+    try:
+        its = str(its)
+        if len(its) == 12:
+            indices = [6, 5, 2, 7, 4, 0, 9, 8]
+            compressed_its = ''.join(its[i] for i in indices)
+            return int(compressed_its)
+        elif len(its) == 8:
+            return int(its)
+        else:
+            print("Error")
+    except:
+        return its
+
 # Dependency to get the DB session
 def get_db():
     db = SessionLocal()
@@ -28,6 +42,7 @@ def home( request: Request):
 
 @app.get('/check_its/')
 def get_its(request: Request,its: int, db: Session = Depends(get_db)):
+        its = compress_its(its)
         person = db.query(Master).filter(Master.ITS == its).first()
         booking = db.query(BookingInfo).filter(BookingInfo.ITS == its).first()
         return templates.TemplateResponse("modify.html", {"request": request, "person":person,"booking":booking})
