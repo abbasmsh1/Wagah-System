@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="container" style=" overflow-y: scroll; overflow-x: hidden; width: 65%; padding: 20px;">
+    <button style="float:left; font-family: poppins; margin-bottom: 1rem" onclick="window.history.go(-1);">Back</button>    
 <h1>Booking Information</h1>
 
 <form method="get" action="/view-booking-info/">
@@ -9,7 +11,7 @@
     <button type="submit">Apply Filter</button>
 </form>
 
-<table>
+<table style="margin-top:5%;">
     <thead>
         <tr>
             <th>ITS</th>
@@ -37,4 +39,5 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 {% endblock %}

@@ -84,9 +84,10 @@ async def get_assign_sim_form(request: Request, its: int = Form(...)):
     if request.method == "POST":
         db = SessionLocal()
         master = db.query(Master).filter(Master.ITS == its).first()
+        sim_count = db.query(func.count(Master.ITS)).filter(Master.phone.is_not(None), Master.phone != '').scalar()
         if not master:
             raise HTTPException(status_code=404, detail="Master not found")
-        return templates.TemplateResponse("assign_sim_.html", {"request": request, "master": master})
+        return templates.TemplateResponse("assign_sim_.html", {"request": request, "master": master, "sim_count": sim_count})
     else:
         # Handle GET request here (if needed)
         return templates.TemplateResponse("assign_sim_.html", {"request": request})
@@ -120,6 +121,10 @@ async def update_phone(request: Request, its: int = Form(...), phone_number: str
     db.refresh(master)
     return templates.TemplateResponse("assign_sim_.html", {"request": request, "master": master, "message": "Phone number updated successfully"})
 
+@app.get("/phone-list/")
+async def get_phone_list(request: Request, db: Session = Depends(get_db)):
+    phone_assigned = db.query(Master).filter(Master.phone.isnot(None), Master.phone != '').order_by(desc(Master.timestamp)).all()
+    return templates.TemplateResponse("sim_list.html", {"request": request, "phone_assigned": phone_assigned})
 # async def http_exception_handler(request: Request, exc: HTTPException):
 #     if exc.status_code == 404:
 #         return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
