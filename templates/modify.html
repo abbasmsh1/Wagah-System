@@ -1,0 +1,62 @@
+<!-- templates/booking_form.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Booking Information</title>
+    <link rel="stylesheet" href="/static/custom.css">
+</head>
+<body>
+
+    <div class="container">
+        <h2>Modify Booking</h2>
+        <form id="searchForm" method="get" action="/check_its/">
+                <label for="its">Search by ITS:</label>
+                <input type="number" id="its" name="its" required>
+                <button type="submit">Search</button>
+        </form>
+</br>
+        {% if person %}
+
+        <h2> Person Information </h2>
+        <table>
+                <tr>
+                        <th>ITS</th>
+                        <th>Name</th>
+                        {% if booking.Mode == 1 %}
+                                <th> Bus ID </th>
+                                <th> Seat Number </th>
+                        {% elif booking.Mode == 2 %}
+                                <th> Train ID </th>
+                                <th> Seat Number </th>
+                        {% elif booking.Mode == 3 %}
+                                <th> Plane ID </th>
+                                <th> Seat Number </th>
+                        {% endif %}
+                </tr>
+                <tr>
+                        <td>{{ person.ITS }}</td>
+                        <td>{{ person.first_name }}</td>
+                        {% if booking.Mode == 1 %}
+                                <td>{{ booking.bus_number }}</td>
+                                <td> {{booking.seat_number}} </td> 
+                        {% elif booking.Mode == 2 %}
+                                <td> {{booking.train_id}} </td>
+                                <td> {{booking.seat_number}} </td>
+                        {% elif booking.Mode == 3 %}
+                                <td> {{booking.plane_id}} </td>
+                                <td> {{booking.seat_number}} </td>
+                        {% endif %} 
+                        {% if booking %}
+                        <td>
+                                <form method="get" action="/delete_booking/">
+                                        <input type="hidden" name="booking_id" value="{{ booking.ITS }}">
+                                        <button type="submit">Delete</button>
+                                </form>
+                        </td>
+                        {% endif %}
+                </tr>
+        </table>
+        {% endif %}
+    </div>
+</body>
+</html>

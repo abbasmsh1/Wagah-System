@@ -272,6 +272,51 @@ async def get_processed_masters(
         }
     )
 
+@app.get("/add-master/")
+def add_master_form(request: Request, current_user: User = Depends(get_current_user)):
+    return templates.TemplateResponse("add_master.html", {"request": request})
+
+@app.post("/master/add", response_class=HTMLResponse)
+async def add_master(
+    request: Request,
+    its: int = Form(...),
+    first_name: str = Form(...),
+    middle_name: str = Form(None),
+    last_name: str = Form(...),
+    passport_No: str = Form(...),
+    passport_Expiry: str = Form(...),
+    Visa_No: str = Form(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    its = compress_its(its)
+    try:
+        master = db.query(Master).filter(Master.ITS == its).first()
+    except:
+        master = None
+        print("not found")
+    if master:
+        return templates.TemplateResponse("add_master.html", {"request": request, "error": "Master record already exists"})
+    
+    try:
+        new_master = Master(
+            ITS=its,
+            first_name=first_name,
+            middle_name=middle_name,
+            last_name=last_name,
+            passport_No=passport_No,
+            passport_Expiry=datetime.strptime(passport_Expiry, "%Y-%m-%d").date(),
+            Visa_No=Visa_No
+        )
+        db.add(new_master)
+        db.commit()
+        return templates.TemplateResponse("add_master.html", {"request": request, "success": "Master record added successfully"})
+    except IntegrityError as e:
+        db.rollback()
+        print(e)
+        return templates.TemplateResponse("add_master.html", {"request": request, "error": "Error adding master record"})
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 1000)))
