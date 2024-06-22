@@ -33,11 +33,12 @@ h1, h2, h3 {
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
+    padding:20px;
 }
 
 .input-group input[type="text"] {
     width: 60%;
-    padding: 8px;
+    padding: 10px;
     margin-right: 10px;
     border-radius: 12px !important;
     height: 30px;
@@ -46,6 +47,7 @@ h1, h2, h3 {
 input{
     height:30px !important;
     border-radius:12px;
+    margin:10px;
 }
 
 button {
