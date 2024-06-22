@@ -41,13 +41,9 @@
 </style>
     <h1>Total Count</h1>
     <div class="container">
-        <div class="card" onclick="redirectToPage('/processed-masters/')"><a href="#">Imigration count:</a> {{ processed_count }}</div>
-        <div class="card" onclick="redirectToPage('/')"><a href="#">Arrival Scanning count:</a> {{ arrived_count }}</div>
-        <div class="card" onclick="redirectToPage('/')"><a href="#">Sim Issuance count:</a> {{ sim_count }}</div>
-        <div class="card" onclick="redirectToPage('/count-bus/')"><a href="#">Bus Booking count:</a> {{ bus_booking_count }}</div>
-        <div class="card" onclick="redirectToPage('/count-train/')"><a href="#">Train Booking count:</a> {{ train_booking_count }}</div>
-        <div class="card" onclick="redirectToPage('/count-plane/')"><a href="#">Plane Booking count:</a> {{ plane_booking_count }}</div>
-    
+        {%for booking in booking_counts %}
+        <div class="card" onclick="redirectToPage('/processed-masters/')">Bus Number: {{ booking.bus_number }}</br>Total Passengers: {{ booking.passenger_count }}</div>
+        {% endfor %}
     </div>
 
     <script>
