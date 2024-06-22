@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings("ignore")
 from fastapi import FastAPI, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from fastapi.responses import HTMLResponse, JSONResponse

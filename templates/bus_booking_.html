@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/custom.css">
+    <title>Bus Booking</title>
+</head>
+<body>
+<div class="container">
+    <h1>Bus Booking</h1>
+    <form id="searchForm" method="get" action="/bus-booking/">
+        <label for="its">Search by ITS:</label>
+        <input type="number" id="its" name="its" required>
+        <button type="submit">Search</button>
+    </form>
+
+    {% if person %}
+    <h2 style="margin-top:10%; margin-bottom:5%">Master Table Details</h2>
+    <table>
+        <tr>
+            <th>ITS</th>
+            <th>Name</th>
+            <th>Mobile</th>
+            <th>Passport Number</th>
+            <th>Visa Number</th>
+            <th>Arrival Status</th>
+            <th>Timestamp</th>
+        </tr>
+        <tr>
+            <td>{{ person.ITS }}</td>
+            <td>{{ person.first_name }} {{ person.middle_name or "" }} {{ person.last_name }}</td>
+            <td>{{ person.phone }}</td>
+            <td>{{ person.passport_No }}</td>
+            <td>{{ person.Visa_No }}</td>
+            <td>{{ "Arrived" if person.arrived else "Not Arrived" }}</td>
+            <td>{{ person.timestamp }}</td>
+        </tr>
+    </table>
+
+    <h2 style="margin:5% auto;">Book a Bus</h2>
+    <form id="bookingForm" action="/book-bus/" method="post">
+        <input type="hidden" name="its" value="{{ person.ITS }}">
+        <label for="type">Type:</label>
+        <select id="type" name="type" required>
+            <option value="business">Business</option>
+            <option value="executive">Executive</option>
+        </select><br>
+        <label for="bus_number">Bus Number:</label>
+        <select id="bus_number" name="bus_number" required>
+            {% for bus in buses %}
+                {% if bus.no_of_seats > 0 %}
+                    <option value="{{ bus.bus_number }}">{{ bus.bus_number }}</option>
+                {% endif %}
+            {% endfor %}
+        </select><br>
+        <label for="no_of_seats">Number of Seats:</label>
+        <input type="number" id="no_of_seats" name="no_of_seats" value="1" readonly><br>
+    </br>
+        <button type="submit">Book Bus</button>
+    </form>
+
+    {% if error %}
+        <p style="color:red;">{{ error }}</p>
+    {% endif %}
+    {% if message %}
+        <p style="color:green;">{{ message }}</p>
+    {% endif %}
+    
+    <h2 style="margin:5% auto">Booked Ticket Details</h2>
+    <table>
+        <tr>
+            <th>ITS</th>
+            <th>Name</th>
+            <th>Phone Number</th>
+            <th>Bus Number</th>
+            <th>Seat Number</th>
+        </tr>
+        {% if booked_ticket %}
+        <tr>
+            <td>{{ booked_ticket.ITS }}</td>
+            <td>{{ person.first_name }}</td>
+            <td>{{ person.phone }}</td>
+            <td>{{ booked_ticket.bus_number }}</td>
+            <td>{{ booked_ticket.seat_number }}</td>
+        </tr>
+        {% endif %}
+    </table>
+    {% endif %}
+
+    {% if form_error %}
+        <p style="color:red;">{{ form_error }}</p>
+    {% else %}
+    <p style="color:green;">{{ success }}</p>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("bookingForm").addEventListener("submit", function(event) {
+        const busNumber = document.getElementById("bus_number").value;
+        const seatsLeft = parseInt(document.getElementById("seats_left").textContent);
+        const selectedSeats = parseInt(document.getElementById("no_of_seats").value);
+        if (seatsLeft < selectedSeats) {
+            event.preventDefault();
+            alert("Not enough available seats for this bus.");
+        }
+    });
+
+    // Fetch and display bus info based on the default selected bus number
+    document.getElementById("bus_number").dispatchEvent(new Event("change"));
+});
+</script>
+</body>
+</html>

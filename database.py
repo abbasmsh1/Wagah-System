@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings("ignore")
 import os
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, Column, Integer, String, Date, Boolean, ForeignKey, DateTime, Time
@@ -11,7 +13,8 @@ load_dotenv()
 
 # Get the database URL from the environment variable
 DATABASE_URL = os.getenv("DATABASE_URL")
-
+if DATABASE_URL is None:
+    DATABASE_URL = "sqlite:///./test.db"
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is not set.")
 
