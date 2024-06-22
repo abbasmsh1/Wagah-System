@@ -8,8 +8,9 @@
     <title>Bus Booking</title>
 </head>
 <body>
-<div class="container">
-    <h1>Bus Booking</h1>
+<div class="container" style="max-height: 90%; width: 70%; overflow-y: scroll;">
+    <button style="float:right; font-family: poppins;" onclick="window.location.href='/view-booking-info/'">List</button>
+    <h1 style="text-align: center; padding-left: 7%; ">Bus Booking</h1>
     <form id="searchForm" method="get" action="/bus-booking/">
         <label for="its">Search by ITS:</label>
         <input type="number" id="its" name="its" required>
