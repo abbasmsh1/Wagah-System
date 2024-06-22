@@ -19,6 +19,10 @@ body, html {
 
 }
 
+.imigration-form{
+    margin: 5% auto;
+}
+
 /* Center the container and style it */
 .container {
     background: rgba(255, 255, 255, 0.9);
