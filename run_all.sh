@@ -18,6 +18,7 @@ start_script plane.py
 start_script admin.py
 start_script main.py
 start_script backup.py
+start_script modify.py
 start_script delete.py
 
 

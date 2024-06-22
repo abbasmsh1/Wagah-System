@@ -13,7 +13,7 @@
     <div class="container">
         <h1>Add Master Record</h1>
         <form action="/master/add" method="post">
-            <label for="its">ITS:</label>
+            <label for="its" style="margin-right:20%;">ITS:</label>
             <input type="number" id="its" name="its" required><br>
             <label for="first_name">First Name:</label>
             <input type="text" id="first_name" name="first_name" required><br>
@@ -29,6 +29,8 @@
             <input type="text" id="Visa_No" name="Visa_No"><br>
             <button type="submit">Add Record</button>
         </form>
+        
+        
         {% if error %}
         <div class="error-message" style="font-weight:900; color:red;">
             {{ error }}
