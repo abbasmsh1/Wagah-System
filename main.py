@@ -201,15 +201,16 @@ async def arrived_list(request: Request, db: Session = Depends(get_db)):
 
 # assign SIM
 
-@app.route("/assign-sim-form", methods=["GET", "POST"])
+@app.route("/assign-sim-form/", methods=["GET", "POST"])
 async def get_assign_sim_form(request: Request, its: int = Form(...)):
+    its = compress_its(its)
     if request.method == "POST":
         db = SessionLocal()
-        its = compress_its(its)
         master = db.query(Master).filter(Master.ITS == its).first()
+        sim_count = db.query(func.count(Master.ITS)).filter(Master.phone.is_not(None), Master.phone != '').scalar()
         if not master:
             raise HTTPException(status_code=404, detail="Master not found")
-        return templates.TemplateResponse("assign_sim.html", {"request": request, "master": master})
+        return templates.TemplateResponse("assign_sim.html", {"request": request, "master": master, "sim_count": sim_count})
     else:
         # Handle GET request here (if needed)
         return templates.TemplateResponse("assign_sim.html", {"request": request})
@@ -227,7 +228,7 @@ async def assign_sim(request: Request, its: int = Form(...), db: Session = Depen
 
 @app.post("/update-phone/", response_class=HTMLResponse)
 async def update_phone(request: Request, its: int = Form(...), phone_number: str = Form(...), db: Session = Depends(get_db)):
-    its = compress_its(its)
+    its=compress_its(its)
     existing_master = db.query(Master).filter(Master.phone == phone_number).first()
     if existing_master and existing_master.ITS != its:
         error_message = "This phone number is already assigned to another ITS"
@@ -242,6 +243,11 @@ async def update_phone(request: Request, its: int = Form(...), phone_number: str
     db.commit()
     db.refresh(master)
     return templates.TemplateResponse("assign_sim.html", {"request": request, "master": master, "message": "Phone number updated successfully"})
+
+@app.get("/phone-list/", response_class=HTMLResponse)
+async def get_phone_list(request: Request, db: Session = Depends(get_db)):
+    phone_assigned = db.query(Master).filter(Master.phone.isnot(None), Master.phone != '').order_by(desc(Master.timestamp)).all()
+    return templates.TemplateResponse("sim_list.html", {"request": request, "phone_assigned": phone_assigned})
 
 # Bus Booking 
 
@@ -259,7 +265,7 @@ async def view_booking_info(request: Request, bus_number: Optional[int] = Query(
     else:
         # If no bus number provided, fetch all booking info
         booking_info = db.query(BookingInfo, Master).join(Master).all()
-    return templates.TemplateResponse("view_booking_info_.html", {"request": request, "booking_info": booking_info})
+    return templates.TemplateResponse("view_booking_info.html", {"request": request, "booking_info": booking_info})
 
 @app.get("/bus-booking/", response_class=HTMLResponse)
 async def get_bus_booking_form(request: Request, its: int = Query(None), db: Session = Depends(get_db)):
@@ -272,7 +278,7 @@ async def get_bus_booking_form(request: Request, its: int = Query(None), db: Ses
         its = compress_its(its)
         person = db.query(Master).filter(Master.ITS == its).first()
     
-    return templates.TemplateResponse("bus_booking_.html", {"request": request, "person": person, "buses": buses, "search": search})
+    return templates.TemplateResponse("bus_booking.html", {"request": request, "person": person, "buses": buses, "search": search})
 
 @app.post("/book-bus/", response_class=HTMLResponse)
 async def post_book_bus(
@@ -320,7 +326,7 @@ async def post_book_bus(
         info = db.query(BookingInfo).filter(BookingInfo.ITS == its).first()
         print(info)
         return templates.TemplateResponse(
-            "bus_booking_.html",
+            "bus_booking.html",
             {
                 "request": request,
                 "person": person,
@@ -336,7 +342,7 @@ async def post_book_bus(
         buses = db.query(Bus).all()
         info = db.query(BookingInfo).filter(BookingInfo.ITS == its).first()
         return templates.TemplateResponse(
-            "bus_booking_.html",
+            "bus_booking.html",
             {
                 "request": request,
                 "person": person,
@@ -352,7 +358,7 @@ async def post_book_bus(
         buses = db.query(Bus).all()
         info = db.query(BookingInfo).filter(BookingInfo.ITS == its).first()
         return templates.TemplateResponse(
-            "bus_booking_.html",
+            "bus_booking.html",
             {
                 "request": request,
                 "person": person,
@@ -745,7 +751,7 @@ async def post_train_booking_form(request: Request, its: int = None, db: Session
     trains = db.query(Train).all()
     search = its if its else ""
 
-    return templates.TemplateResponse("train_booking_form_.html", {
+    return templates.TemplateResponse("train_booking_form.html", {
         "request": request,
         "person": person,
         "trains": trains,
@@ -794,7 +800,7 @@ async def post_book_train(
         trains = db.query(Train).all()
 
         return templates.TemplateResponse(
-            "train_booking_form_.html",
+            "train_booking_form.html",
             {
                 "request": request,
                 "person": person,
@@ -808,7 +814,7 @@ async def post_book_train(
         person = db.query(Master).filter(Master.ITS == its).first()
         trains = db.query(Train).all()
         return templates.TemplateResponse(
-            "train_booking_form_.html",
+            "train_booking_form.html",
             {
                 "request": request,
                 "person": person,
@@ -821,7 +827,7 @@ async def post_book_train(
         person = db.query(Master).filter(Master.ITS == its).first()
         trains = db.query(Train).all()
         return templates.TemplateResponse(
-            "train_booking_form_.html",
+            "train_booking_form.html",
             {
                 "request": request,
                 "person": person,
@@ -911,7 +917,7 @@ async def view_train_booking(request: Request, db: Session = Depends(get_db)):
     if not booking_details:
         print("No bookings")
     
-    return templates.TemplateResponse('train_bookings_.html', {"request": request, "bookings": booking_details})
+    return templates.TemplateResponse('train_bookings.html', {"request": request, "bookings": booking_details})
 
 @app.get("/api/check_processed_its", response_model=bool)
 async def check_processed_its(its: int, db: Session = Depends(get_db)):
@@ -958,7 +964,7 @@ async def post_plane_booking_form(request: Request, its: int = None, db: Session
     planes = db.query(Plane).all()
     search = its if its else ""
 
-    return templates.TemplateResponse("plane_booking_form_.html", {
+    return templates.TemplateResponse("plane_booking_form.html", {
         "request": request,
         "person": person,
         "planes": planes,
@@ -1002,7 +1008,7 @@ async def post_book_train(
         planes = db.query(Plane).all()
 
         return templates.TemplateResponse(
-            "plane_booking_form_.html",
+            "plane_booking_form.html",
             {
                 "request": request,
                 "person": person,
@@ -1016,7 +1022,7 @@ async def post_book_train(
         person = db.query(Master).filter(Master.ITS == its).first()
         planes = db.query(Plane).all()
         return templates.TemplateResponse(
-            "plane_booking_form_.html",
+            "plane_booking_form.html",
             {
                 "request": request,
                 "person": person,
@@ -1029,7 +1035,7 @@ async def post_book_train(
         person = db.query(Master).filter(Master.ITS == its).first()
         planes = db.query(Plane).all()
         return templates.TemplateResponse(
-            "plane_booking_form_.html",
+            "plane_booking_form.html",
             {
                 "request": request,
                 "person": person,
@@ -1043,7 +1049,7 @@ async def post_book_train(
         person = db.query(Master).filter(Master.ITS == its).first()
         planes = db.query(Plane).all()
         return templates.TemplateResponse(
-            "plane_booking_form_.html",
+            "plane_booking_form.html",
             {
                 "request": request,
                 "person": person,
@@ -1113,7 +1119,7 @@ async def view_plane_booking(request: Request, db: Session = Depends(get_db)):
     if not booking_details:
         print("No bookings")
     
-    return templates.TemplateResponse('plane_bookings_.html', {"request": request, "bookings": booking_details})
+    return templates.TemplateResponse('plane_bookings.html', {"request": request, "bookings": booking_details})
 
 
 if __name__ == "__main__":
