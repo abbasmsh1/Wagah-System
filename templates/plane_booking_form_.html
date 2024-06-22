@@ -8,8 +8,9 @@
     <title>Plane Booking</title>
 </head>
 <body>
-<div class="container">
-    <h1>Plane Booking Form</h1>
+<div class="container" style="width: 50%;">
+    <button style=" float: right; font-family: Poppins; " onclick="window.location.href='/plane_info/'">List</button>
+    <h1 style="padding-left: 7%;">Plane Booking Form</h1>
     {% if form_error %}
         <p style="color:red;">{{ form_error }}</p>
     {% endif %}
