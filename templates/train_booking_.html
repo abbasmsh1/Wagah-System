@@ -8,51 +8,53 @@
     <title>Train Booking</title>
 </head>
 <body>
-<div class="container">
-<h1>Train Booking</h1>
-<form id="searchForm" method="get" action="/train-booking/">
-    <label for="its">Search by ITS:</label>
-    <input type="number" id="its" name="its" required>
-    <button type="submit">Search</button>
-</form>
+<div class="container" style="max-height: 90%; width: 70%; overflow-y: scroll;">
+    <h1>Train Booking
+        <button style="font-family: Poppins;" onclick="window.location.href='/view-booking-info/'">List</button>
+    </h1>
+    <form id="searchForm" method="get" action="/train-booking/">
+        <label for="its">Search by ITS:</label>
+        <input type="number" id="its" name="its" required>
+        <button type="submit">Search</button>
+    </form>
 
-{% if person %}
-<h2>Master Table Details</h2>
-<table>
-    <tr>
-        <th>ITS</th>
-        <th>Name</th>
-        <th>Mobile</th>
-    </tr>
-    <tr>
-        <td>{{ person.ITS }}</td>
-        <td>{{ person.first_name }}</td>
-        <td>{{ person.phone }}</td>
-    </tr>
-</table>
+    {% if person %}
+    <h2>Master Table Details</h2>
+    <table>
+        <tr>
+            <th>ITS</th>
+            <th>Name</th>
+            <th>Mobile</th>
+        </tr>
+        <tr>
+            <td>{{ person.ITS }}</td>
+            <td>{{ person.first_name }}</td>
+            <td>{{ person.phone }}</td>
+        </tr>
+    </table>
 
-<h2>Book a Train</h2>
-<form method="get" action="/book-train-details/">
-    <input type="hidden" name="its" value="{{ person.ITS }}">
-    <label for="train_number">Train Number:</label>
-    <select name="train_number" required>
-        {% for train in trains %}
-            <option value="{{ train.id }}" {% if train.id == selected_train_id %}selected{% endif %}>
-                {{ train.train_name }} ({{ train.departure_time.strftime('%H:%M') }})
-            </option>
-        {% endfor %}
-    </select>
-    <br>
-    <label for="seat_number">Seat Number:</label>
-    <input type="number" name="seat_number" required>
-    <br>
-    <label for="coach_number">Coach Number:</label>
-    <input type="text" name="coach_number" required>
-    <br>
-    <button type="submit">Book Train</button>
-</form>
+    <h2>Book a Train</h2>
+    <form method="get" action="/book-train-details/">
+        <input type="hidden" name="its" value="{{ person.ITS }}">
+        <label for="train_number">Train Number:</label>
+        <select name="train_number" required>
+            {% for train in trains %}
+                <option value="{{ train.id }}" {% if train.id == selected_train_id %}selected{% endif %}>
+                    {{ train.train_name }} ({{ train.departure_time.strftime('%H:%M') }})
+                </option>
+            {% endfor %}
+        </select>
+        <br>
+        <label for="seat_number">Seat Number:</label>
+        <input type="number" name="seat_number" required>
+        <br>
+        <label for="coach_number">Coach Number:</label>
+        <input type="text" name="coach_number" required>
+        <br>
+        <button type="submit">Book Train</button>
+    </form>
 
-{% endif %}
+    {% endif %}
 </div>
 </body>
 </html>
