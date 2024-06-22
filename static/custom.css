@@ -7,18 +7,23 @@
 
 /* Make the body take the full height of the viewport */
 body, html {
-    height: 100%;
+    height: 100vh;
+    overflow: hidden;
     font-family: Poppins, sans-serif;
     background-color: #f5ecd7; /* Default background color */
     background: url('Login Page bg.png') no-repeat center center fixed;
     background-size: cover;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
 }
 
 /* Center the container and style it */
 .container {
     background: rgba(255, 255, 255, 0.9);
     padding: 20px;
-    max-width: 50%;
+    width: 45%;
     margin: 20px auto; /* Added 20px margin for padding */
     text-align: center;
     border-radius: 8px;
@@ -48,6 +53,7 @@ input{
     height:30px !important;
     border-radius:12px;
     margin:10px;
+    padding-left:0.5rem;
 }
 
 button {
@@ -58,7 +64,7 @@ button {
     margin: 5px;
     cursor: pointer;
     border-radius: 5px;
-    font-family: 'Prosto One', cursive; /* Font for buttons */
+    font-family: 'Poppins'; /* Font for buttons */
 }
 
 button:hover {
@@ -73,9 +79,27 @@ table {
     overflow: hidden; /* Added overflow to ensure border-radius works properly */
 }
 
+.immigration-tb{
+    margin-bottom: 2px;
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 5px; /* Added border-radius for table */
+   /* Added overflow to ensure border-radius works properly */
+}
+
+.immigration-tb td{
+    padding: 0px;
+    border: 1px solid #ccc;
+    text-align: left;
+}
+
 td {
     padding: 10px;
     border: 1px solid #ccc;
+    text-align: left;
+}
+
+th {
     text-align: left;
 }
 
@@ -93,6 +117,13 @@ footer {
     width: 100%;
     bottom: 0;
     font-family: Poppins, sans-serif;
+}
+
+select {
+    font-family: 'poppins';
+    font-size: 1rem;
+    border-radius:5px;
+    margin-bottom: 0.5rem;
 }
 
 /* Responsive design for smaller screens */
