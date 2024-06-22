@@ -12,6 +12,7 @@ from sqlalchemy import func
 from datetime import datetime
 from fastapi.exceptions import RequestValidationError
 from pydantic.error_wrappers import ValidationError
+from collections import defaultdict
 
 app = FastAPI()
 
@@ -21,7 +22,6 @@ templates = Jinja2Templates(directory="templates")
 def compress_its(its: int) -> str:
     try:
         its = str(its)
-        print(len(its))
         if len(its) == 12:
             indices = [6, 5, 2, 7, 4, 0, 9, 8]
             compressed_its = ''.join(its[i] for i in indices)
@@ -34,6 +34,7 @@ def compress_its(its: int) -> str:
         return its
 
 group_numbers = {}
+local_cache = defaultdict(list)
 
 def get_db():
     db = SessionLocal()
@@ -140,12 +141,23 @@ async def update_master(
             timestamp=master.timestamp,
             processed_by=current_user.username
         )
+
+        # Convert to dictionary and add to local cache
+        local_cache[current_user.username].append({
+            'ITS': processed_master.ITS,
+            'first_name': processed_master.first_name,
+            'middle_name': processed_master.middle_name,
+            'last_name': processed_master.last_name,
+            'passport_No': processed_master.passport_No,
+            'Visa_No': processed_master.Visa_No
+        })
+        # Save to database
         db.add(processed_master)
         db.commit()
 
         processed_count = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).count()
 
-        if processed_count >= 10:
+        if len(local_cache[current_user.username]) >= 10:
             return await print_processed_its(request, current_user, db)  # Pass db to print_processed_its
 
     except IntegrityError:
@@ -171,7 +183,8 @@ async def print_processed_its(request: Request, current_user: User = Depends(get
     if current_user.username not in group_numbers:
         group_numbers[current_user.username] = max(group_numbers.values(), default=0) + 1
 
-    processed_entries = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).all()
+    # Fetch from local cache
+    processed_entries = local_cache[current_user.username]
 
     response_content = f"""
     <html>
@@ -185,22 +198,28 @@ async def print_processed_its(request: Request, current_user: User = Depends(get
                 <thead>
                     <tr>
                         <th>ITS</th>
-                        <th>Name</th>
-                        <th>Passport Number</th>
-                        <th>Visa Number</th>
+                        <th>First Name</th>
+                        <th>Middle Name</th>
+                        <th>Last Name</th>
+                        <th>Passport No</th>
+                        <th>Visa No</th>
                     </tr>
                 </thead>
                 <tbody>
     """
+
     for entry in processed_entries:
         response_content += f"""
         <tr>
-            <td>{entry.ITS}</td>
-            <td>{entry.first_name} {entry.last_name}</td>
-            <td>{entry.passport_No}</td>
-            <td>{entry.Visa_No}</td>
+            <td>{entry['ITS']}</td>
+            <td>{entry['first_name']}</td>
+            <td>{entry['middle_name']}</td>
+            <td>{entry['last_name']}</td>
+            <td>{entry['passport_No']}</td>
+            <td>{entry['Visa_No']}</td>
         </tr>
         """
+
     response_content += """
                 </tbody>
             </table>
@@ -208,11 +227,12 @@ async def print_processed_its(request: Request, current_user: User = Depends(get
     </html>
     """
 
-    # Clear processed entries for the user after printing
-    db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).delete()
-    db.commit()
+    # Clear local cache after printing
+    local_cache[current_user.username].clear()
 
     return HTMLResponse(content=response_content)
+
+
 PAGE_SIZE = 10
 
 @app.get("/processed-masters/", response_class=HTMLResponse)
@@ -251,7 +271,6 @@ async def get_processed_masters(
             "selected_user": user,  # Pass the selected username to the template
         }
     )
-
 
 if __name__ == "__main__":
     import uvicorn

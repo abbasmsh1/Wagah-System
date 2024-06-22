@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/custom.css">
+    <title>Train Booking</title>
+</head>
+<body>
+<div class="container">
+<h2>Plane Bookings</h2>
+{% if not bookings %}
+    <p>No Plane bookings found.</p>
+{% else %}
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Plane ID</th>
+          <th>Plane Name</th>
+          <th>Departure Time</th>
+          <th>Passenger ITS</th>
+          <th>Passenger Name</th>
+          <th>Passport Number</th>
+          <th>Phone Number</th>
+          <th>Seat Number</th>
+          <th>Shuttle Number</th>
+          <th>Shuttle Time</th>
+
+        </tr>
+      </thead>
+      <tbody>
+        {% for booking in bookings %}
+        <tr>
+          <td>{{ booking.plane_id }}</td>
+          <td>{{ booking.plane_name }}</td>
+          <td>{{ booking.departure_time.strftime('%H:%M') }}</td>
+          <td>{{ booking.ITS }}</td>
+          <td>{{ booking.passenger_name }}</td>
+          <td>{{ booking.passport_number }}</td>
+          <td>{{ booking.phone_number }}</td>
+          <td>{{ booking.seat_number }}</td>
+          <td>P{{ booking.plane_id }}
+          <td>{{ booking.shuttle_time }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+{% endif %}
+  </div>
+</body>
+</html>

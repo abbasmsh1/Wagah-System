@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/custom.css">
+    <title>Plane Booking</title>
+</head>
+<body>
+<div class="container">
+    <h1>Plane Booking Form</h1>
+    {% if form_error %}
+        <p style="color:red;">{{ form_error }}</p>
+    {% endif %}
+    {% if message %}
+        <p style="color:green;">{{ message }}</p>
+    {% endif %}
+    <form id="searchForm" method="get" action="/plane-booking-form/">
+        <label for="its">Search by ITS:</label>
+        <input type="number" id="its" name="its" value="{{ search }}" required>
+        <button type="submit">Search</button>
+    </form>
+    {% if person %}
+       
+        <form method="get" action="/book-plane-details/">
+            <input type="hidden" name="its" value="{{ person.ITS }}">
+            <label for="plane_name">Plane Name:</label>
+            <select name="plane_name" required>
+                {% for plane in planes %}
+                    <option value="{{ plane.plane_id }}">
+                        {{ plane.company }} ({{ plane.departure_time.strftime('%H:%M') }})
+                    </option>
+                {% endfor %}
+            </select>
+            <br>
+            <label for="seat_number">Seat Number:</label>
+            <input type="number" name="seat_number" required>
+            <br>
+            <button type="submit">Book Plane</button>
+        </form>
+    {% endif %}
+    </div>
+</body>
+</html>
