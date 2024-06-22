@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Master Record</title>
+    <link rel="stylesheet" href="/static/custom.css">
+</head>
+<body>
+    <nav>
+        <button style="float:right;" onclick="window.location.href='/master-form/'">Home</button>
+    </nav>
+    <div class="container">
+        <h1>Add Master Record</h1>
+        <form action="/master/add" method="post">
+            <label for="its">ITS:</label>
+            <input type="number" id="its" name="its" required><br>
+            <label for="first_name">First Name:</label>
+            <input type="text" id="first_name" name="first_name" required><br>
+            <label for="middle_name">Middle Name:</label>
+            <input type="text" id="middle_name" name="middle_name"><br>
+            <label for="last_name">Last Name:</label>
+            <input type="text" id="last_name" name="last_name" required><br>
+            <label for="passport_No">Passport Number:</label>
+            <input type="text" id="passport_No" name="passport_No" required><br>
+            <label for="passport_Expiry">Passport Expiry Date:</label>
+            <input type="date" id="passport_Expiry" name="passport_Expiry" required><br>
+            <label for="Visa_No">Visa Number:</label>
+            <input type="text" id="Visa_No" name="Visa_No"><br>
+            <button type="submit">Add Record</button>
+        </form>
+        {% if error %}
+        <div class="error-message" style="font-weight:900; color:red;">
+            {{ error }}
+        </div>
+        {% endif %}
+        {% if success %}
+        <div class="success-message" style="font-weight:900; color:green;">
+            {{ success }}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
