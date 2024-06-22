@@ -1,0 +1,61 @@
+<html>
+<head>
+    <title>Processed ITS Entries</title>
+</head>
+<body>
+    <h2>Processed ITS Entries</h2>
+    <div id="processedEntries"></div>
+
+    <script>
+        // Fetch processed ITS entries using JavaScript
+        fetch('/api/processed-its')
+            .then(response => response.json())
+            .then(data => {
+                const processedEntries = data.processedEntries;
+                const processedCount = processedEntries.length;
+                const groupNumber = data.groupNumber;
+
+                // Display processed ITS entries
+                const entriesTable = document.createElement('table');
+                entriesTable.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>ITS</th>
+                            <th>First Name</th>
+                            <th>Middle Name</th>
+                            <th>Last Name</th>
+                            <th>Passport No</th>
+                            <th>Visa No</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${processedEntries.map(entry => `
+                            <tr>
+                                <td>${entry.ITS}</td>
+                                <td>${entry.first_name}</td>
+                                <td>${entry.middle_name}</td>
+                                <td>${entry.last_name}</td>
+                                <td>${entry.passport_No}</td>
+                                <td>${entry.Visa_No}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+
+                const processedEntriesDiv = document.getElementById('processedEntries');
+                processedEntriesDiv.appendChild(entriesTable);
+
+                // Display group number
+                const groupNumberHeader = document.createElement('h3');
+                groupNumberHeader.textContent = `Group Number: ${groupNumber}`;
+                processedEntriesDiv.prepend(groupNumberHeader);
+
+                // Display total processed count
+                const processedCountParagraph = document.createElement('p');
+                processedCountParagraph.textContent = `Total Processed Count: ${processedCount}`;
+                processedEntriesDiv.appendChild(processedCountParagraph);
+            })
+            .catch(error => console.error('Error fetching processed ITS entries:', error));
+    </script>
+</body>
+</html>
