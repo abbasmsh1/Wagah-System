@@ -1,1 +1,2 @@
 INSERT INTO "train" VALUES(1,'Tezgam','00:00:00.000000');
+INSERT INTO "train" VALUES(2,'Green Line','15:00:00.000000');

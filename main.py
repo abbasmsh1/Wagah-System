@@ -420,6 +420,33 @@ def view_all_count(request: Request, db: Session = Depends(get_db)):
         return {"error": str(e)}
 
 
+@app.get("/count-train/")
+def view_train_count(request: Request, db: Session = Depends(get_db)):
+    try:
+        booking_counts = db.query(BookingInfo.train_id,func.count(BookingInfo.train_id).label("passenger_count")).group_by(BookingInfo.train_id).all()
+        # Render the template and pass the data
+        return templates.TemplateResponse("train_counts.html", {"request": request,"booking_counts": booking_counts})
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/count-bus/")
+def view_bus_count(request: Request, db: Session = Depends(get_db)):
+    try:
+        booking_counts = db.query(BookingInfo.bus_number,func.count(BookingInfo.bus_number).label("passenger_count")).group_by(BookingInfo.bus_number).all()
+        # Render the template and pass the data
+        return templates.TemplateResponse("bus_counts.html", {"request": request,"booking_counts": booking_counts})
+    except Exception as e:
+        return {"error": str(e)}
+    
+@app.get("/count-plane/")
+def view_bus_count(request: Request, db: Session = Depends(get_db)):
+    try:
+        booking_counts = db.query(BookingInfo.plane_id,func.count(BookingInfo.plane_id).label("passenger_count")).group_by(BookingInfo.plane_id).all()
+        # Render the template and pass the data
+        return templates.TemplateResponse("plane_counts.html", {"request": request,"booking_counts": booking_counts})
+    except Exception as e:
+        return {"error": str(e)}
+
 # add buss
 
 @app.get("/add-bus/")
