@@ -141,19 +141,31 @@ async def update_master(
             timestamp=master.timestamp,
             processed_by=current_user.username
         )
-
-        # Convert to dictionary and add to local cache
-        local_cache[current_user.username].append({
-            'ITS': processed_master.ITS,
-            'first_name': processed_master.first_name,
-            'middle_name': processed_master.middle_name,
-            'last_name': processed_master.last_name,
-            'passport_No': processed_master.passport_No,
-            'Visa_No': processed_master.Visa_No
-        })
-        # Save to database
         db.add(processed_master)
         db.commit()
+        # Convert to dictionary and add to local cache
+        local_cache = request.cookies.get("local_cache", {})
+        local_cache[its] =         {
+            "ITS": master.ITS,
+            "first_name": master.first_name,
+            "middle_name": master.middle_name,
+            "last_name":master.last_name,
+            "DOB":master.DOB,
+            "passport_No":master.passport_No,
+            "passport_Expiry":master.passport_Expiry,
+            "Visa_No":master.Visa_No,
+            "Mode_of_Transport":master.Mode_of_Transport,
+            "phone":master.phone,
+            "arrived":master.arrived,
+            "timestamp":master.timestamp,
+            "processed_by":current_user.username
+            }
+        
+        
+        response = RedirectResponse(url="/master-form/", status_code=303)
+        response.set_cookie(key="local_cache", value=local_cache)
+        response.set_cookie(key="cache_count", value=len(local_cache))
+        
 
         processed_count = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).count()
 
@@ -166,6 +178,12 @@ async def update_master(
 
     processed_count = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).count()
     return templates.TemplateResponse("master_.html", {"request": request, "processedCount": processed_count})
+
+@app.get("/cache-count/")
+async def cache_count(request: Request):
+    cache_count = request.cookies.get("cache_count", 0)
+    return JSONResponse(content={"cache_count": cache_count})
+
 
 @app.get("/master/info/", response_class=HTMLResponse)
 async def get_master_info(request: Request, its: int = Query(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -276,7 +294,7 @@ async def get_processed_masters(
 def add_master_form(request: Request, current_user: User = Depends(get_current_user)):
     return templates.TemplateResponse("add_master.html", {"request": request})
 
-@app.post("/master/add", response_class=HTMLResponse)
+@app.post("/master/add/", response_class=HTMLResponse)
 async def add_master(
     request: Request,
     its: int = Form(...),

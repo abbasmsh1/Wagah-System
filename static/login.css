@@ -8,9 +8,11 @@
 /* Make the body take the full height of the viewport */
 body, html {
     height: 100%;
+    overflow: hidden;
     font-family: 'Poppins', sans-serif;
     background: url('Login Page bg.png') no-repeat center center fixed;
     background-size: cover;
+    
 }
 
 /* Center the container and style it */
@@ -42,6 +44,7 @@ h1 {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    
 }
 
 button {
