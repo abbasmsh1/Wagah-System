@@ -6,35 +6,111 @@
     <title>Wagah System</title>
     <link rel="stylesheet" href="/static/styles.css">
     <style>
-        /* Add this CSS for dropdown menus */
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: #f1f1f1;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
-        }
-        .dropdown-content a {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-        }
-        .dropdown-content a:hover {
-            background-color: #ddd;
-        }
-        .dropdown:hover .dropdown-content {
-            display: block;
-        }
+       .navbar {
+    background-color: #18643A;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+}
+
+.navbar a, .navbar .icon {
+    float: left;
+    font-size: 16px;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+.dropdown {
+    float: left;
+    overflow: hidden;
+}
+
+.dropdown .dropbtn {
+    font-size: 16px;
+    border: none;
+    outline: none;
+    color: white;
+    padding: 14px 16px;
+    background-color: inherit;
+    font-family: inherit;
+    margin: 0;
+}
+
+.navbar a:hover, .dropdown:hover .dropbtn {
+    background-color: #13522e;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    float: none;
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+.dropdown-content a:hover {
+    background-color: #ddd;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.navbar .icon {
+    display: none;
+}
+
+@media screen and (max-width: 600px) {
+    .navbar a:not(:first-child), .dropdown .dropbtn {
+        display: none;
+    }
+    .navbar a.icon {
+        float: right;
+        display: block;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .navbar.responsive {position: relative;}
+    .navbar.responsive .icon {
+        position: absolute;
+        right: 0;
+        top: 0;
+    }
+    .navbar.responsive a {
+        float: none;
+        display: block;
+        text-align: left;
+    }
+    .navbar.responsive .dropdown {
+        float: none;
+    }
+    .navbar.responsive .dropdown-content {
+        position: relative;
+    }
+    .navbar.responsive .dropdown .dropbtn {
+        display: block;
+        width: 100%;
+        text-align: left;
+    }
+}
+
     </style>
 </head>
 <body>
-    <nav>
+    <!-- <nav>
         <ul>
             <li><a href="/">Home</a></li>
             <li class="dropdown">
@@ -92,9 +168,79 @@
             </li>
             <li><a href="/view-count/">Report Count</a></li>
         </ul>
-    </nav>
+    </nav> -->
+    <div class="navbar" id="navbar">
+        <a href="/">Home</a>
+        <div class="dropdown">
+            <button class="dropbtn" onclick="">Immigration Form 
+                <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="dropdown-content">
+                <a href="/master-form">Master Form</a>
+                <a href="/masters/">Master List</a>
+                <a href="/processed-masters/">Processed Masters</a>
+            </div>
+        </div> 
+        <a href="#sim">SIM & Scanning</a>
+        <div class="dropdown">
+            <button class="dropbtn">Bus Booking 
+                <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="dropdown-content">
+                <a href="#link1">Link 1</a>
+                <a href="#link2">Link 2</a>
+                <a href="#link3">Link 3</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">Train Booking 
+                <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="dropdown-content">
+                <a href="#link1">Link 1</a>
+                <a href="#link2">Link 2</a>
+                <a href="#link3">Link 3</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">Plane Booking 
+                <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="dropdown-content">
+                <a href="#link1">Link 1</a>
+                <a href="#link2">Link 2</a>
+                <a href="#link3">Link 3</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">View Booking Info 
+                <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="dropdown-content">
+                <a href="#link1">Link 1</a>
+                <a href="#link2">Link 2</a>
+                <a href="#link3">Link 3</a>
+            </div>
+        </div>
+        <a href="#uploadcsv">Upload CSV</a>
+        <a href="#reportcount">Report Count</a>
+        <a href="javascript:void(0);" class="icon" onclick="toggleNavbar()">&#9776;</a>
+    </div>
+    
     <div class="container">
         {% block content %}{% endblock %}
     </div>
+
+    <script>
+    function toggleNavbar() {
+        var x = document.getElementById("navbar");
+        if (x.className === "navbar") {
+            x.className += " responsive";
+        } else {
+            x.className = "navbar";
+        }
+    }
+    </script>
+    
 </body>
 </html>
