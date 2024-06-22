@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings("ignore")
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -82,4 +84,4 @@ async def display_users(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run(app, host="0.0.0.0", port=9630)

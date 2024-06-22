@@ -9,13 +9,17 @@ start_script() {
 }
 
 # Start all the Python scripts
-start_script main.py
-start_script arrrived.py
+
 start_script custom.py
+start_script arrrived.py
+start_script sim.py
+start_script bus.py
+start_script admin.py
+start_script main.py
 start_script backup.py
 start_script delete.py
-start_script admin.py
-start_script sim.py
+
+
 
 # Wait for all background jobs to complete
 wait

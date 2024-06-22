@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings("ignore")
 from fastapi import FastAPI, Depends, Request, Form, HTTPException, File, UploadFile, APIRouter
 from fastapi import Query, Path
 from typing import List  # Add this import
@@ -146,5 +148,5 @@ async def update_phone(request: Request, its: int = Form(...), phone_number: str
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 2000)))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 3000)))
     

@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings("ignore")
 from fastapi import FastAPI, Depends, Request, Form, HTTPException, Query
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
