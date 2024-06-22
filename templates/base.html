@@ -172,58 +172,61 @@
     <div class="navbar" id="navbar">
         <a href="/">Home</a>
         <div class="dropdown">
-            <button class="dropbtn" onclick="">Immigration Form 
+            <button class="dropbtn" onclick="window.location.href='/master-form/'">Immigration Form 
                 <i class="fa fa-caret-down"></i>
             </button>
             <div class="dropdown-content">
-                <a href="/master-form">Master Form</a>
+                <a href="/master-form/">Master Form</a>
                 <a href="/masters/">Master List</a>
                 <a href="/processed-masters/">Processed Masters</a>
             </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn" onclick="window.location.href='/mark-as-arrived-form/'">SIM & Scanning
+            </button>
+            <div class="dropdown-content">
+                <a href="/mark-as-arrived-form/">Mark as Arrived Form</a>
+                <a href="/assign-sim-form/">Assign SIM Form</a>
+            </div>
         </div> 
-        <a href="#sim">SIM & Scanning</a>
         <div class="dropdown">
-            <button class="dropbtn">Bus Booking 
-                <i class="fa fa-caret-down"></i>
+            <button class="dropbtn" onclick="window.location.href='/bus-booking/'">Bus Booking 
             </button>
             <div class="dropdown-content">
-                <a href="#link1">Link 1</a>
-                <a href="#link2">Link 2</a>
-                <a href="#link3">Link 3</a>
+                <a href="/bus-booking/">Book Bus</a>
+                <a href="/view-buses/">View Buses</a>
+                <a href="/add-bus/">Add Bus</a>
             </div>
         </div>
         <div class="dropdown">
-            <button class="dropbtn">Train Booking 
-                <i class="fa fa-caret-down"></i>
+            <button class="dropbtn" onclick="window.location.href='/train-booking-form/'">Train Booking  
             </button>
             <div class="dropdown-content">
-                <a href="#link1">Link 1</a>
-                <a href="#link2">Link 2</a>
-                <a href="#link3">Link 3</a>
+                <a href="/train-booking-form/">Book Train</a>
+                <a href="/view-trains/">View Trains</a>
+                <a href="/add-train/">Add Train</a>
             </div>
         </div>
         <div class="dropdown">
-            <button class="dropbtn">Plane Booking 
-                <i class="fa fa-caret-down"></i>
+            <button class="dropbtn" onclick="window.location.href='/plane-booking-form/'">Plane Booking 
             </button>
             <div class="dropdown-content">
-                <a href="#link1">Link 1</a>
-                <a href="#link2">Link 2</a>
-                <a href="#link3">Link 3</a>
+                <a href="/plane-booking-form/">Book Plane</a>
+                <a href="/view-planes/">View Plane</a>
+                <a href="/add-plane/">Add Plane</a>
             </div>
         </div>
         <div class="dropdown">
-            <button class="dropbtn">View Booking Info 
-                <i class="fa fa-caret-down"></i>
+            <button class="dropbtn" onclick="window.location.href='/view-booking-info/'">View Booking Info 
             </button>
             <div class="dropdown-content">
-                <a href="#link1">Link 1</a>
-                <a href="#link2">Link 2</a>
-                <a href="#link3">Link 3</a>
+                <a href="/view-booking-info/">Bus Info</a>
+                <a href="/train_info/">Train Info</a>
+                <a href="/plane_info/">Plane Info</a>
             </div>
         </div>
-        <a href="#uploadcsv">Upload CSV</a>
-        <a href="#reportcount">Report Count</a>
+        <a href="/upload-csv/">Upload CSV</a>
+        <a href="/view-count/">Report Count</a>
         <a href="javascript:void(0);" class="icon" onclick="toggleNavbar()">&#9776;</a>
     </div>
     
