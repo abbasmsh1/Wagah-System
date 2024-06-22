@@ -1,0 +1,1 @@
+INSERT INTO "plane" VALUES(1,'PIA','01:00:00.000000');
