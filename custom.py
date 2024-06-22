@@ -141,24 +141,33 @@ async def update_master(
             timestamp=master.timestamp,
             processed_by=current_user.username
         )
-
-        # Convert to dictionary and add to local cache
-        local_cache[current_user.username].append({
-            'ITS': processed_master.ITS,
-            'first_name': processed_master.first_name,
-            'middle_name': processed_master.middle_name,
-            'last_name': processed_master.last_name,
-            'passport_No': processed_master.passport_No,
-            'Visa_No': processed_master.Visa_No
-        })
-        # Save to database
         db.add(processed_master)
         db.commit()
+
+        local_cache[current_user.username].append({
+            "ITS": master.ITS,
+            "first_name": master.first_name,
+            "middle_name": master.middle_name,
+            "last_name": master.last_name,
+            "DOB": master.DOB,
+            "passport_No": master.passport_No,
+            "passport_Expiry": master.passport_Expiry,
+            "Visa_No": master.Visa_No,
+            "Mode_of_Transport": master.Mode_of_Transport,
+            "phone": master.phone,
+            "arrived": master.arrived,
+            "timestamp": master.timestamp,
+            "processed_by": current_user.username
+        })
+
+        response = RedirectResponse(url="/master/", status_code=303)
+        response.set_cookie(key="local_cache", value=dict(local_cache))
+        response.set_cookie(key="cache_count", value=len(local_cache[current_user.username]))
 
         processed_count = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).count()
 
         if len(local_cache[current_user.username]) >= 10:
-            return await print_processed_its(request, current_user, db)  # Pass db to print_processed_its
+            return await print_processed_its(request, current_user, db)
 
     except IntegrityError:
         db.rollback()
@@ -166,6 +175,11 @@ async def update_master(
 
     processed_count = db.query(ProcessedMaster).filter(ProcessedMaster.processed_by == current_user.username).count()
     return templates.TemplateResponse("master_.html", {"request": request, "processedCount": processed_count})
+
+@app.get("/cache-count/")
+async def cache_count(request: Request):
+    cache_count = request.cookies.get("cache_count", 0)
+    return JSONResponse(content={"cache_count": cache_count})
 
 @app.get("/master/info/", response_class=HTMLResponse)
 async def get_master_info(request: Request, its: int = Query(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -183,7 +197,6 @@ async def print_processed_its(request: Request, current_user: User = Depends(get
     if current_user.username not in group_numbers:
         group_numbers[current_user.username] = max(group_numbers.values(), default=0) + 1
 
-    # Fetch from local cache
     processed_entries = local_cache[current_user.username]
 
     response_content = f"""
@@ -227,11 +240,9 @@ async def print_processed_its(request: Request, current_user: User = Depends(get
     </html>
     """
 
-    # Clear local cache after printing
     local_cache[current_user.username].clear()
 
     return HTMLResponse(content=response_content)
-
 
 PAGE_SIZE = 10
 
@@ -276,7 +287,7 @@ async def get_processed_masters(
 def add_master_form(request: Request, current_user: User = Depends(get_current_user)):
     return templates.TemplateResponse("add_master.html", {"request": request})
 
-@app.post("/master/add", response_class=HTMLResponse)
+@app.post("/master/add/", response_class=HTMLResponse)
 async def add_master(
     request: Request,
     its: int = Form(...),
@@ -316,6 +327,26 @@ async def add_master(
         print(e)
         return templates.TemplateResponse("add_master.html", {"request": request, "error": "Error adding master record"})
 
+
+@app.get("/print", response_class=HTMLResponse)
+async def print_processed_masters(
+    request: Request,
+    user: str = Query(None),
+    page: int = Query(1),
+    db: Session = Depends(get_db)
+):
+    query = db.query(ProcessedMaster)
+    if user:
+        query = query.filter(ProcessedMaster.processed_by == user)
+    
+    processed_masters = query.offset((page - 1) * 10).limit(10).all()
+    
+    context = {
+        "request": request,
+        "processed_masters": processed_masters,
+        "now": datetime.now()  # Include current timestamp in the context
+    }
+    return templates.TemplateResponse("print_template.html", context)
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processed Masters</title>
+    <link rel="stylesheet" href="/static/custom.css">
+    <style>
+        /* Additional inline styles if needed */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h2>Processed Masters</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ITS</th>
+                    <th>First Name</th>
+                    <th>Middle Name</th>
+                    <th>Last Name</th>
+                    <th>Passport Number</th>
+                    <th>Passport Expiry Date</th>
+                    <th>Visa Number</th>
+                    <th>Processed By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for master in processed_masters %}
+                <tr>
+                    <td>{{ master.ITS }}</td>
+                    <td>{{ master.first_name }}</td>
+                    <td>{{ master.middle_name }}</td>
+                    <td>{{ master.last_name }}</td>
+                    <td>{{ master.passport_No }}</td>
+                    <td>{{ master.passport_Expiry }}</td>
+                    <td>{{ master.Visa_No }}</td>
+                    <td>{{ master.processed_by }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <p>Printed on: {{ now.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+    </div>
+</body>
+</html>
