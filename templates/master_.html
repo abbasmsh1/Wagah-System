@@ -5,84 +5,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Immigration Info</title>
     <link rel="stylesheet" href="/static/custom.css">
-    <script>
-        let groupNumbers = {};
-
-        async function updateProcessedCount() {
-            const response = await fetch("/api/processed-count/");
-            const data = await response.json();
-            groupNumbers = data.groupNumbers;
-        }
-
-        function getGroupNumber(username) {
-            if (!(username in groupNumbers)) {
-                const availableGroups = Object.keys(groupNumbers).filter(group => groupNumbers[group] < 10);
-                if (availableGroups.length > 0) {
-                    groupNumbers[username] = Math.min(...availableGroups);
-                } else {
-                    groupNumbers[username] = Math.max(...Object.values(groupNumbers)) + 1;
-                }
-                groupNumbers[username] = groupNumbers[username] || 1;
-            }
-            return groupNumbers[username];
-        }
-
-        window.onload = updateProcessedCount;
-    </script>
 </head>
-<body style="padding-bottom: 2rem;">
-    <div class="container">
-        <button style="float:right; font-family: poppins;" onclick="window.location.href='/processed-masters/'">List</button>
-        <h1 style="text-align: center; padding-left: 7%;">Immigration Info</h1>
-        <form action="/master/info" method="get">
-            <label for="its">ITS:</label>
-            <input type="number" id="its" name="its" required>
-            <button type="submit">Get Info</button>
-            <button type="button" onclick="window.location.href='/add-master/'">Add Master</button>
-        </form>
-        {% if error %}
-        <div class="error-message" style="font-weight:900; color:red;">
-            {{ error }}
-        </div>
-        {% endif %}
+<script>
+    let groupNumbers = {};
+    
+    async function updateProcessedCount() {
+        const response = await fetch("/api/processed-count/");
+        const data = await response.json();
+        groupNumbers = data.groupNumbers;
+    }
 
-        {% if master %}
-        <h2>Immigration Information</h2>
-        <form class="imigration-form" action="/master/update" method="post" id="masterForm">
-            <table class="immigration-tb">
-                <tr>
+    function getGroupNumber(username) {
+        if (!(username in groupNumbers)) {
+            const availableGroups = Object.keys(groupNumbers).filter(group => groupNumbers[group] < 10);
+            if (availableGroups.length > 0) {
+                groupNumbers[username] = Math.min(...availableGroups);
+            } else {
+                groupNumbers[username] = Math.max(...Object.values(groupNumbers)) + 1;
+            }
+            groupNumbers[username] = groupNumbers[username] || 1;
+        }
+        return groupNumbers[username];
+    }
+
+    window.onload = updateProcessedCount;
+</script>
+<body style=" padding-bottom: 2rem;">
+    <body>
+        
+        <div class="container">
+            <button style="float:right; font-family: poppins;" onclick="window.location.href='/processed-masters/'">List</button>
+            <h1 style="text-align: center; padding-left: 7%; ">Immigration Info</h1>
+            <form action="/master/info" method="get">
+                <label for="its">ITS:</label>
+                <input type="number" id="its" name="its" required>
+                <button type="submit">Get Info</button>
+                <button type="button" onclick="window.location.href='/add-master/'">Add Master</button>
+            </form>
+            {% if error %}
+            <div class="error-message" style="font-weight:900; color:red;">
+            {{ error }}
+            </div>
+            {% endif %}
+    
+            {% if master %}
+            <h2>Immigration Information</h2>
+            <form action="/master/update" method="post" id="masterForm">
+                <table class="immigration-tb">
+                    <tr>
                     <th>ITS</th>
                     <td><input type="number" id="its" name="its" value="{{ master.ITS }}" required readonly></td>
-                </tr>
-                <tr>
+                    </tr>
+                    <tr>
                     <th>First Name</th>
                     <td><input type="text" id="first_name" name="first_name" value="{{ master.first_name }}" required></td>
-                </tr>
-                <tr>
+                    </tr>
+                    <tr>
                     <th>Middle Name</th>
                     <td><input type="text" id="middle_name" name="middle_name" value="{{ master.middle_name }}"></td>
-                </tr>
-                <tr>
+                    </tr>
+                    <tr>
                     <th>Last Name</th>
                     <td><input type="text" id="last_name" name="last_name" value="{{ master.last_name }}" required></td>
-                </tr>
-                <tr>
+                    </tr>
+                    <tr>
                     <th>Passport Number</th>
                     <td><input type="text" id="passport_No" name="passport_No" value="{{ master.passport_No }}" required></td>
-                </tr>
-                <tr>
+                    </tr>
+                    <tr>
                     <th>Passport Expiry Date</th>
                     <td><input type="date" id="passport_Expiry" name="passport_Expiry" value="{{ master.passport_Expiry }}" required></td>
-                </tr>
-                <tr>
+                    </tr>
+                    <tr>
                     <th>Visa Number</th>
                     <td><input type="text" id="Visa_No" name="Visa_No" value="{{ master.Visa_No }}"></td>
-                </tr>
-            </table>
-            <button type="submit">Save</button>
-            <button type="button" onclick="printForm()">Print</button>
-        </form>
-        {% endif %}
+                    </tr>
+                </table>
+                <button type="submit">Save</button>
+                <button type="button" onclick="printForm()">Print</button>
+            </form>
+            {% endif %}
+
 
         <button class="processed-entries" onclick="printProcessedITS()">PRINT PROCESSED ENTRIES</button>
     </div>
@@ -120,5 +123,6 @@
             printProcessedITS();
         }
     </script>
+
 </body>
 </html>
