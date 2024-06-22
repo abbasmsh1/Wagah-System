@@ -1,4 +1,3 @@
-
 !/bin/bash
 
 # Function to start a Python script in the background

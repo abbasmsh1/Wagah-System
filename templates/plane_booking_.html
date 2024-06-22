@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/custom.css">
+    <title>Plane Booking</title>
+</head>
+<body>
+<div class="container">
+<h1>Train Booking</h1>
+<form id="searchForm" method="get" action="/plane-booking/">
+    <label for="its">Search by ITS:</label>
+    <input type="number" id="its" name="its" required>
+    <button type="submit">Search</button>
+</form>
+
+{% if person %}
+<h2>Master Table Details</h2>
+<table>
+    <tr>
+        <th>ITS</th>
+        <th>Name</th>
+        <th>Mobile</th>
+    </tr>
+    <tr>
+        <td>{{ person.ITS }}</td>
+        <td>{{ person.first_name }}</td>
+        <td>{{ person.phone }}</td>
+    </tr>
+</table>
+
+<h2>Book a Plane</h2>
+<form method="get" action="/book-plane-details/">
+    <input type="hidden" name="its" value="{{ person.ITS }}">
+    <label for="plane_number">Plane Number:</label>
+    <select name="plane_number" required>
+        {% for plane in planes %}
+            <option value="{{ plane.plane_id }}" {% if plane.plane_id == selected_plane_id %}selected{% endif %}>
+                {{ plane.company }} ({{ plane.departure_time.strftime('%H:%M') }})
+            </option>
+        {% endfor %}
+    </select>
+    <br>
+    <label for="seat_number">Seat Number:</label>
+    <input type="number" name="seat_number" required>
+    <br>
+    <button type="submit">Book Plane</button>
+</form>
+
+{% endif %}
+</div>
+</body>
+</html>
