@@ -91,7 +91,7 @@ async def view_booking_info(request: Request, bus_number: Optional[int] = Query(
     else:
         # If no bus number provided, fetch all booking info
         booking_info = db.query(BookingInfo, Master).join(Master).all()
-    return templates.TemplateResponse("view_booking_info.html", {"request": request, "booking_info": booking_info})
+    return templates.TemplateResponse("view_booking_info_.html", {"request": request, "booking_info": booking_info})
 
 @app.get("/bus-booking/", response_class=HTMLResponse)
 async def get_bus_booking_form(request: Request, its: int = Query(None), db: Session = Depends(get_db)):

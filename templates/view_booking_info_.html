@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/custom.css">
+    <title>Hello How are yoy</title>
+</head>
+<body>
+<h1>Booking Information</h1>
+
+<form method="get" action="/view-booking-info/">
+    <label for="bus_number">Filter by Bus Number:</label>
+    <input type="number" id="bus_number" name="bus_number">
+    <button type="submit">Apply Filter</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>ITS</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Passport No.</th>
+            <th>Bus Number</th>
+            <th>Issued</th>
+            <th>Departed</th>
+            <th>Seat Number</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for booking, master in booking_info |sort(attribute='seat_number') %}
+        <tr>
+            <td>{{ booking.ITS }}</td>
+            <td>{{ master.first_name }} {{ master.last_name }}</td>
+            <td>{{ master.phone }}</td>
+            <td>{{ master.passport_No }}</td>
+            <td>{{ booking.bus_number }}</td>
+            <td>{{ "Yes" if booking.Issued else "No" }}</td>
+            <td>{{ "Yes" if booking.Departed else "No" }}</td>
+            <td>{{ booking.seat_number }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>
