@@ -10,6 +10,16 @@
         <button type="submit">Search</button>
     </form>
     
+<<<<<<< HEAD
+    <div class="info">
+        <p>Total Number of Sims assigned: {{ sim_count }}</p>
+        <form action="/phone-list/" method="get">
+            <button type="submit" class="button">View Phone List</button>
+        </form>
+    </div>
+    
+=======
+>>>>>>> 27cc39bd53d5e05c2a4b1123c3c0acd591a2207d
     {% if master %}
     <h2>SIM Information</h2>
     <form action="/update-phone/" method="post">
@@ -37,6 +47,11 @@
         {% if message %}
         <p style="color: green;">{{ message }}</p>
         {% endif %}
+<<<<<<< HEAD
+    {% endif %}
+    </form>
+    </div>
+=======
         {% endif %}
         <div class="info">
         </div>
@@ -46,4 +61,5 @@
     </form>
 </div>
 
+>>>>>>> 27cc39bd53d5e05c2a4b1123c3c0acd591a2207d
 {% endblock %}
