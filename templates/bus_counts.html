@@ -2,7 +2,6 @@
 
 {% block content %}
 <style>
-    <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -37,12 +36,11 @@
             text-decoration: none;
             color: #333;
         }
-    </style>
 </style>
     <h1>Total Count</h1>
     <div class="container">
         {%for booking in booking_counts %}
-        <div class="card" onclick="redirectToPage('/processed-masters/')">Bus Number: {{ booking.bus_number }}</br>Total Passengers: {{ booking.passenger_count }}</div>
+        <div class="card" onclick="redirectToPage('/view-booking-info/?bus_number={{booking.bus_number}}')">Bus Number: {{ booking.bus_number }}</br>Total Passengers: {{ booking.passenger_count }}</div>
         {% endfor %}
     </div>
 
