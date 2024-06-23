@@ -20,8 +20,9 @@
     }
 </style>
 
-<h1>Bus Booking</h1>
-<div class="container">
+<div class="container" style="max-height: 90%; width: 60%; overflow-y: scroll;">
+    <button style="float:right; font-family: poppins;" onclick="window.location.href='/view-booking-info/'">List</button>
+    <h1 style="text-align: center; padding-left: 7%; ">Bus Booking</h1>
     <form id="searchForm" method="get" action="/bus-booking/">
         <label for="its">Search by ITS:</label>
         <input type="number" id="its" name="its" required>
@@ -29,7 +30,7 @@
     </form>
 
     {% if person %}
-    <h2>Master Table Details</h2>
+    <h2 style="margin-top:10%; margin-bottom:5%">Master Table Details</h2>
     <table>
         <tr>
             <th>ITS</th>
@@ -51,7 +52,7 @@
         </tr>
     </table>
 
-    <h2>Book a Bus</h2>
+    <h2 style="margin:5% auto;">Book a Bus</h2>
     <form id="bookingForm" action="/book-bus/" method="post">
         <input type="hidden" name="its" value="{{ person.ITS }}">
         <label for="type">Type:</label>
@@ -69,6 +70,7 @@
         </select><br>
         <label for="no_of_seats">Number of Seats:</label>
         <input type="number" id="no_of_seats" name="no_of_seats" value="1" readonly><br>
+    </br>
         <button type="submit">Book Bus</button>
     </form>
 
@@ -78,8 +80,8 @@
     {% if message %}
         <p style="color:green;">{{ message }}</p>
     {% endif %}
-
-    <h2>Booked Ticket Details</h2>
+    
+    <h2 style="margin:5% auto">Booked Ticket Details</h2>
     <table>
         <tr>
             <th>ITS</th>
@@ -88,20 +90,22 @@
             <th>Bus Number</th>
             <th>Seat Number</th>
         </tr>
-        {% for ticket in booked_tickets %}
+        {% if booked_ticket %}
         <tr>
-            <td>{{ ticket.ITS }}</td>
-            <td>{{ ticket.name }}</td>
-            <td>{{ ticket.phone }}</td>
-            <td>{{ ticket.bus_number }}</td>
-            <td>{{ ticket.seat_number }}</td>
+            <td>{{ booked_ticket.ITS }}</td>
+            <td>{{ person.first_name }}</td>
+            <td>{{ person.phone }}</td>
+            <td>{{ booked_ticket.bus_number }}</td>
+            <td>{{ booked_ticket.seat_number }}</td>
         </tr>
-        {% endfor %}
+        {% endif %}
     </table>
     {% endif %}
 
     {% if form_error %}
         <p style="color:red;">{{ form_error }}</p>
+    {% else %}
+    <p style="color:green;">{{ success }}</p>
     {% endif %}
 </div>
 

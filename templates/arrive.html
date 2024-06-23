@@ -2,47 +2,56 @@
 
 {% block content %}
 
-<h2>Mark as Arrived</h2>
-<form action="/mark-as-arrived/" method="get">
-    <label for="its">ITS:</label>
-    <!-- Use default attribute to autofill the ITS if it's present in the link -->
-    <input type="number" id="its" name="its" {% if request.query_params.its %} value="{{ request.query_params.its }}" {% endif %} required>
-    <button type="submit">Mark as Arrived</button>
-</form>
+<div class="container">
+    <h2>Mark as Arrived</h2>
+    <form action="/mark-as-arrived/" method="get">
+        <label for="its">ITS:</label>
+        <!-- Use default attribute to autofill the ITS if it's present in the link -->
+        <input type="number" id="its" name="its" {% if request.query_params.its %} value="{{ request.query_params.its }}" {% endif %} required>
+        <button type="submit">Mark as Arrived</button>
+    </form>
 
-{% if message %}
-<p>{{ message }}</p>
-{% elif error %}
-<p>{{ error }}</p>
-{% endif %}
+    {% if message %}
+    <p>{{ message }}</p>
+    {% elif error %}
+    <p>{{ error }}</p>
+    {% endif %}
 
-{% if master %}
-<h2>Arrival Information</h2>
-<table>
-    <tr>
-        <th>ITS</th>
-        <td>{{ master.ITS }}</td>
-    </tr>
-    <tr>
-        <th>Name</th>
-        <td>{{ master.first_name }} {{ master.middle_name or "" }} {{ master.last_name }}</td>
-    </tr>
-    <tr>
-        <th>Passport Number</th>
-        <td>{{ master.passport_No }}</td>
-    </tr>
-    <tr>
-        <th>Visa Number</th>
-        <td>{{ master.Visa_No }}</td>
-    </tr>
-    <tr>
-        <th>Arrival Status</th>
-        <td>{{ "Arrived" if master.arrived else "Not Arrived" }}</td>
-    </tr>
-    <tr>
-        <th>Timestamp</th>
-        <td>{{ master.timestamp }}</td>
-    </tr>
-</table>
-{% endif %}
+    {% if master %}
+    <h2>Arrival Information</h2>
+    <table>
+        <tr>
+            <th>ITS</th>
+            <td>{{ master.ITS }}</td>
+        </tr>
+        <tr>
+            <th>Name</th>
+            <td>{{ master.first_name }} {{ master.middle_name or "" }} {{ master.last_name }}</td>
+        </tr>
+        <tr>
+            <th>Passport Number</th>
+            <td>{{ master.passport_No }}</td>
+        </tr>
+        <tr>
+            <th>Visa Number</th>
+            <td>{{ master.Visa_No }}</td>
+        </tr>
+        <tr>
+            <th>Arrival Status</th>
+            <td>{{ "Arrived" if master.arrived else "Not Arrived" }}</td>
+        </tr>
+        <tr>
+            <th>Timestamp</th>
+            <td>{{ master.timestamp }}</td>
+        </tr>
+    </table>
+    {% endif %}
+
+    <div class="info">
+        <p>Total Number of People Marked as Arrived: {{ arrived_count }}</p>
+        <form action="/arrived-list/" method="get">
+            <button type="submit" class="button">View Arrived List</button>
+        </form>
+    </div>
+</div>
 {% endblock %}
