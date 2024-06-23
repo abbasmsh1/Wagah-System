@@ -16,6 +16,13 @@
     <button type="submit">Search</button>
 </form>
 
+<div class="info">
+    <p>Total Number of Sims assigned: {{ sim_count }}</p>
+    <form action="/phone-list/" method="get">
+        <button type="submit" class="button">View Phone List</button>
+    </form>
+</div>
+
 {% if master %}
 <h2>SIM Information</h2>
 <form action="/update-phone/" method="post">
