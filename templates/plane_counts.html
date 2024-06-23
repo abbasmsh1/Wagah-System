@@ -2,24 +2,19 @@
 
 {% block content %}
 <style>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        .container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
+    .container {
+            max-height: 100vh;
+            display: flexbox;
+            grid-template-columns: repeat(3, 1fr); /* 3 columns with equal width */
+            grid-template-rows: repeat(3, 1fr); 
+            gap: 0;   
             margin: auto;
             padding: 20px;
+            
         }
         .card {
-            background-color: rgba(255, 176, 79);
+            background-color: #18643A;
             padding: 20px;
-            height: 10vh;
             width: 10vw;
             border-radius: 5px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -29,20 +24,24 @@
             align-items: center;
             justify-content: center;
             text-align: center;
+            margin-left: 8.3vw;
+            color: #ffff;
         }
         .card:hover {
-            background-color: #f0f0f0;
+            background-color: #14532E;
         }
         .card a {
             text-decoration: none;
-            color: #333;
+            color: #ffff;
         }
-    </style>
 </style>
-    <h1>Total Count</h1>
-    <div class="container">
+
+<div style=" display: flex; flex-direction: column; align-content: center; justify-content: center;">
+        <h1>Total Count</h1>
         {%for booking in booking_counts %}
-        <div class="card" onclick="redirectToPage('/processed-masters/')">Plane Number: {{ booking.plane_id }}</br>Total Passengers: {{ booking.passenger_count }}</div>
+        <div class="container">
+            <div class="card" onclick="redirectToPage('/processed-masters/')">Plane Number: {{ booking.plane_id }}</br>Total Passengers: {{ booking.passenger_count }}</div>
+        </div>
         {% endfor %}
     </div>
 
