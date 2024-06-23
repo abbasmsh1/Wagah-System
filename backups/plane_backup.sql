@@ -1,1 +1,0 @@
-INSERT INTO "plane" VALUES(1,'Air Sial','13:00:00.000000');
