@@ -1,39 +1,50 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Master List</h2>
-<table>
-    <tr>
-        <th>ITS</th>
-        <th>First Name</th>
-        <th>Middle Name</th>
-        <th>Last Name</th>
-        <th>Passport Number</th>
-        <th>Passport Expiry Date</th>
-        <th>Visa Number</th>
-        <th>Phone</th>
-        <th>Arrived</th>
-        <th>Timestamp</th>
-    </tr>
-    {% for master in masters %}
-    <tr>
-        <td>{{ master.ITS }}</td>
-        <td>{{ master.first_name }}</td>
-        <td>{{ master.middle_name }}</td>
-        <td>{{ master.last_name }}</td>
-        <td>{{ master.passport_No }}</td>
-        <td>{{ master.passport_Expiry }}</td>
-        <td>{{ master.Visa_No }}</td>
-        <td>{{ master.phone }}</td>
-        <td>{{ master.arrived }}</td>
-        <td>{{ master.timestamp }}</td>
-    </tr>
-    {% endfor %}
-</table>
+<div style="background: rgba(255, 255, 255, 0.8);
 
-<div>
-    <a href="/masters/?page={{ page - 1 }}" {% if page == 1 %}style="visibility:hidden;"{% endif %}>Previous</a>
-    <span>Page {{ page }}</span>
-    <a href="/masters/?page={{ page + 1 }}" {% if (page * page_size) >= total_masters %}style="visibility:hidden;"{% endif %}>Next</a>
+margin-top: 5vw;
+padding: 2rem;
+display: flex;
+flex-direction: column;
+align-content: center; ">
+    <h2>Master List</h2>
+    <table>
+        <tr>
+            <th>ITS</th>
+            <th>First Name</th>
+            <th>Middle Name</th>
+            <th>Last Name</th>
+            <th>Passport Number</th>
+            <th>Passport Expiry Date</th>
+            <th>Visa Number</th>
+            <th>Phone</th>
+            <th>Arrived</th>
+            <th>Timestamp</th>
+        </tr>
+        {% for master in masters %}
+        <tr>
+            <td>{{ master.ITS }}</td>
+            <td>{{ master.first_name }}</td>
+            <td>{{ master.middle_name }}</td>
+            <td>{{ master.last_name }}</td>
+            <td>{{ master.passport_No }}</td>
+            <td>{{ master.passport_Expiry }}</td>
+            <td>{{ master.Visa_No }}</td>
+            <td>{{ master.phone }}</td>
+            <td>{{ master.arrived }}</td>
+            <td>{{ master.timestamp }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <div>
+        <a href="/masters/?page={{ page - 1 }}" {% if page==1 %}style="visibility:hidden;" {% endif %}>Previous</a>
+        <span>Page {{ page }}</span>
+        <a href="/masters/?page={{ page + 1 }}" {% if (page * page_size)>= total_masters %}style="visibility:hidden;"{%
+            endif %}>Next</a>
+    </div>
+
 </div>
+
 {% endblock %}
