@@ -2,7 +2,8 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Poppins', sans-serif;
-    background: url('Login Page bg.png') no-repeat center center fixed;
+    /*background: url('Login Page bg.png') no-repeat center center fixed;*/
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('Login Page bg.png');
     background-size: cover;
 }
 

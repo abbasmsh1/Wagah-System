@@ -1,12 +1,21 @@
 {% extends "base.html" %}
  
 {% block content %}
-<h1>Immigration Info</h1>
+<div class="container" style="background: rgba(255, 255, 255, 0.8);
+width: 50vw;
+margin-top: 5vw;
+padding: 2rem;
+display: flex;
+flex-direction: column;
+align-content: center; ">
+    <h1>Immigration Info</h1>
 <form action="/master/info" method="get">
     <label for="its">ITS:</label>
     <input type="number" id="its" name="its" required>
-    <button type="submit">Get Info</button>
+    <button type="submit" style="background-color: #18643A; color: white; font-size: 1rem;">Get Info</button>
 </form>
+
+
 
 {% if error_message %}
     <div style="color: red;">{{ error_message }}</div>
@@ -45,18 +54,19 @@
             <td><input type="text" id="Visa_No" name="Visa_No" value="{{ master.Visa_No }}"></td>
         </tr>
     </table>
-    <button type="submit">Save</button>
-    <button type="button" onclick="printForm()">Print</button>
+    <button type="submit" style="background-color: #18643A; color: white; font-size: 1rem;">Save</button>
+    <button type="button" onclick="printForm()" style="background-color: #18643A; color: white; font-size: 1rem;">Print</button>
 </form>
+
 {% endif %}
 
 <div id="processedCountDisplay">
     <h3>Processed ITS Entries: <span id="processedCountSpan">{{ processedCount }}</span></h3>
-    <button type="button" id="printProcessedButton" onclick="printProcessedITS()">Print Processed Entries</button>
+    <button type="button" class="button" style="font-size: 1rem; background-color: #18643A; padding: 0.5rem 1rem; font-family: poppins; color: white;" id="printProcessedButton" onclick="printProcessedITS()">Print Processed Entries</button>
 </div>
 
 <div id="error_message" style="color: red;"></div>
-
+</div>
 <script>
 let processedCount = localStorage.getItem('processedCount') ? parseInt(localStorage.getItem('processedCount')) : 0;
 let processedITSList = JSON.parse(localStorage.getItem('processedITSList')) || [];
