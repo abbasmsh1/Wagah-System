@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container" style="width: 95%; overflow-y: scroll; overflow-x: hidden;">
-  <button style="float:left; font-family: poppins; margin-bottom: 1rem;" onclick="window.history.go(-1);">Back</button>
+
 <h2>Train Bookings</h2>
 {% if not bookings %}
     <p>No train bookings found.</p>
@@ -45,5 +45,6 @@
       </tbody>
     </table>
 {% endif %}
+<button style="font-family: poppins; margin-bottom: 1rem" onclick="window.history.go(-1);">Back</button>
   </div>
 {% endblock %}
