@@ -7,7 +7,8 @@
 
 /* Make the body take the full height of the viewport */
 body, html {
-    height: auto;
+    height: 100vh;
+    /*overflow: hidden;*/
     font-family: Poppins, sans-serif;
     background-color: #f5ecd7; /* Default background color */
     background: url('Login Page bg.png') no-repeat center center fixed;
@@ -18,17 +19,18 @@ body, html {
 
 }
 
-.imigration-form{
-    margin: 5% auto;
-}
-
 /* Center the container and style it */
 .container {
     background: rgba(255, 255, 255, 0.9);
-    padding: 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
     height: auto;
+    padding: 20px;
     width: 45%;
-    margin: 20px auto; /* Added 20px margin for padding */
+    margin-top: 5%;
+    margin-left: auto; /* Added 20px margin for padding */
+    margin-right: auto; /* Added 20px margin for padding */
+    margin-bottom: 5%;
     text-align: center;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
