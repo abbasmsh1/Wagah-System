@@ -102,7 +102,7 @@ async def get_mark_as_arrived_form(request: Request, its: int = None, message: s
 @app.get("/arrived-list/", response_class=HTMLResponse)
 async def arrived_list(request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     arrived_masters = db.query(Master).filter(Master.arrived == True).order_by(desc(Master.timestamp)).all()
-    return templates.TemplateResponse("arrived_list.html", {"request": request, "arrived_masters": arrived_masters})
+    return templates.TemplateResponse("arrived_list_.html", {"request": request, "arrived_masters": arrived_masters})
 
 # async def http_exception_handler(request: Request, exc: HTTPException):
 #     if exc.status_code == 404:

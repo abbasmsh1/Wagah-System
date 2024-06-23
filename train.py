@@ -1,12 +1,12 @@
-from fastapi import FastAPI, Depends, Request, Form, HTTPException, File, UploadFile, APIRouter
+from fastapi import FastAPI, Depends, Request, Form, HTTPException
 from fastapi import Query, Path
 from typing import List  # Add this import
-from fastapi.responses import RedirectResponse,HTMLResponse, JSONResponse
+from fastapi.responses import RedirectResponse,HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
-from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Transport, Bus, Plane, Train, ProcessedMaster, User
+from database import SessionLocal, Master, BookingInfo, Train, User
 import os
 import csv
 import io
@@ -250,15 +250,6 @@ async def view_train_booking(request: Request, db: Session = Depends(get_db)):
         print("No bookings")
     
     return templates.TemplateResponse('train_bookings_.html', {"request": request, "bookings": booking_details})
-
-@app.get("/count-train/")
-def view_train_count(request: Request, db: Session = Depends(get_db)):
-    try:
-        booking_counts = db.query(BookingInfo.train_id,func.count(BookingInfo.train_id).label("passenger_count")).group_by(BookingInfo.train_id).all()
-        # Render the template and pass the data
-        return templates.TemplateResponse("train_counts.html", {"request": request,"booking_counts": booking_counts})
-    except Exception as e:
-        return {"error": str(e)}
 
 if __name__ == "__main__":
     import uvicorn

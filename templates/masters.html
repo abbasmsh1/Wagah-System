@@ -41,8 +41,7 @@ align-content: center; ">
     <div>
         <a href="/masters/?page={{ page - 1 }}" {% if page==1 %}style="visibility:hidden;" {% endif %}>Previous</a>
         <span>Page {{ page }}</span>
-        <a href="/masters/?page={{ page + 1 }}" {% if (page * page_size)>= total_masters %}style="visibility:hidden;"{%
-            endif %}>Next</a>
+        <a href="/masters/?page={{ page + 1 }}" {% if (page * page_size) >= total_masters %} style="visibility:hidden;"{% endif %}>Next</a>
     </div>
     <button style="font-family: poppins; margin-left: auto; margin-right: auto; margin-bottom: 1rem; max-width: 6vw;" onclick="window.history.go(-1);">Back</button>
 </div>
