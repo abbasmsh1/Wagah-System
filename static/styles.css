@@ -120,8 +120,13 @@ main {
 }
 
 .container {
-    max-width: 800px;
+    width: 90vw;
     margin: 0 auto;
+    
+}
+
+.container-master{
+    width: 95%;
 }
 
 form {
@@ -137,7 +142,7 @@ form label {
 }
 
 form input, form select {
-    width: 100%;
+    width: 93%;
     padding: 8px;
     margin-bottom: 10px;
     border: 1px solid #ccc;
@@ -152,7 +157,7 @@ form select {
 }
 
 form button {
-    background-color: #333;
+    background-color: #18643A;
     color: #fff;
     padding: 10px 15px;
     border: none;
@@ -162,13 +167,14 @@ form button {
 }
 
 form button:hover {
-    background-color: #555;
+    background-color: #14532E;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
+    background-color: #f2f2f2;
 }
 
 table, th, td {
@@ -234,3 +240,151 @@ th {
   
   .dropdown-content a:hover {background-color: #ddd;} /* Changes the background color on hover */
   
+
+
+
+
+
+
+
+
+
+
+
+
+/* Reset some basic elements for cross-browser compatibility */
+
+.imigration-form{
+    margin: 5% auto;
+}
+
+/* Center the container and style it */
+.inner-container {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    width: 80%;
+    margin: 20px auto; /* Added 20px margin for padding */
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2, h3 {
+    margin-bottom: 10px;
+}
+
+.input-group {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    padding:20px;
+}
+
+.input-group input[type="text"] {
+    width: 60%;
+    padding: 10px;
+    margin-right: 10px;
+    border-radius: 12px !important;
+    height: 30px;
+}
+
+input{
+    height:30px !important;
+    border-radius:12px;
+    margin:10px;
+    padding-left:0.5rem;
+}
+
+button {
+    background-color: #18643A;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-family: 'Poppins'; /* Font for buttons */
+}
+
+button:hover {
+    background-color: #14532E;
+}
+
+table {
+    width: 100%;
+    margin-bottom: 20px;
+    border-collapse: collapse;
+    border-radius: 5px; /* Added border-radius for table */
+    overflow: hidden; /* Added overflow to ensure border-radius works properly */
+}
+
+.immigration-tb{
+    margin-bottom: 2px;
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 5px; /* Added border-radius for table */
+   /* Added overflow to ensure border-radius works properly */
+}
+
+.immigration-tb td{
+    padding: 0px;
+    border: 1px solid #ccc;
+    text-align: left;
+}
+
+td {
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: left;
+}
+
+th {
+    text-align: left;
+}
+
+.buttons {
+    margin-bottom: 20px;
+}
+
+footer {
+    background-color: #18643A; /* The updated green color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    font-family: Poppins, sans-serif;
+}
+
+select {
+    font-family: 'poppins';
+    font-size: 1rem;
+    border-radius:5px;
+    margin-bottom: 0.5rem;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+        margin: 20px auto;
+        width:90%;
+    }
+
+    .input-group {
+        flex-direction: column;
+    }
+
+    .input-group input[type="text"] {
+        margin-right: 0;
+        margin-bottom: 10px;
+        width: 100%;
+    }
+
+    button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
