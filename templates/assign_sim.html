@@ -1,41 +1,50 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Assign SIM</h2>
-
-<form action="/assign-sim/" method="post">
-    <label for="its">Search ITS:</label>
-    <input type="number" id="its" name="its" required>
-    <button type="submit">Search</button>
-</form>
-
-{% if master %}
-<h2>SIM Information</h2>
-<form action="/update-phone/" method="post">
-    <input type="hidden" id="its" name="its" value="{{ master.ITS }}">
-    <table>
-        <tr>
-            <th>ITS</th>
-            <td>{{ master.ITS }}</td>
-        </tr>
-        <tr>
-            <th>First Name</th>
-            <td>{{ master.first_name }}</td>
-        </tr>
-        <tr>
-            <th>Assigned Number</th>
-            <td>
-                <input type="text" id="phone_number" name="phone_number" maxlength="11" value="{{ master.phone }}" required>
-            </td>
-        </tr>
-    </table>
-    <button type="submit">Update Phone Number</button>
-    {% if error %}
-    <p style="color: red;">{{ error }}</p>
+<div class="container">
+    <h2>Assign SIM</h2>
+    
+    <form action="/assign-sim/" method="post">
+        <label for="its">Search ITS:</label>
+        <input type="number" id="its" name="its" required>
+        <button type="submit">Search</button>
+    </form>
+    
+    <div class="info">
+        <p>Total Number of Sims assigned: {{ sim_count }}</p>
+        <form action="/phone-list/" method="get">
+            <button type="submit" class="button">View Phone List</button>
+        </form>
+    </div>
+    
+    {% if master %}
+    <h2>SIM Information</h2>
+    <form action="/update-phone/" method="post">
+        <input type="hidden" id="its" name="its" value="{{ master.ITS }}">
+        <table>
+            <tr>
+                <th>ITS</th>
+                <td>{{ master.ITS }}</td>
+            </tr>
+            <tr>
+                <th>First Name</th>
+                <td>{{ master.first_name }}</td>
+            </tr>
+            <tr>
+                <th>Assigned Number</th>
+                <td>
+                    <input type="text" id="phone_number" name="phone_number" maxlength="11" value="{{ master.phone }}" required>
+                </td>
+            </tr>
+        </table>
+        <button type="submit">Update Phone Number</button>
+        {% if error %}
+        <p style="color: red;">{{ error }}</p>
+        {% endif %}
+        {% if message %}
+        <p style="color: green;">{{ message }}</p>
+        {% endif %}
     {% endif %}
-    {% if message %}
-    <p style="color: green;">{{ message }}</p>
-    {% endif %}
-</form>
-{% endif %}
+    </form>
+    </div>
 {% endblock %}

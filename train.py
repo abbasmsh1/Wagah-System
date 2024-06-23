@@ -96,7 +96,7 @@ async def post_book_train(
     request: Request,
     its: int,
     train_number: int,
-    seat_number: int ,
+    seat_number: str ,
     coach_number: str,
     cabin_number: str,
     db: Session = Depends(get_db)
@@ -251,6 +251,14 @@ async def view_train_booking(request: Request, db: Session = Depends(get_db)):
     
     return templates.TemplateResponse('train_bookings_.html', {"request": request, "bookings": booking_details})
 
+@app.get("/count-train/")
+def view_train_count(request: Request, db: Session = Depends(get_db)):
+    try:
+        booking_counts = db.query(BookingInfo.train_id,func.count(BookingInfo.train_id).label("passenger_count")).group_by(BookingInfo.train_id).all()
+        # Render the template and pass the data
+        return templates.TemplateResponse("train_counts.html", {"request": request,"booking_counts": booking_counts})
+    except Exception as e:
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     import uvicorn

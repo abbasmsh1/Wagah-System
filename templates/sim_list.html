@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+
 <style>
     .table-container {
         height: 400px; /* Set a fixed height for the scrollable area */
@@ -21,9 +22,8 @@
         background: #f1f1f1; /* Fix the header row at the top */
     }
 </style>
-
 <div class="container" style="width: 120vh;">
-    <h2>Arrived ITS List</h2>
+    <h2>Assigned SIM List</h2>
     <div class="table-container">
         <table>
             <thead>
@@ -32,18 +32,18 @@
                     <th>Name</th>
                     <th>Passport Number</th>
                     <th>Visa Number</th>
-                    <th>Arrival Status</th>
+                    <th>Phone Number</th>
                     <th>Timestamp</th>
                 </tr>
             </thead>
             <tbody>
-                {% for master in arrived_masters %}
+                {% for master in phone_assigned %}
                 <tr>
                     <td>{{ master.ITS }}</td>
                     <td>{{ master.first_name }} {{ master.middle_name or "" }} {{ master.last_name }}</td>
                     <td>{{ master.passport_No }}</td>
                     <td>{{ master.Visa_No }}</td>
-                    <td>{{ "Arrived" if master.arrived else "Not Arrived" }}</td>
+                    <td>{{ master.phone }}</td>
                     <td>{{ master.timestamp }}</td>
                 </tr>
                 {% endfor %}
@@ -51,10 +51,9 @@
         </table>
     </div>
     <div>
-        <form action="/mark-as-arrived-form/" method="get">
+        <form action="/assign-sim-form/" method="get">
             <button type="submit" class="button" style="margin:20px;">Back</button>
         </form>
     </div>
 </div>
-
 {% endblock %}

@@ -1,21 +1,23 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Train Booking Form</h1>
+<div class="container" style="width: 50%;">
+    <button style=" float: right; font-family: Poppins; " onclick="window.location.href='/train_info/'">List</button>
+    <h1 style="padding-left: 7%;">Train Booking Form</h1>
+    <form id="searchForm" method="get" action="/train-booking-form/">
+        <label for="its">Search by ITS:</label>
+        <input type="number" id="its" name="its" value="{{ search }}" required>
+        <button type="submit">Search</button>
+    </form>
     {% if form_error %}
         <p style="color:red;">{{ form_error }}</p>
     {% endif %}
     {% if message %}
         <p style="color:green;">{{ message }}</p>
     {% endif %}
-    <form id="searchForm" method="get" action="/train-booking-form/">
-        <label for="its">Search by ITS:</label>
-        <input type="number" id="its" name="its" value="{{ search }}" required>
-        <button type="submit">Search</button>
-    </form>
     {% if person %}
        
-        <form method="get" action="/book-train-details/">
+        <form method="get" action="/book-train-details/" style="margin-top:5%;">
             <input type="hidden" name="its" value="{{ person.ITS }}">
             <label for="train_number">Train Number:</label>
             <select name="train_number" required>
@@ -25,17 +27,18 @@
                     </option>
                 {% endfor %}
             </select>
-            <br>
+        </br>
             <label for="seat_number">Seat Number:</label>
             <input type="number" name="seat_number" required>
-            <br>
+    </br>
             <label for="coach_number">Coach Number:</label>
             <input type="text" name="coach_number" required>
-            <br>
+</br>
             <label for="cabin_number">Cabin Number:</label>
             <input type="text" name="cabin_number" required>
-            <br>
+</br>
             <button type="submit">Book Train</button>
         </form>
     {% endif %}
+    </div>
 {% endblock %}

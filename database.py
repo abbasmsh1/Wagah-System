@@ -90,7 +90,7 @@ class BookingInfo(Base):
     Issued = Column(Boolean)
     Departed = Column(Boolean)
     Self_Issued = Column(Boolean, default=False)
-    seat_number = Column(Integer)
+    seat_number = Column(String)
     bus_number = Column(Integer)
     train_id = Column(Integer, ForeignKey("train.id"), nullable=True)
     plane_id = Column(Integer, ForeignKey("plane.plane_id"), nullable=True)
