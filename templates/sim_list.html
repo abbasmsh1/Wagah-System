@@ -1,65 +1,59 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assigned SIM List</title>
-    <link rel="stylesheet" href="/static/custom.css">
-    <style>
-        .table-container {
-            height: 400px; /* Set a fixed height for the scrollable area */
-            overflow-y: scroll; /* Enable vertical scrolling */
-        }
-        table {
-            width: 100%; /* Make sure the table takes the full width of the container */
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            position: sticky;
-            top: 0;
-            background: #f1f1f1; /* Fix the header row at the top */
-        }
-    </style>
-</head>
-<body>
-    <div class="container" style="width: 120vh;">
-        <h2>Assigned SIM List</h2>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ITS</th>
-                        <th>Name</th>
-                        <th>Passport Number</th>
-                        <th>Visa Number</th>
-                        <th>Phone Number</th>
-                        <th>Timestamp</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for master in phone_assigned %}
-                    <tr>
-                        <td>{{ master.ITS }}</td>
-                        <td>{{ master.first_name }} {{ master.middle_name or "" }} {{ master.last_name }}</td>
-                        <td>{{ master.passport_No }}</td>
-                        <td>{{ master.Visa_No }}</td>
-                        <td>{{ master.phone }}</td>
-                        <td>{{ master.timestamp }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div>
-            <form action="/assign-sim-form/" method="get">
-                <button type="submit" class="button" style="margin:20px;">Back</button>
-            </form>
-        </div>
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .table-container {
+        height: 400px; /* Set a fixed height for the scrollable area */
+        overflow-y: scroll; /* Enable vertical scrolling */
+    }
+    table {
+        width: 100%; /* Make sure the table takes the full width of the container */
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    th {
+        position: sticky;
+        top: 0;
+        background: #f1f1f1; /* Fix the header row at the top */
+    }
+</style>
+<div class="container" style="width: 120vh;">
+    <h2>Assigned SIM List</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ITS</th>
+                    <th>Name</th>
+                    <th>Passport Number</th>
+                    <th>Visa Number</th>
+                    <th>Phone Number</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for master in phone_assigned %}
+                <tr>
+                    <td>{{ master.ITS }}</td>
+                    <td>{{ master.first_name }} {{ master.middle_name or "" }} {{ master.last_name }}</td>
+                    <td>{{ master.passport_No }}</td>
+                    <td>{{ master.Visa_No }}</td>
+                    <td>{{ master.phone }}</td>
+                    <td>{{ master.timestamp }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-</body>
-</html>
+    <div>
+        <form action="/assign-sim-form/" method="get">
+            <button type="submit" class="button" style="margin:20px;">Back</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
