@@ -438,7 +438,17 @@ def view_all_count(request: Request, db: Session = Depends(get_db)):
 @app.get("/count-train/")
 def view_train_count(request: Request, db: Session = Depends(get_db)):
     try:
-        booking_counts = db.query(BookingInfo.train_id,func.count(BookingInfo.train_id).label("passenger_count")).group_by(BookingInfo.train_id).all()
+        booking_counts = (
+    db.query(
+        Train.train_name,
+        Train.departure_time,
+        BookingInfo.train_id,
+        func.count(BookingInfo.train_id).label("passenger_count"),
+    )
+    .join(Train, Train.id == BookingInfo.train_id)
+    .group_by(Train.train_name, Train.departure_time, BookingInfo.train_id)
+    .all()
+)
         # Render the template and pass the data
         return templates.TemplateResponse("train_counts.html", {"request": request,"booking_counts": booking_counts})
     except Exception as e:
@@ -456,7 +466,14 @@ def view_bus_count(request: Request, db: Session = Depends(get_db)):
 @app.get("/count-plane/")
 def view_bus_count(request: Request, db: Session = Depends(get_db)):
     try:
-        booking_counts = db.query(BookingInfo.plane_id,func.count(BookingInfo.plane_id).label("passenger_count")).group_by(BookingInfo.plane_id).all()
+        booking_counts = (
+            db.query(BookingInfo.plane_id,
+                                  Plane.company,Plane.departure_time,
+                                  func.count(BookingInfo.plane_id).label("passenger_count"),
+                                  )
+            .join(Plane, Plane.plane_id == BookingInfo.plane_id)
+            .group_by(Plane.company, Plane.departure_time, BookingInfo.plane_id)
+            .all())
         # Render the template and pass the data
         return templates.TemplateResponse("plane_counts.html", {"request": request,"booking_counts": booking_counts})
     except Exception as e:
