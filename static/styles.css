@@ -347,13 +347,15 @@ th {
 }
 
 footer {
-    background-color: #18643A;
-    color: white;
-    text-align: center;
+    background-color: #18643A; /* The updated green color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
     padding: 10px;
     position: fixed;
     width: 100%;
     bottom: 0;
+    font-family: Poppins, sans-serif;
 }
 
 select {
