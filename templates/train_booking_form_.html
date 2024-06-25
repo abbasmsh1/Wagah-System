@@ -28,125 +28,55 @@
     {% endif %}
     {% if person %}
        
-        <form method="get" action="/book-train-details/" style="margin-top:5%;">
-            <input type="hidden" name="its" value="{{ person.ITS }}">
-            <label for="train_number">Train Number:</label>
-            <select name="train_number" required>
-                {% for train in trains %}
-                    <option value="{{ train.id }}">
-                        {{ train.train_name }} ({{ train.departure_time.strftime('%H:%M') }})
-                    </option>
-                {% endfor %}
-            </select>
-        </br>
-            <label for="seat_number">Seat Number:</label>
-            <select name="seat_number">
-                <option value = "L1"> L1 </option>
-                <option value = "M2"> M2 </option>
-                <option value = "U3"> U3 </option>
-                <option value = "L4"> L4 </option>
-                <option value = "M5"> M5 </option>
-                <option value = "U6"> U6 </option>
-            </select>
+    <form method="get" action="/book-train-details/" style="margin-top:5%;">
+        <input type="hidden" name="its" value="{{ person.ITS }}">
+        <label for="train_number">Train Number:</label>
+        <select name="train_number" required>
+            {% for train in trains %}
+                <option value="{{ train.id }}">
+                    {{ train.train_name }} ({{ train.departure_time.strftime('%H:%M') }})
+                </option>
+            {% endfor %}
+        </select>
     </br>
-            <label for="coach_number">Coach Number:</label>
-            <input type="text" name="coach_number" required>
+
+    <label for="coach_number">Coach Number:</label>
+        <input type="text" name="coach_number" required>
+        
 </br>
-            <label for="cabin_number">Cabin Number:</label>
-            <select name="cabin_number">
-                <option value = "A"> A </option>
-                <option value = "B"> B </option>
-                <option value = "C"> C </option>
-                <option value = "D"> D </option>
-                <option value = "E"> E </option>
-                <option value = "F"> F </option>
-                <option value = "G"> G </option>
-                <option value = "H"> H </option>
-                <option value = "I"> I </option>
-                <option value = "J"> J </option>
-                <option value = "K"> K </option>
-                <option value = "L"> L </option>
-            </select>
-</br>
-            <button type="submit">Book Train</button>
-        </form>
+        <label for="cabin_number">Cabin Number:</label>
+        <select name="cabin_number">
+            <option value = "A"> A </option>
+            <option value = "B"> B </option>
+            <option value = "C"> C </option>
+            <option value = "D"> D </option>
+            <option value = "E"> E </option>
+            <option value = "F"> F </option>
+            <option value = "G"> G </option>
+            <option value = "H"> H </option>
+            <option value = "I"> I </option>
+            <option value = "J"> J </option>
+            <option value = "K"> K </option>
+            <option value = "L"> L </option>
+        </select>
+        </br>
+        <label for="seat_number">Seat Number:</label>
+        <select name="seat_number">
+            <option value = "L1"> L1 </option>
+            <option value = "M2"> M2 </option>
+            <option value = "U3"> U3 </option>
+            <option value = "L4"> L4 </option>
+            <option value = "M5"> M5 </option>
+            <option value = "U6"> U6 </option>
+        </select>
+    </br>
+        <button type="submit">Book Train</button>
+    </form>
     {% endif %}
-
-    {% if booking %}
-        <h2>Booking Details</h2>
-        <table id="bookingTable">
-            <thead>
-                <tr>
-                    <th>ITS</th>
-                    <th>Train</th>
-                    <th>Departure Time</th>
-                    <th>Seat Number</th>
-                    <th>Coach Number</th>
-                    <th>Cabin Number</th>
-                    <th>Shuttle Number</th>
-                    <th>Shuttle Time</th>
-                </tr>
-            </thead>
-            <tbody>
-                    <tr>
-                        <td>{{ booking.ITS }}</td>
-                        <td>{{ train.train_name }}</td>
-                        <td>{{ train.departure_time.strftime("%H:%M") }}</td>
-                        <td>{{ booking.seat_number }}</td>
-                        <td>{{ booking.coach_number }}</td>
-                        <td>{{ booking.cabin_number }}</td>
-                        <td>{{ shuttle_id }}</td>
-                        <td>{{ departure_time.strftime("%H:%M") }}</td>
-                    </tr>
-            </tbody>
-        </table>
-        <button onclick="printTable()">Print</button>
-    {% endif %}
-
-</div>
-
-<script>
-    function printTable() {
-        var table = document.getElementById("bookingTable").outerHTML;
-        var newWindow = window.open("", "", "width=800, height=600");
-        newWindow.document.write(`
-            <html>
-            <head>
-                <title>Print</title>
-                <style>
-                @page {
-                    size: A5;
-                    margin: 10mm;
-                }
-                    body {
-                    width: 100%;
-                    margin: 0;
-                    padding: 0;
-                }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                    }
-                    th, td {
-                        border: 1px solid black;
-                        padding: 8px;
-                        text-align: left;
-                    }
-                </style>
-            </head>
-            <body>
-                ${table}
-            </body>
-            </html>
-        `);
-        newWindow.document.close();
-        newWindow.print();
-    }
-    </script>
     </div>
 
-    <footer class="footer" style="color:white;">
-        <p>&copy; 2024 TKM Rawalpindi. All rights reserved.</p>
-    </footer>  
+    <footer class="footer" style="color:white; height: 6%;">
+        <p>&copy; Powered by Toloba-ul-Kulliyat-il-Mumenoon Rawalpindi. All rights reserved 2024.</p>
+    </footer>   
     </body>
     </html>
