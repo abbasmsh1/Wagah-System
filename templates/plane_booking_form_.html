@@ -20,11 +20,13 @@
     {% if message %}
         <p style="color:green;">{{ message }}</p>
     {% endif %}
+
     <form id="searchForm" method="get" action="/plane-booking-form/">
         <label for="its">Search by ITS:</label>
         <input type="number" id="its" name="its" value="{{ search }}" required>
         <button type="submit">Search</button>
     </form>
+
     {% if person %}
        
         <form method="get" action="/book-plane-details/">
@@ -44,6 +46,75 @@
             <button type="submit">Book Plane</button>
         </form>
     {% endif %}
+
+    {% if booking %}
+    <h2>Booking Details</h2>
+    <table id="bookingTable">
+        <thead>
+            <tr>
+                <th>ITS</th>
+                <th>Plane</th>
+                <th>Departure Time</th>
+                <th>Seat Number</th>
+                <th>Shuttle Number</th>
+                <th>Shuttle Time</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                    <td>{{ booking.ITS }}</td>
+                    <td>{{ plane.company }}</td>
+                    <td>{{ plane.departure_time.strftime("%H:%M") }}</td>
+                    <td>{{ booking.seat_number }}</td>
+                    <td>{{ shuttle_id }}</td>
+                    <td>{{ departure_time.strftime("%H:%M") }}</td>
+                </tr>
+        </tbody>
+    </table>
+    <button onclick="printTable()">Print</button>
+{% endif %}
+
+</div>
+
+<script>
+function printTable() {
+    var table = document.getElementById("bookingTable").outerHTML;
+    var newWindow = window.open("", "", "width=800, height=600");
+    newWindow.document.write(`
+        <html>
+        <head>
+            <title>Print</title>
+            <style>
+            @page {
+                size: A5;
+                margin: 10mm;
+            }
+                body {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                th, td {
+                    border: 1px solid black;
+                    padding: 8px;
+                    text-align: left;
+                }
+            </style>
+        </head>
+        <body>
+            ${table}
+        </body>
+        </html>
+    `);
+    newWindow.document.close();
+    newWindow.print();
+}
+</script>
+
     </div>
     <footer class="footer" style="color:white;">
         <p>&copy; 2024 TKM Rawalpindi. All rights reserved.</p>
