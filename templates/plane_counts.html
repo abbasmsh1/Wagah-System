@@ -40,7 +40,7 @@
         <h1>Total Count</h1>
         {%for booking in booking_counts %}
         <div class="container">
-            <div class="card" onclick="redirectToPage('/processed-masters/')">{{ booking.company }} {{ booking.departure_time }}</br>Total Passengers: {{ booking.passenger_count }}</div>
+            <div class="card" onclick="redirectToPage('/plane_info/')">{{ booking.company }} {{ booking.departure_time }}</br>Total Passengers: {{ booking.passenger_count }}</div>
         </div>
         {% endfor %}
     </div>
