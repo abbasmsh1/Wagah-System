@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, text
-from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Bus, Plane, Train, ProcessedMaster, User
+from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Bus, Plane, plane, ProcessedMaster, User
 import os
 import csv
 import io
@@ -89,7 +89,6 @@ async def post_plane_booking_form(request: Request, its: int = None, db: Session
     
     if its:
         its = compress_its(its)
-        print(its)
         person = db.query(Master).filter(Master.ITS == its).first()
     planes = db.query(Plane).all()
     search = its if its else ""
@@ -103,38 +102,44 @@ async def post_plane_booking_form(request: Request, its: int = None, db: Session
     
     
 @app.get("/book-plane-details/", response_class=HTMLResponse)
-async def post_book_train(
+async def post_book_plane(
     request: Request,
     its: int,
     plane_name: str,
     seat_number: int ,
     db: Session = Depends(get_db)
 ):
+    print("entered form")
     try:
         # Check if ITS exists and fetch its details
         person = db.query(Master).filter(Master.ITS == its).first()
         if not person:
             raise HTTPException(status_code=404, detail=f"ITS {its} not found")
 
-        # Check if train exists and fetch its details
+        # Check if plane exists and fetch its details
         plane = db.query(Plane).filter(Plane.plane_id == plane_name).first()
         if not plane:
             raise HTTPException(status_code=404, detail=f"Plane {plane_name} not found")
 
-        # Book the train seat
+        # Book the plane seat
         new_booking = BookingInfo(
             ITS=its,
-            Mode=3,  # Assuming '2' represents 'train' in your context
+            Mode=3,  # Assuming '2' represents 'plane' in your context
             Issued=True,
             Departed=False,
             Self_Issued=True,
             seat_number=seat_number,
             plane_id=plane_name
         )
+        shuttle_id = 'P' + str(new_booking.plane_id)
+        date_time = datetime.combine(datetime.today(), db.query(Plane).filter(Plane.plane_id == new_booking.plane_id).first().departure_time)
+        plane = db.query(Plane).filter(Plane.plane_id == new_booking.plane_id).first()
+        # Subtract two hours
+        shuttle_time = (date_time - timedelta(hours=2)).time()
         db.add(new_booking)
         db.commit()
 
-        # Retrieve person and trains for template
+        # Retrieve person and planes for template
         planes = db.query(Plane).all()
 
         return templates.TemplateResponse(
@@ -143,9 +148,14 @@ async def post_book_train(
                 "request": request,
                 "person": person,
                 "planes": planes,
+                "plane":plane,
+                "booking": new_booking,
+                "shuttle_id": shuttle_id,
+                "departure_time": shuttle_time, 
                 "message": "Plane booked successfully"
             },
         )
+
 
     except IntegrityError:
         db.rollback()
@@ -174,7 +184,8 @@ async def post_book_train(
             },
         )
 
-    except Exception:
+    except Exception as e:
+        print(e)
         db.rollback()
         person = db.query(Master).filter(Master.ITS == its).first()
         planes = db.query(Plane).all()
@@ -207,7 +218,7 @@ async def view_plane_booking(request: Request, db: Session = Depends(get_db)):
         Master.phone
     ).subquery()
     
-    # Query to get Train details
+    # Query to get plane details
     plane_query = db.query(
         Plane.plane_id.label('plane_id'),
         Plane.company,

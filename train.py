@@ -10,7 +10,7 @@ from database import SessionLocal, Master, BookingInfo, Train, User
 import os
 import csv
 import io
-from datetime import datetime
+from datetime import datetime, timedelta, time
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from urllib.parse import unquote
@@ -125,6 +125,12 @@ async def post_book_train(
             coach_number=coach_number,
             cabin_number = cabin_number
         )
+        shuttle_id = 'T' + str(new_booking.train_id)
+        # Convert datetime.time to datetime.datetime (using an arbitrary date)
+        date_time = datetime.combine(datetime.today(), db.query(Train).filter(Train.id == new_booking.train_id).first().departure_time)
+        train = db.query(Train).filter(Train.id == new_booking.train_id).first()
+        # Subtract two hours
+        shuttle_time = (date_time - timedelta(hours=2)).time()
         db.add(new_booking)
         db.commit()
 
@@ -137,6 +143,10 @@ async def post_book_train(
                 "request": request,
                 "person": person,
                 "trains": trains,
+                "train":train,
+                "booking": new_booking,
+                "shuttle_id": shuttle_id,
+                "departure_time": shuttle_time, 
                 "message": "Train booked successfully"
             },
         )

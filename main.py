@@ -470,8 +470,7 @@ def view_bus_count(request: Request, db: Session = Depends(get_db)):
             db.query(BookingInfo.plane_id,
                                   Plane.company,Plane.departure_time,
                                   func.count(BookingInfo.plane_id).label("passenger_count"),
-                                  )
-            .join(Plane, Plane.plane_id == BookingInfo.plane_id)
+                                  ).join(Plane, Plane.plane_id == BookingInfo.plane_id)
             .group_by(Plane.company, Plane.departure_time, BookingInfo.plane_id)
             .all())
         # Render the template and pass the data
@@ -810,6 +809,12 @@ async def post_book_train(
             coach_number=coach_number,
             cabin_number = cabin_number
         )
+        shuttle_id = 'T' + str(new_booking.train_id)
+        # Convert datetime.time to datetime.datetime (using an arbitrary date)
+        date_time = datetime.combine(datetime.today(), db.query(Train).filter(Train.id == new_booking.train_id).first().departure_time)
+        train = db.query(Train).filter(Train.id == new_booking.train_id).first()
+        # Subtract two hours
+        shuttle_time = (date_time - timedelta(hours=2)).time()
         db.add(new_booking)
         db.commit()
 
@@ -822,6 +827,10 @@ async def post_book_train(
                 "request": request,
                 "person": person,
                 "trains": trains,
+                "train":train,
+                "booking": new_booking,
+                "shuttle_id": shuttle_id,
+                "departure_time": shuttle_time, 
                 "message": "Train booked successfully"
             },
         )
@@ -972,12 +981,12 @@ async def check_processed_its(its: int, db: Session = Depends(get_db)):
 @app.get("/plane-booking-form/", response_class=HTMLResponse)
 async def post_plane_booking_form(request: Request, its: int = None, db: Session = Depends(get_db)):
     print(its)
-    person = None
-    
+    person=None
     if its:
         its = compress_its(its)
         print(its)
         person = db.query(Master).filter(Master.ITS == its).first()
+        print(person.ITS)
     planes = db.query(Plane).all()
     search = its if its else ""
 
@@ -997,6 +1006,7 @@ async def post_book_train(
     seat_number: int ,
     db: Session = Depends(get_db)
 ):
+    print("entered form")
     try:
         # Check if ITS exists and fetch its details
         person = db.query(Master).filter(Master.ITS == its).first()
@@ -1018,6 +1028,11 @@ async def post_book_train(
             seat_number=seat_number,
             plane_id=plane_name
         )
+        shuttle_id = 'P' + str(new_booking.plane_id)
+        date_time = datetime.combine(datetime.today(), db.query(Plane).filter(Plane.plane_id == new_booking.plane_id).first().departure_time)
+        plane = db.query(Plane).filter(Plane.plane_id == new_booking.plane_id).first()
+        # Subtract two hours
+        shuttle_time = (date_time - timedelta(hours=2)).time()
         db.add(new_booking)
         db.commit()
 
@@ -1030,6 +1045,10 @@ async def post_book_train(
                 "request": request,
                 "person": person,
                 "planes": planes,
+                "plane":plane,
+                "booking": new_booking,
+                "shuttle_id": shuttle_id,
+                "departure_time": shuttle_time, 
                 "message": "Plane booked successfully"
             },
         )
