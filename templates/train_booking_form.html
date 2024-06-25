@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container" style="width: 90%;">
+<div class="container" style="width: 50%;">
     <button style=" float: right; font-family: Poppins; " onclick="window.location.href='/train_info/'">List</button>
+</br>
     <h1 style="padding-left: 7%;">Train Booking Form</h1>
     <form id="searchForm" method="get" action="/train-booking-form/">
         <label for="its">Search by ITS:</label>
@@ -28,14 +29,36 @@
                 {% endfor %}
             </select>
         </br>
-            <label for="seat_number">Seat Number:</label>
-            <input type="number" name="seat_number" required>
-    </br>
-            <label for="coach_number">Coach Number:</label>
+
+        <label for="coach_number">Coach Number:</label>
             <input type="text" name="coach_number" required>
+            
 </br>
             <label for="cabin_number">Cabin Number:</label>
-            <input type="text" name="cabin_number" required>
+            <select name="cabin_number">
+                <option value = "A"> A </option>
+                <option value = "B"> B </option>
+                <option value = "C"> C </option>
+                <option value = "D"> D </option>
+                <option value = "E"> E </option>
+                <option value = "F"> F </option>
+                <option value = "G"> G </option>
+                <option value = "H"> H </option>
+                <option value = "I"> I </option>
+                <option value = "J"> J </option>
+                <option value = "K"> K </option>
+                <option value = "L"> L </option>
+            </select>
+            </br>
+            <label for="seat_number">Seat Number:</label>
+            <select name="seat_number">
+                <option value = "L1"> L1 </option>
+                <option value = "M2"> M2 </option>
+                <option value = "U3"> U3 </option>
+                <option value = "L4"> L4 </option>
+                <option value = "M5"> M5 </option>
+                <option value = "U6"> U6 </option>
+            </select>
 </br>
             <button type="submit">Book Train</button>
         </form>
