@@ -62,7 +62,7 @@
 </br>
             <button type="submit">Book Train</button>
         </form>
-
+        {% endif %}
         {% if booking %}
         <h2>Booking Details</h2>
         <table id="bookingTable">
@@ -91,10 +91,10 @@
                     </tr>
             </tbody>
         </table>
-    {% endif %}
+
 
     <button onclick="printTable()">Print</button>
-{% endif %}
+    {% endif %}
 </div>
 
 <script>
@@ -127,6 +127,9 @@
                 </style>
             </head>
             <body>
+            <h1>Wagah Train Booking Details</h1>
+            <h2> Shuttle from Camp to Railway station </h2>
+            <span> Please find below the details for your ticket </span>
                 ${table}
             </body>
             </html>
@@ -135,4 +138,5 @@
         newWindow.print();
     }
     </script>
+
 {% endblock %}

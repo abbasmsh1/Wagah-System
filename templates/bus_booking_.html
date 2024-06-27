@@ -73,7 +73,7 @@
     {% endif %}
     
     <h2 style="margin:5% auto">Booked Ticket Details</h2>
-    <table>
+    <table id ="bookingTable">
         <tr>
             <th>ITS</th>
             <th>Name</th>
@@ -91,6 +91,7 @@
         </tr>
         {% endif %}
     </table>
+    <button onclick="printTable()">Print</button>
     {% endif %}
 
     {% if form_error %}
@@ -118,6 +119,43 @@ document.addEventListener("DOMContentLoaded", function() {
     // Fetch and display bus info based on the default selected bus number
     document.getElementById("bus_number").dispatchEvent(new Event("change"));
 });
+function printTable() {
+    var table = document.getElementById("bookingTable").outerHTML;
+    var newWindow = window.open("", "", "width=800, height=600");
+    newWindow.document.write(`
+        <html>
+        <head>
+            <title>Print</title>
+            <style>
+            @page {
+                size: A5;
+                margin: 10mm;
+            }
+                body {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                th, td {
+                    border: 1px solid black;
+                    padding: 8px;
+                    text-align: left;
+                }
+            </style>
+        </head>
+        <body>
+        <h1>Wagah Bus Booking Details</h1>
+        <span> Please find below the details for your ticket </span>
+            ${table}
+        </body>
+        </html>
+    `);
+    newWindow.document.close();
+    newWindow.print();
 </script>
 </body>
 </html>

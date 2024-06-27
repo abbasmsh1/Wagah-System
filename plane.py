@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, text
-from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Bus, Plane, plane, ProcessedMaster, User
+from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Bus, Plane, ProcessedMaster, User
 import os
 import csv
 import io

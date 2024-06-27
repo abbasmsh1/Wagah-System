@@ -780,7 +780,7 @@ async def post_book_train(
     request: Request,
     its: int,
     train_number: int,
-    seat_number: int ,
+    seat_number: str ,
     coach_number: str,
     cabin_number: str,
     db: Session = Depends(get_db)

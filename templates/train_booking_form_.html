@@ -73,6 +73,81 @@
         <button type="submit">Book Train</button>
     </form>
     {% endif %}
+
+    {% if booking %}
+    <h2>Booking Details</h2>
+    <table id="bookingTable">
+        <thead>
+            <tr>
+                <th>ITS</th>
+                <th>Train</th>
+                <th>Departure Time</th>
+                <th>Seat Number</th>
+                <th>Coach Number</th>
+                <th>Cabin Number</th>
+                <th>Shuttle Number</th>
+                <th>Shuttle Time</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                    <td>{{ booking.ITS }}</td>
+                    <td>{{ train.train_name }}</td>
+                    <td>{{ train.departure_time.strftime("%H:%M") }}</td>
+                    <td>{{ booking.seat_number }}</td>
+                    <td>{{ booking.coach_number }}</td>
+                    <td>{{ booking.cabin_number }}</td>
+                    <td>{{ shuttle_id }}</td>
+                    <td>{{ departure_time.strftime("%H:%M") }}</td>
+                </tr>
+        </tbody>
+    </table>
+<button onclick="printTable()">Print</button>
+{% endif %}
+</div>
+
+<script>
+function printTable() {
+    var table = document.getElementById("bookingTable").outerHTML;
+    var newWindow = window.open("", "", "width=800, height=600");
+    newWindow.document.write(`
+        <html>
+        <head>
+            <title>Print</title>
+            <style>
+            @page {
+                size: A5;
+                margin: 10mm;
+            }
+                body {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                th, td {
+                    border: 1px solid black;
+                    padding: 8px;
+                    text-align: left;
+                }
+            </style>
+        </head>
+        <body>
+        <h1>Wagah Train Booking Details</h1>
+            <h2> Shuttle from Camp to Railway station </h2>
+            <span> Please find below the details for your ticket </span>
+            ${table}
+        </body>
+        </html>
+    `);
+    newWindow.document.close();
+    newWindow.print();
+}
+</script>
+
     </div>
 
     <footer class="footer" style="color:white; height: 6%;">
