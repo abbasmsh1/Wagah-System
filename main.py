@@ -1158,6 +1158,42 @@ async def view_plane_booking(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse('plane_bookings.html', {"request": request, "bookings": booking_details})
 
 
+# Mark as Departed
+@app.get("/mark-as-departed/")
+async def mark_as_departed(its: int, db: Session = Depends(get_db)):
+    its = compress_its(its)
+    master = db.query(Master).filter(Master.ITS == its).first()
+    if master:
+        master.departed = True
+        master.d_timestamp = datetime.now()
+        db.commit()
+        db.refresh(master)
+        message = f"ITS {its} marked as Departed successfully"
+    else:
+        message = f"No record found for ITS {its}"
+    return RedirectResponse(url=f"/mark-as-departed-form/?its={its}&message={message}")
+
+@app.get("/mark-as-departed-form/")
+async def get_mark_as_departed_form(request: Request, its: int = None, message: str = None, db: Session = Depends(get_db)):
+    its = compress_its(its)
+    master = db.query(Master).filter(Master.ITS == its).first()
+    departed_count = db.query(Master).filter(Master.departed == True).count()
+    return templates.TemplateResponse("departed.html", {"request": request, "master": master, "message": message, "departed_count": departed_count})
+
+@app.get("/departed-list/", response_class=HTMLResponse)
+async def departed_list(request: Request, page: int = Query(1, ge=1), db: Session = Depends(get_db)):
+    page_size = 16
+    departed_masters = db.query(Master).filter(Master.departed == True).order_by(Master.d_timestamp).offset((page-1)*page_size).limit(page_size).all()
+    total_count = db.query(Master).filter(Master.departed == True).count()
+    return templates.TemplateResponse("departed_list.html", {
+        "request": request,
+        "masters": departed_masters,
+        "total_count": total_count,
+        "page_size": page_size,
+        "current_page": page
+    })
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
