@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .table-container {
+        height: 400px; /* Set a fixed height for the scrollable area */
+        overflow-y: scroll; /* Enable vertical scrolling */
+    }
+    table {
+        width: 100%; /* Make sure the table takes the full width of the container */
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    th {
+        position: sticky;
+        top: 0;
+        background: #f1f1f1; /* Fix the header row at the top */
+    }
+</style>
+
+{% if masters %}
+<div class="inner-container printable" style="width: 90%;">
+    <h2>Departed ITS List</h2>
+    <div class="table-container">
+        <table id="departed-table">
+            <thead>
+                <tr>
+                    <th>S#</th>
+                    <th>ITS</th>
+                    <th>Name</th>
+                    <th>Passport Number</th>
+                    <th>Visa Number</th>
+                    <th>Departure Status</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for master in masters %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ master.ITS }}</td>
+                    <td>{{ master.first_name }} {{ master.middle_name or "" }} {{ master.last_name }}</td>
+                    <td>{{ master.passport_No }}</td>
+                    <td>{{ master.Visa_No }}</td>
+                    <td>{{ "Departed" if master.departed else "Not Departed" }}</td>
+                    <td>{{ master.d_timestamp }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <button style="font-family: poppins; margin-bottom: 1rem" onclick="window.history.go(-1);">Back</button>
+        <button style="font-family: poppins; margin-bottom: 1rem" onclick="printCustomTable()">Print</button>
+    </div>
+    <div>
+        {% if current_page > 1 %}
+        <a href="/departed-list/?page={{ current_page - 1 }}"><button>Previous</button></a>
+        {% endif %}
+        {% if current_page * page_size < total_count %}
+        <a href="/departed-list/?page={{ current_page + 1 }}"><button>Next</button></a>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<p>No records found.</p>
+{% endif %}
+
+<script>
+    function printCustomTable() {
+        var table = document.getElementById("departed-table").outerHTML;
+        var style = `
+            <style>
+                table { width: 100%; border-collapse: collapse; }
+                th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+                th { background: #f1f1f1; position: sticky; top: 0; }
+            </style>
+        `;
+        var win = window.open('', '', 'height=700,width=700');
+        win.document.write('<html><head>');
+        win.document.write('<title>Print Table</title>');
+        win.document.write(style);
+        win.document.write('</head><body>');
+        win.document.write(table);
+        win.document.write('</body></html>');
+        win.document.close();
+        win.print();
+    }
+</script>
+
+{% endblock %}

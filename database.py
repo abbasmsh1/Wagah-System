@@ -41,7 +41,9 @@ class Master(Base):
     Mode_of_Transport = Column(String)
     phone = Column(String, nullable=True)
     arrived = Column(Boolean, default=False)
-    timestamp = Column(DateTime, default=func.now())
+    timestamp = Column(DateTime, default=None, nullable=True)
+    departed = Column(Boolean, default=False)
+    d_timestamp = Column(DateTime, default=None, nullable=True)
 
 # Define the Transport base model
 class Transport(Base):

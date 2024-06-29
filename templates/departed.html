@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+    <h2>Mark as Departed</h2>
+    <form action="/mark-as-departed/" method="get">
+        <label for="its">ITS:</label>
+        <!-- Use default attribute to autofill the ITS if it's present in the link -->
+        <input type="number" id="its" name="its" {% if request.query_params.its %} value="{{ request.query_params.its }}" {% endif %} required>
+        <button type="submit">Mark as Departed</button>
+    </form>
+
+    {% if message %}
+    <p>{{ message }}</p>
+    {% elif error %}
+    <p>{{ error }}</p>
+    {% endif %}
+
+    {% if master %}
+    <h2>Departure Information</h2>
+    <table>
+        <tr>
+            <th>ITS</th>
+            <td>{{ master.ITS }}</td>
+        </tr>
+        <tr>
+            <th>Name</th>
+            <td>{{ master.first_name }} {{ master.middle_name or "" }} {{ master.last_name }}</td>
+        </tr>
+        <tr>
+            <th>Passport Number</th>
+            <td>{{ master.passport_No }}</td>
+        </tr>
+        <tr>
+            <th>Visa Number</th>
+            <td>{{ master.Visa_No }}</td>
+        </tr>
+        <tr>
+            <th>Departure Status</th>
+            <td>{{ "Departed" if master.departed else "Not Departed" }}</td>
+        </tr>
+        <tr>
+            <th>Timestamp</th>
+            <td>{{ master.d_timestamp }}</td>
+        </tr>
+    </table>
+    {% endif %}
+
+    <div class="info">
+        <p>Total Number of People Marked as Arrived: {{ departed_count }}</p>
+        <form action="/departed-list/" method="get">
+            <button type="submit" class="button">View Departed List</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
