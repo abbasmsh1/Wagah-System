@@ -1193,6 +1193,32 @@ async def departed_list(request: Request, page: int = Query(1, ge=1), db: Sessio
         "current_page": page
     })
 
+@app.get("/its-form/", response_class=HTMLResponse)
+async def get_its_form(request: Request):
+    return templates.TemplateResponse("its_form.html", {"request": request})
+
+@app.post("/print-its-form", response_class=HTMLResponse)
+async def print_its_form(request: Request, its_numbers: str = Form(...), db: Session = Depends(get_db)):
+    its_list = [int(its.strip()) for its in its_numbers.split(",")]
+    results = (
+        db.query(Master, BookingInfo)
+        .join(BookingInfo, Master.ITS == BookingInfo.ITS)
+        .filter(Master.ITS.in_(its_list))
+        .all()
+    )
+    bookings = [
+        {
+            "ITS": master.ITS,
+            "first_name": master.first_name,
+            "middle_name": master.middle_name,
+            "last_name": master.last_name,
+            "bus_number": booking.bus_number,
+            "seat_number": booking.seat_number,
+        }
+        for master, booking in results
+    ]
+    return templates.TemplateResponse("printable_form.html", {"request": request, "bookings": bookings})
+
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Printable ITS Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Printable ITS Form</h1>
+    <button class="no-print" onclick="window.print()">Print</button>
+    <table>
+        <thead>
+            <tr>
+                <th>ITS</th>
+                <th>First Name</th>
+                <th>Middle Name</th>
+                <th>Last Name</th>
+                <th>Bus Number</th>
+                <th>Seat Number</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in bookings %}
+            <tr>
+                <td>{{ booking.ITS }}</td>
+                <td>{{ booking.first_name }}</td>
+                <td>{{ booking.middle_name }}</td>
+                <td>{{ booking.last_name }}</td>
+                <td>{{ booking.bus_number }}</td>
+                <td>{{ booking.seat_number }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
