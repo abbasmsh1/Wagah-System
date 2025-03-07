@@ -23,9 +23,8 @@ from database import SessionLocal, engine, Master, BookingInfo, Transport, Sched
 import os
 import csv
 import io
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from fastapi.responses import JSONResponse
-from datetime import datetime
 from urllib.parse import unquote
 from fastapi.exceptions import RequestValidationError
 from pydantic.error_wrappers import ValidationError
@@ -88,6 +87,25 @@ def get_db():
     finally:
         db.close()
 
+def create_admin_user(db: Session, username: str, password: str):
+    # Check if user already exists
+    existing_user = db.query(User).filter(User.username == username).first()
+    if existing_user:
+        return None
+    
+    # Create new admin user
+    hashed_password = get_password_hash(password)
+    admin_user = User(
+        username=username,
+        hashed_password=hashed_password,
+        role="admin",
+        designation="System Administrator"
+    )
+    db.add(admin_user)
+    db.commit()
+    db.refresh(admin_user)
+    return admin_user
+
 # Security Functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -116,7 +134,11 @@ app.include_router(booking.router)
 # Authentication Routes
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
-    response = templates.TemplateResponse("auth/login.html", {"request": request})
+    response = templates.TemplateResponse("auth/login.html", {
+        "request": request,
+        "current_year": datetime.now().year,
+        "flash_messages": []
+    })
     for header, value in get_security_headers().items():
         response.headers[header] = value
     return response
@@ -127,34 +149,48 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-    user = authenticate_user(db, form_data.username, form_data.password)
-    if not user:
+    try:
+        user = db.query(User).filter(User.username == form_data.username).first()
+        if not user or not verify_password(form_data.password, user.hashed_password):
+            return templates.TemplateResponse(
+                "auth/login.html",
+                {
+                    "request": request,
+                    "error": "Invalid username or password",
+                    "current_year": datetime.now().year,
+                    "flash_messages": []
+                },
+                status_code=401
+            )
+        
+        access_token = create_access_token(
+            data={"sub": user.username, "role": user.role}
+        )
+        
+        response = RedirectResponse(url="/", status_code=303)
+        response.set_cookie(
+            key="access_token",
+            value=f"Bearer {access_token}",
+            httponly=settings.COOKIE_HTTPONLY,
+            secure=settings.COOKIE_SECURE,
+            samesite=settings.COOKIE_SAMESITE,
+            max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        )
+        
+        return response
+        
+    except Exception as e:
+        print(f"Login error: {str(e)}")
         return templates.TemplateResponse(
             "auth/login.html",
-            {"request": request, "error": "Invalid username or password"},
-            status_code=401
+            {
+                "request": request,
+                "error": "An error occurred during login",
+                "current_year": datetime.now().year,
+                "flash_messages": []
+            },
+            status_code=500
         )
-    
-    access_token = create_access_token(
-        data={"sub": user.username, "role": user.role},
-        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
-    
-    response = RedirectResponse(url="/", status_code=303)
-    response.set_cookie(
-        key="access_token",
-        value=f"Bearer {access_token}",
-        httponly=settings.COOKIE_HTTPONLY,
-        secure=settings.COOKIE_SECURE,
-        samesite=settings.COOKIE_SAMESITE,
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
-    )
-    
-    # Add security headers
-    for header, value in get_security_headers().items():
-        response.headers[header] = value
-    
-    return response
 
 @app.get("/logout")
 async def logout():
@@ -225,7 +261,9 @@ async def root(request: Request, _: bool = Depends(user_required), db: Session =
                 "total_passengers": total_passengers,
                 "todays_arrivals": todays_arrivals,
                 "pending_bookings": pending_bookings,
-                "recent_activities": recent_activities
+                "recent_activities": recent_activities,
+                "current_year": datetime.now().year,
+                "flash_messages": []
             }
         )
         
@@ -254,7 +292,12 @@ async def forbidden_handler(request: Request, exc: HTTPException):
         {
             "request": request,
             "error_title": "Access Forbidden",
-            "error_message": "You don't have permission to access this resource."
+            "error_message": "You don't have permission to access this resource.",
+            "current_year": datetime.now().year,
+            "flash_messages": [{
+                "type": "error",
+                "text": "You don't have permission to access this resource."
+            }]
         },
         status_code=403
     )
@@ -269,7 +312,12 @@ async def not_found_handler(request: Request, exc: HTTPException):
         {
             "request": request,
             "error_title": "Page Not Found",
-            "error_message": "The requested page could not be found."
+            "error_message": "The page you're looking for doesn't exist.",
+            "current_year": datetime.now().year,
+            "flash_messages": [{
+                "type": "error",
+                "text": "The page you're looking for doesn't exist."
+            }]
         },
         status_code=404
     )
@@ -284,7 +332,12 @@ async def server_error_handler(request: Request, exc: HTTPException):
         {
             "request": request,
             "error_title": "Server Error",
-            "error_message": "An unexpected error occurred. Please try again later."
+            "error_message": "An unexpected error occurred. Please try again later.",
+            "current_year": datetime.now().year,
+            "flash_messages": [{
+                "type": "error",
+                "text": "An unexpected error occurred. Please try again later."
+            }]
         },
         status_code=500
     )
@@ -1709,6 +1762,97 @@ async def filter_masters(
         "page": page,
         "pages": (total_count + page_size - 1) // page_size
     }
+
+@app.get("/signup", response_class=HTMLResponse)
+async def signup_page(request: Request):
+    response = templates.TemplateResponse("auth/signup.html", {
+        "request": request,
+        "current_year": datetime.now().year,
+        "flash_messages": []
+    })
+    for header, value in get_security_headers().items():
+        response.headers[header] = value
+    return response
+
+@app.post("/signup")
+async def signup(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    confirm_password: str = Form(...),
+    designation: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    # Check if passwords match
+    if password != confirm_password:
+        return templates.TemplateResponse(
+            "auth/signup.html",
+            {
+                "request": request,
+                "error": "Passwords do not match",
+                "current_year": datetime.now().year,
+                "flash_messages": []
+            },
+            status_code=400
+        )
+    
+    # Check if username already exists
+    existing_user = db.query(User).filter(User.username == username).first()
+    if existing_user:
+        return templates.TemplateResponse(
+            "auth/signup.html",
+            {
+                "request": request,
+                "error": "Username already exists",
+                "current_year": datetime.now().year,
+                "flash_messages": []
+            },
+            status_code=400
+        )
+    
+    # Create new user
+    hashed_password = get_password_hash(password)
+    new_user = User(
+        username=username,
+        hashed_password=hashed_password,
+        role="user",  # Default role for new users
+        designation=designation
+    )
+    
+    try:
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        # Create access token
+        access_token = create_access_token(
+            data={"sub": new_user.username, "role": new_user.role}
+        )
+        
+        response = RedirectResponse(url="/", status_code=303)
+        response.set_cookie(
+            key="access_token",
+            value=f"Bearer {access_token}",
+            httponly=settings.COOKIE_HTTPONLY,
+            secure=settings.COOKIE_SECURE,
+            samesite=settings.COOKIE_SAMESITE,
+            max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        )
+        
+        return response
+        
+    except Exception as e:
+        db.rollback()
+        return templates.TemplateResponse(
+            "auth/signup.html",
+            {
+                "request": request,
+                "error": "An error occurred during registration",
+                "current_year": datetime.now().year,
+                "flash_messages": []
+            },
+            status_code=500
+        )
 
 if __name__ == "__main__":
     import uvicorn

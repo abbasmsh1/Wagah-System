@@ -23,13 +23,13 @@
                     
                     <!-- Navigation Links -->
                     <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                        <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">
+                        <a href="/" class="nav-link {{ 'active' if request.url.path == '/' }}">
                             <i class="fas fa-home"></i> Home
                         </a>
-                        <a href="/master-form" class="nav-link {% if request.url.path == '/master-form' %}active{% endif %}">
+                        <a href="/master-form" class="nav-link {{ 'active' if request.url.path == '/master-form' }}">
                             <i class="fas fa-user-edit"></i> Immigration
                         </a>
-                        <a href="/view-count" class="nav-link {% if request.url.path == '/view-count' %}active{% endif %}">
+                        <a href="/view-count" class="nav-link {{ 'active' if request.url.path == '/view-count' }}">
                             <i class="fas fa-chart-bar"></i> Reports
                         </a>
                         <div class="relative group">
@@ -80,12 +80,18 @@
                         <i class="fas fa-sign-in-alt"></i> Login
                     </a>
                     {% endif %}
+
+                    <!-- Mobile menu button -->
+                    <button type="button" class="sm:hidden ml-4 p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-controls="mobile-menu" aria-expanded="false" id="mobile-menu-button">
+                        <span class="sr-only">Open main menu</span>
+                        <i class="fas fa-bars"></i>
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Mobile Navigation -->
-        <div class="sm:hidden" id="mobile-menu">
+        <div class="sm:hidden hidden" id="mobile-menu">
             <div class="pt-2 pb-3 space-y-1">
                 <a href="/" class="mobile-nav-link">
                     <i class="fas fa-home"></i> Home
@@ -96,12 +102,12 @@
                 <a href="/view-count" class="mobile-nav-link">
                     <i class="fas fa-chart-bar"></i> Reports
                 </a>
-                <div x-data="{ open: false }">
-                    <button @click="open = !open" class="mobile-nav-link w-full text-left">
+                <div class="relative">
+                    <button class="mobile-nav-link w-full text-left" id="mobile-transport-button">
                         <i class="fas fa-bus"></i> Transport
                         <i class="fas fa-chevron-down ml-1"></i>
                     </button>
-                    <div x-show="open" class="pl-4">
+                    <div class="hidden pl-4" id="mobile-transport-menu">
                         <a href="/view-buses" class="mobile-nav-link">
                             <i class="fas fa-bus"></i> Buses
                         </a>
@@ -119,11 +125,11 @@
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {% if messages %}
+        {% if flash_messages %}
         <div class="mb-4">
-            {% for message in messages %}
-            <div class="p-4 rounded-md {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
-                {{ message }}
+            {% for message in flash_messages %}
+            <div class="p-4 rounded-md {{ 'bg-red-100 text-red-700' if message.type == 'error' else 'bg-green-100 text-green-700' }}">
+                {{ message.text }}
             </div>
             {% endfor %}
         </div>
@@ -136,7 +142,7 @@
     <footer class="bg-white shadow-inner mt-8">
         <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
             <p class="text-center text-gray-500 text-sm">
-                &copy; {% now "Y" %} Wagah System. All rights reserved.
+                &copy; {{ current_year }} Wagah System. All rights reserved.
             </p>
         </div>
     </footer>
@@ -157,26 +163,30 @@
     </style>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.8.2/dist/alpine.min.js" defer></script>
-    {% block extra_js %}{% endblock %}
-
     <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button')?.addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+
+        // Mobile transport menu toggle
+        document.getElementById('mobile-transport-button')?.addEventListener('click', function() {
+            document.getElementById('mobile-transport-menu').classList.toggle('hidden');
+        });
+
         // Flash messages
-        {% if messages %}
-            {% for message in messages %}
+        {% if flash_messages %}
+            {% for message in flash_messages %}
                 Swal.fire({
-                    title: '{{ message.tags|title }}',
-                    text: '{{ message }}',
-                    icon: '{{ message.tags }}',
+                    title: '{{ message.type|title }}',
+                    text: '{{ message.text }}',
+                    icon: '{{ message.type }}',
                     confirmButtonColor: '#4F46E5'
                 });
             {% endfor %}
         {% endif %}
-
-        // Mobile menu toggle
-        document.querySelector('.mobile-menu-button')?.addEventListener('click', function() {
-            document.querySelector('#mobile-menu').classList.toggle('hidden');
-        });
     </script>
+
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
