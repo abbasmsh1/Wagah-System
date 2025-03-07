@@ -1783,47 +1783,47 @@ async def signup(
     designation: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    # Check if passwords match
-    if password != confirm_password:
-        return templates.TemplateResponse(
-            "auth/signup.html",
-            {
-                "request": request,
-                "error": "Passwords do not match",
-                "current_year": datetime.now().year,
-                "flash_messages": []
-            },
-            status_code=400
-        )
-    
-    # Check if username already exists
-    existing_user = db.query(User).filter(User.username == username).first()
-    if existing_user:
-        return templates.TemplateResponse(
-            "auth/signup.html",
-            {
-                "request": request,
-                "error": "Username already exists",
-                "current_year": datetime.now().year,
-                "flash_messages": []
-            },
-            status_code=400
-        )
-    
-    # Check if this is the first user
-    user_count = db.query(func.count(User.id)).scalar()
-    role = "admin" if user_count == 0 else "user"
-    
-    # Create new user
-    hashed_password = get_password_hash(password)
-    new_user = User(
-        username=username,
-        hashed_password=hashed_password,
-        role=role,
-        designation=designation if designation else "System Administrator" if role == "admin" else "User"
-    )
-    
     try:
+        # Check if passwords match
+        if password != confirm_password:
+            return templates.TemplateResponse(
+                "auth/signup.html",
+                {
+                    "request": request,
+                    "error": "Passwords do not match",
+                    "current_year": datetime.now().year,
+                    "flash_messages": []
+                },
+                status_code=400
+            )
+        
+        # Check if username already exists
+        existing_user = db.query(User).filter(User.username == username).first()
+        if existing_user:
+            return templates.TemplateResponse(
+                "auth/signup.html",
+                {
+                    "request": request,
+                    "error": "Username already exists",
+                    "current_year": datetime.now().year,
+                    "flash_messages": []
+                },
+                status_code=400
+            )
+        
+        # Check if this is the first user
+        user_count = db.query(func.count(User.id)).scalar()
+        role = "admin" if user_count == 0 else "user"
+        
+        # Create new user
+        hashed_password = get_password_hash(password)
+        new_user = User(
+            username=username,
+            hashed_password=hashed_password,
+            role=role,
+            designation=designation if designation else "System Administrator" if role == "admin" else "User"
+        )
+        
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
@@ -1846,7 +1846,7 @@ async def signup(
         return response
         
     except Exception as e:
-        db.rollback()
+        print(f"Signup error: {str(e)}")
         return templates.TemplateResponse(
             "auth/signup.html",
             {
