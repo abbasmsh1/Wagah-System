@@ -1,158 +1,219 @@
 {% extends "base.html" %}
- 
+
+{% block title %}Immigration Form - Wagah System{% endblock %}
+
 {% block content %}
-<div class="inner-container" style="margin-top: 5vw; padding: 2rem; display: flex; flex-direction: column; align-content: center; ">
-    <h1>Immigration Info</h1>
-<form action="/master/info" method="get">
-    <label for="its">ITS:</label>
-    <input type="number" id="its" name="its" required>
-    <button type="submit" style="background-color: #18643A; color: white; font-size: 1rem;">Get Info</button>
-</form>
+<div class="py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="md:flex md:items-center md:justify-between">
+            <div class="flex-1 min-w-0">
+                <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                    Immigration Form
+                </h2>
+                <p class="mt-1 text-sm text-gray-500">
+                    Enter passenger details for immigration processing
+                </p>
+            </div>
+        </div>
+    </div>
 
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <form method="POST" action="/master/" class="p-6 space-y-8 divide-y divide-gray-200">
+                <!-- Personal Information -->
+                <div class="space-y-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Personal Information</h3>
+                    <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                        <div class="sm:col-span-2">
+                            <label for="ITS" class="block text-sm font-medium text-gray-700">ITS Number</label>
+                            <div class="mt-1">
+                                <input type="text" name="ITS" id="ITS" required 
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    value="{{ master.ITS if master else '' }}">
+                            </div>
+                        </div>
 
+                        <div class="sm:col-span-2">
+                            <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                            <div class="mt-1">
+                                <input type="text" name="first_name" id="first_name" required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    value="{{ master.first_name if master else '' }}">
+                            </div>
+                        </div>
 
-{% if error_message %}
-    <div style="color: red;">{{ error_message }}</div>
-{% endif %}
+                        <div class="sm:col-span-2">
+                            <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                            <div class="mt-1">
+                                <input type="text" name="last_name" id="last_name" required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    value="{{ master.last_name if master else '' }}">
+                            </div>
+                        </div>
 
-{% if master %}
-<h2>Immigration Information</h2>
-<form id="masterForm">
-    <table>
-        <tr>
-            <th>ITS</th>
-            <td><input type="hidden" id="its" name="its" value="{{ master.ITS }}" required readonly></td>
-        </tr>
-        <tr>
-            <th>First Name</th>
-            <td><input type="text" id="first_name" name="first_name" value="{{ master.first_name }}" required></td>
-        </tr>
-        <tr>
-            <th>Middle Name</th>
-            <td><input type="text" id="middle_name" name="middle_name" value="{{ master.middle_name }}"></td>
-        </tr>
-        <tr>
-            <th>Last Name</th>
-            <td><input type="text" id="last_name" name="last_name" value="{{ master.last_name }}" required></td>
-        </tr>
-        <tr>
-            <th>Passport Number</th>
-            <td><input type="text" id="passport_No" name="passport_No" value="{{ master.passport_No }}" required></td>
-        </tr>
-        <tr>
-            <th>Passport Expiry Date</th>
-            <td><input type="date" id="passport_Expiry" name="passport_Expiry" value="{{ master.passport_Expiry }}" required></td>
-        </tr>
-        <tr>
-            <th>Visa Number</th>
-            <td><input type="text" id="Visa_No" name="Visa_No" value="{{ master.Visa_No }}"></td>
-        </tr>
-    </table>
-    <button type="submit" style="background-color: #18643A; color: white; font-size: 1rem;">Save</button>
-    <button type="button" onclick="printForm()" style="background-color: #18643A; color: white; font-size: 1rem;">Print</button>
-</form>
+                        <div class="sm:col-span-3">
+                            <label for="passport_no" class="block text-sm font-medium text-gray-700">Passport Number</label>
+                            <div class="mt-1">
+                                <input type="text" name="passport_no" id="passport_no" required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    value="{{ master.passport_no if master else '' }}">
+                            </div>
+                        </div>
 
-{% endif %}
+                        <div class="sm:col-span-3">
+                            <label for="nationality" class="block text-sm font-medium text-gray-700">Nationality</label>
+                            <div class="mt-1">
+                                <input type="text" name="nationality" id="nationality" required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    value="{{ master.nationality if master else '' }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-<div id="processedCountDisplay">
-    <h3>Processed ITS Entries: <span id="processedCountSpan">{{ processedCount }}</span></h3>
-    <button type="button" class="button" style="font-size: 1rem; background-color: #18643A; padding: 0.5rem 1rem; font-family: poppins; color: white;" id="printProcessedButton" onclick="printProcessedITS()">Print Processed Entries</button>
+                <!-- Contact Information -->
+                <div class="pt-8 space-y-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Contact Information</h3>
+                    <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                        <div class="sm:col-span-3">
+                            <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                            <div class="mt-1">
+                                <input type="tel" name="phone" id="phone"
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    value="{{ master.phone if master else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-3">
+                            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                            <div class="mt-1">
+                                <input type="email" name="email" id="email"
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    value="{{ master.email if master else '' }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Travel Information -->
+                <div class="pt-8 space-y-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Travel Information</h3>
+                    <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                        <div class="sm:col-span-2">
+                            <label for="arrival_date" class="block text-sm font-medium text-gray-700">Arrival Date</label>
+                            <div class="mt-1">
+                                <input type="date" name="arrival_date" id="arrival_date" required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    value="{{ master.arrival_date.strftime('%Y-%m-%d') if master and master.arrival_date else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label for="departure_date" class="block text-sm font-medium text-gray-700">Departure Date</label>
+                            <div class="mt-1">
+                                <input type="date" name="departure_date" id="departure_date" required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    value="{{ master.departure_date.strftime('%Y-%m-%d') if master and master.departure_date else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label for="visa_type" class="block text-sm font-medium text-gray-700">Visa Type</label>
+                            <div class="mt-1">
+                                <select name="visa_type" id="visa_type" required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                    <option value="">Select Visa Type</option>
+                                    <option value="tourist" {% if master and master.visa_type == 'tourist' %}selected{% endif %}>Tourist</option>
+                                    <option value="business" {% if master and master.visa_type == 'business' %}selected{% endif %}>Business</option>
+                                    <option value="student" {% if master and master.visa_type == 'student' %}selected{% endif %}>Student</option>
+                                    <option value="work" {% if master and master.visa_type == 'work' %}selected{% endif %}>Work</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="pt-8">
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="window.history.back()"
+                            class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Save
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
-
-<div id="error_message" style="color: red;"></div>
-
-</div>
+{% block extra_js %}
 <script>
-let processedCount = localStorage.getItem('processedCount') ? parseInt(localStorage.getItem('processedCount')) : 0;
-let processedITSList = JSON.parse(localStorage.getItem('processedITSList')) || [];
+    // Form validation and enhancement
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const itsInput = document.getElementById('ITS');
+        
+        // ITS number validation
+        itsInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
 
-document.getElementById('processedCountSpan').innerText = processedCount;
+        // Form submission handling
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            try {
+                const formData = new FormData(form);
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                });
 
-async function checkProcessedITS(its) {
-    const response = await fetch(`/api/check_processed_its?its=${its}`);
-    return await response.json();
-}
+                if (response.ok) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Immigration form submitted successfully',
+                        icon: 'success',
+                        confirmButtonColor: '#4F46E5'
+                    }).then(() => {
+                        window.location.href = '/';
+                    });
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Form submission failed');
+                }
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: error.message,
+                    icon: 'error',
+                    confirmButtonColor: '#4F46E5'
+                });
+            }
+        });
 
-function incrementProcessedCount() {
-    const its = document.getElementById('its').value;
-    const firstName = document.getElementById('first_name').value;
-    const lastName = document.getElementById('last_name').value;
-    const passportNo = document.getElementById('passport_No').value;
-    const visaNo = document.getElementById('Visa_No').value;
-    
-    const itsEntry = {
-        its: its,
-        firstName: firstName,
-        lastName: lastName,
-        passportNo: passportNo,
-        visaNo: visaNo
-    };
+        // Date validation
+        const arrivalDate = document.getElementById('arrival_date');
+        const departureDate = document.getElementById('departure_date');
 
-    // Check if the ITS entry already exists in the local storage
-    if (processedITSList.some(entry => entry.its === its)) {
-        document.getElementById('error_message').innerText = 'This ITS entry has already been processed.';
-        return;
-    }
+        function validateDates() {
+            if (arrivalDate.value && departureDate.value) {
+                if (new Date(departureDate.value) < new Date(arrivalDate.value)) {
+                    departureDate.setCustomValidity('Departure date must be after arrival date');
+                } else {
+                    departureDate.setCustomValidity('');
+                }
+            }
+        }
 
-    processedITSList.push(itsEntry);
-    processedCount++;
-    localStorage.setItem('processedCount', processedCount);
-    localStorage.setItem('processedITSList', JSON.stringify(processedITSList));
-    
-    document.getElementById('processedCountSpan').innerText = processedCount;
-    document.getElementById('error_message').innerText = ''; // Clear error message
-    
-    if (processedCount >= 10) {
-        alert('You have processed 10 ITS entries. Printing...');
-        printProcessedITS();
-    }
-}
-
-function printForm() {
-    var printContents = document.getElementById('masterForm').innerHTML;
-    var originalContents = document.body.innerHTML;
-    document.body.innerHTML = printContents;
-    window.print();
-    document.body.innerHTML = originalContents;
-}
-
-function printProcessedITS() {
-    // Customize the print format for processed ITS entries
-    var printContents = '<h2>Processed ITS Entries</h2><table border="1"><thead><tr><th>ITS</th><th>Name</th><th>Passport Number</th><th>Visa Number</th></tr></thead><tbody>';
-    processedITSList.forEach(function(entry) {
-        printContents += `<tr><td>${entry.its}</td><td>${entry.firstName} ${entry.lastName}</td><td>${entry.passportNo}</td><td>${entry.visaNo}</td></tr>`;
+        arrivalDate.addEventListener('change', validateDates);
+        departureDate.addEventListener('change', validateDates);
     });
-    printContents += '</tbody></table>';
-    
-    var originalContents = document.body.innerHTML;
-    document.body.innerHTML = printContents;
-    window.print();
-    document.body.innerHTML = originalContents;
-    
-    // Clear the processed entries
-    processedCount = 0;
-    processedITSList = [];
-    localStorage.setItem('processedCount', processedCount);
-    localStorage.setItem('processedITSList', JSON.stringify(processedITSList));
-    document.getElementById('processedCountSpan').innerText = processedCount;
-}
-
-// Attach the incrementProcessedCount function to form submission
-document.getElementById('masterForm').addEventListener('submit', async function(event) {
-    event.preventDefault(); // Prevent default form submission
-    
-    const its = document.getElementById('its').value;
-    const alreadyProcessed = await checkProcessedITS(its);
-
-    if (alreadyProcessed) {
-        document.getElementById('error_message').innerText = 'This ITS entry has already been processed.';
-    } else {
-        incrementProcessedCount();
-        // Submit the form if ITS is not already processed
-        event.target.submit();
-    }
-});
-
 </script>
+{% endblock %}
 {% endblock %}

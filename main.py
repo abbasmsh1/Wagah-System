@@ -23,6 +23,261 @@ from pydantic.error_wrappers import ValidationError
 from sqlalchemy.orm import Session, joinedload
 from datetime import timedelta
 from datetime import time
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from typing import Optional
+from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+
+from routers import master, transport, booking, admin
+from middleware.auth import user_required
+from config.security import get_security_settings, get_security_headers
+
+# Get security settings
+settings = get_security_settings()
+
+# App Configuration
+app = FastAPI(
+    title="Wagah System",
+    description="Border Management System",
+    version="1.0.0"
+)
+
+# Security Middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=settings.ALLOWED_HOSTS,
+)
+
+# Static Files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+# Security Configuration
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+# Database Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# Security Functions
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def authenticate_user(db: Session, username: str, password: str):
+    user = db.query(User).filter(User.username == username).first()
+    if not user or not verify_password(password, user.hashed_password):
+        return None
+    return user
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+# Include Routers
+app.include_router(admin.router)
+app.include_router(master.router)
+app.include_router(transport.router)
+app.include_router(booking.router)
+
+# Authentication Routes
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    response = templates.TemplateResponse("auth/login.html", {"request": request})
+    for header, value in get_security_headers().items():
+        response.headers[header] = value
+    return response
+
+@app.post("/login")
+async def login(
+    request: Request,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        return templates.TemplateResponse(
+            "auth/login.html",
+            {"request": request, "error": "Invalid username or password"},
+            status_code=401
+        )
+    
+    access_token = create_access_token(
+        data={"sub": user.username, "role": user.role},
+        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    
+    response = RedirectResponse(url="/", status_code=303)
+    response.set_cookie(
+        key="access_token",
+        value=f"Bearer {access_token}",
+        httponly=settings.COOKIE_HTTPONLY,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    )
+    
+    # Add security headers
+    for header, value in get_security_headers().items():
+        response.headers[header] = value
+    
+    return response
+
+@app.get("/logout")
+async def logout():
+    response = RedirectResponse(url="/login", status_code=303)
+    response.delete_cookie("access_token")
+    
+    # Add security headers
+    for header, value in get_security_headers().items():
+        response.headers[header] = value
+    
+    return response
+
+# Root Route with Dashboard Data
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request, _: bool = Depends(user_required), db: Session = Depends(get_db)):
+    try:
+        # Get total passengers
+        total_passengers = db.query(func.count(Master.ITS)).scalar()
+        
+        # Get today's arrivals
+        today = datetime.now().date()
+        todays_arrivals = db.query(func.count(Master.ITS)).filter(
+            func.date(Master.arrival_date) == today
+        ).scalar()
+        
+        # Get pending bookings
+        pending_bookings = db.query(func.count(BookingInfo.id)).filter(
+            BookingInfo.status == 'pending'
+        ).scalar()
+        
+        # Get recent activities (last 10)
+        recent_activities = []
+        
+        # Recent master records
+        recent_masters = db.query(Master).order_by(
+            desc(Master.created_at)
+        ).limit(5).all()
+        
+        for master in recent_masters:
+            recent_activities.append({
+                'title': f'New passenger: {master.first_name} {master.last_name}',
+                'status': 'Registered',
+                'user': 'System',
+                'timestamp': master.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            })
+        
+        # Recent bookings
+        recent_bookings = db.query(BookingInfo).order_by(
+            desc(BookingInfo.created_at)
+        ).limit(5).all()
+        
+        for booking in recent_bookings:
+            recent_activities.append({
+                'title': f'New booking: ITS {booking.ITS}',
+                'status': booking.status.capitalize(),
+                'user': 'System',
+                'timestamp': booking.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            })
+        
+        # Sort activities by timestamp
+        recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
+        recent_activities = recent_activities[:10]
+        
+        response = templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "total_passengers": total_passengers,
+                "todays_arrivals": todays_arrivals,
+                "pending_bookings": pending_bookings,
+                "recent_activities": recent_activities
+            }
+        )
+        
+        # Add security headers
+        for header, value in get_security_headers().items():
+            response.headers[header] = value
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error in root route: {str(e)}")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred")
+
+# Error Handlers with Improved Templates
+@app.exception_handler(401)
+async def unauthorized_handler(request: Request, exc: HTTPException):
+    response = RedirectResponse(url="/login", status_code=303)
+    for header, value in get_security_headers().items():
+        response.headers[header] = value
+    return response
+
+@app.exception_handler(403)
+async def forbidden_handler(request: Request, exc: HTTPException):
+    response = templates.TemplateResponse(
+        "errors/403.html",
+        {
+            "request": request,
+            "error_title": "Access Forbidden",
+            "error_message": "You don't have permission to access this resource."
+        },
+        status_code=403
+    )
+    for header, value in get_security_headers().items():
+        response.headers[header] = value
+    return response
+
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc: HTTPException):
+    response = templates.TemplateResponse(
+        "errors/404.html",
+        {
+            "request": request,
+            "error_title": "Page Not Found",
+            "error_message": "The requested page could not be found."
+        },
+        status_code=404
+    )
+    for header, value in get_security_headers().items():
+        response.headers[header] = value
+    return response
+
+@app.exception_handler(500)
+async def server_error_handler(request: Request, exc: HTTPException):
+    response = templates.TemplateResponse(
+        "errors/500.html",
+        {
+            "request": request,
+            "error_title": "Server Error",
+            "error_message": "An unexpected error occurred. Please try again later."
+        },
+        status_code=500
+    )
+    for header, value in get_security_headers().items():
+        response.headers[header] = value
+    return response
 
 def compress_its(its: int) -> str:
     try:
@@ -39,100 +294,122 @@ def compress_its(its: int) -> str:
     except:
         return its
 
-
-app = FastAPI()
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-templates = Jinja2Templates(directory="templates")
-
-# Dependency to get the DB session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-# Main Index code with login check
-@app.get("/")
-def read_root(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
-
-
-# immigration Form
-
-@app.get("/master-form")
-def get_master_form(request: Request):
-    return templates.TemplateResponse("master.html", {"request": request})
+# Master Form Routes
+@app.get("/master-form", response_class=HTMLResponse)
+async def get_master_form(request: Request, _: bool = Depends(user_required)):
+    response = templates.TemplateResponse("master.html", {
+        "request": request,
+        "master": None
+    })
     
+    # Add security headers
+    for header, value in get_security_headers().items():
+        response.headers[header] = value
     
+    return response
 
-@app.get("/master/")
-def get_master_by_its(request: Request, its: int, db: Session = Depends(get_db)):
-    print("Master data updated")
-    its = compress_its(its)
-    master = db.query(Master).filter(Master.ITS == int(its)).first()
-    if not master:
-        raise HTTPException(status_code=404, detail="Master not found")
-    return templates.TemplateResponse("master.html", {"request": request, "master": master})
-
-@app.post("/master/update", response_class=HTMLResponse)
-async def update_master(
+@app.get("/master/{its}", response_class=HTMLResponse)
+async def get_master_by_its(
     request: Request,
-    its: int = Form(...),
-    first_name: str = Form(...),
-    middle_name: str = Form(None),
-    last_name: str = Form(...),
-    passport_No: str = Form(...),
-    passport_Expiry: str = Form(...),
-    Visa_No: str = Form(None),
+    its: int,
+    _: bool = Depends(user_required),
     db: Session = Depends(get_db)
 ):
-    its = compress_its(its)
-    
-    # Check if the ITS is already processed
-    if db.query(ProcessedMaster).filter(ProcessedMaster.ITS == int(its)).first():
-        error_message = "This ITS entry has already been processed."
+    try:
+        its = compress_its(its)
         master = db.query(Master).filter(Master.ITS == int(its)).first()
-        return templates.TemplateResponse("master.html", {"request": request, "master": master, "error_message": error_message})
-    
-    master = db.query(Master).filter(Master.ITS == int(its)).first()
-    if not master:
-        raise HTTPException(status_code=404, detail="Master not found")
-    
-    # Move data to ProcessedMaster table
-    processed_master = ProcessedMaster(
-        ITS=master.ITS,
-        first_name=master.first_name,
-        middle_name=master.middle_name,
-        last_name=master.last_name,
-        DOB=master.DOB,
-        passport_No=master.passport_No,
-        passport_Expiry=master.passport_Expiry,
-        Visa_No=master.Visa_No,
-        Mode_of_Transport=master.Mode_of_Transport,
-        phone=master.phone,
-        arrived=master.arrived,
-        timestamp=master.timestamp,
-        processed_by="admin"  # Save the username of the current user
-    )
-    db.add(processed_master)
-    
-    # Update data in Master table
-    master.first_name = first_name
-    master.middle_name = middle_name
-    master.last_name = last_name
-    master.passport_No = passport_No
-    master.passport_Expiry = datetime.strptime(passport_Expiry, "%Y-%m-%d").date()
-    master.Visa_No = Visa_No
-    
-    db.commit()
-    return templates.TemplateResponse("master.html", {"request": request, "master": master})
+        if not master:
+            raise HTTPException(status_code=404, detail="Master record not found")
+        
+        response = templates.TemplateResponse("master.html", {
+            "request": request,
+            "master": master
+        })
+        
+        # Add security headers
+        for header, value in get_security_headers().items():
+            response.headers[header] = value
+        
+        return response
+        
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid ITS number format")
+    except Exception as e:
+        logger.error(f"Error retrieving master record: {str(e)}")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred")
 
-
-
+@app.post("/master/", response_class=JSONResponse)
+async def create_or_update_master(
+    request: Request,
+    _: bool = Depends(user_required),
+    db: Session = Depends(get_db),
+    ITS: int = Form(...),
+    first_name: str = Form(...),
+    last_name: str = Form(...),
+    passport_no: str = Form(...),
+    nationality: str = Form(...),
+    phone: Optional[str] = Form(None),
+    email: Optional[str] = Form(None),
+    arrival_date: date = Form(...),
+    departure_date: date = Form(...),
+    visa_type: str = Form(...)
+):
+    try:
+        # Validate dates
+        if departure_date < arrival_date:
+            raise HTTPException(status_code=400, detail="Departure date must be after arrival date")
+        
+        # Validate visa type
+        valid_visa_types = ["tourist", "business", "student", "work"]
+        if visa_type not in valid_visa_types:
+            raise HTTPException(status_code=400, detail="Invalid visa type")
+        
+        # Check if master record exists
+        master = db.query(Master).filter(Master.ITS == ITS).first()
+        
+        if master:
+            # Update existing record
+            master.first_name = first_name
+            master.last_name = last_name
+            master.passport_no = passport_no
+            master.nationality = nationality
+            master.phone = phone
+            master.email = email
+            master.arrival_date = arrival_date
+            master.departure_date = departure_date
+            master.visa_type = visa_type
+            master.updated_at = datetime.now()
+        else:
+            # Create new record
+            master = Master(
+                ITS=ITS,
+                first_name=first_name,
+                last_name=last_name,
+                passport_no=passport_no,
+                nationality=nationality,
+                phone=phone,
+                email=email,
+                arrival_date=arrival_date,
+                departure_date=departure_date,
+                visa_type=visa_type,
+                created_at=datetime.now(),
+                updated_at=datetime.now()
+            )
+            db.add(master)
+        
+        db.commit()
+        
+        return JSONResponse(
+            content={"message": "Master record saved successfully", "its": ITS},
+            status_code=200
+        )
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error saving master record: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="An unexpected error occurred while saving the record")
 
 @app.get("/master/info/", response_class=HTMLResponse)
 async def get_master_info(
@@ -168,8 +445,6 @@ async def list_masters(request: Request, page: int = Query(1), db: Session = Dep
         },
     )
 
-
-
 # Mark as Arrived
 @app.get("/mark-as-arrived/")
 async def mark_as_arrived(its: int, db: Session = Depends(get_db)):
@@ -192,12 +467,10 @@ async def get_mark_as_arrived_form(request: Request, its: int = None, message: s
     arrived_count = db.query(Master).filter(Master.arrived == True).count()
     return templates.TemplateResponse("arrive.html", {"request": request, "master": master, "message": message, "arrived_count": arrived_count})
 
-
 @app.get("/arrived-list/", response_class=HTMLResponse)
 async def arrived_list(request: Request, db: Session = Depends(get_db)):
     arrived_masters = db.query(Master).filter(Master.arrived == True).order_by(desc(Master.timestamp)).all()
     return templates.TemplateResponse("arrived_list.html", {"request": request, "arrived_masters": arrived_masters})
-
 
 # assign SIM
 
@@ -250,7 +523,6 @@ async def get_phone_list(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("sim_list.html", {"request": request, "phone_assigned": phone_assigned})
 
 # Bus Booking 
-
 
 from sqlalchemy.exc import IntegrityError
 from fastapi import Query
@@ -404,7 +676,7 @@ def view_all_count(request: Request, db: Session = Depends(get_db)):
         sim_count = db.query(func.count(Master.ITS)).filter(Master.phone.is_not(None), Master.phone != '').scalar()
 
         # Count of unique masters who booked a bus seat
-        bus_booking_count = db.query(func.count(func.distinct(Master.ITS))).\
+        bus_booking_count = db.query(func.count(func.distinct(Master.ITS)).\
             join(BookingInfo, Master.ITS == BookingInfo.ITS).\
             filter(BookingInfo.Mode == 1).\
             scalar()
@@ -951,33 +1223,6 @@ async def check_processed_its(its: int, db: Session = Depends(get_db)):
     exists = db.query(ProcessedMaster).filter(ProcessedMaster.ITS == int(its)).first() is not None
     return exists
 
-# async def http_exception_handler(request: Request, exc: HTTPException):
-#     if exc.status_code == 404:
-#         return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
-#     return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
-
-# @app.exception_handler(Exception)
-# async def general_exception_handler(request: Request, exc: Exception):
-#     return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
-
-# @app.exception_handler(RequestValidationError)
-# async def validation_exception_handler(request: Request, exc: RequestValidationError):
-#     return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
-
-# # Middleware to catch all other 404 errors
-# @app.middleware("http")
-# async def custom_404_handler(request: Request, call_next):
-#     response = await call_next(request)
-#     if response.status_code == 404:
-#         return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
-#     return response
-
-# # Fallback route for undefined paths
-# @app.get("/{full_path:path}")
-# async def fallback_404(request: Request):
-#     return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
-
-
 @app.get("/plane-booking-form/", response_class=HTMLResponse)
 async def post_plane_booking_form(request: Request, its: int = None, db: Session = Depends(get_db)):
     print(its)
@@ -1222,4 +1467,11 @@ async def print_its_form(request: Request, its_numbers: str = Form(...), db: Ses
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=port,
+        ssl_keyfile="key.pem" if not settings.DEBUG else None,
+        ssl_certfile="cert.pem" if not settings.DEBUG else None
+    )

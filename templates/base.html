@@ -3,256 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wagah System</title>
-    <link rel="stylesheet" href="/static/styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-    <style>
-       .navbar {
-    background-color: #18643A;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-}
-
-.navbar a, .navbar .icon {
-    float: left;
-    font-size: 16px;
-    color: white;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-}
-
-.dropdown {
-    float: left;
-    overflow: hidden;
-}
-
-.dropdown .dropbtn {
-    font-size: 16px;
-    border: none;
-    outline: none;
-    color: white;
-    padding: 14px 16px;
-    background-color: inherit;
-    font-family: inherit;
-    margin: 0;
-}
-
-.navbar a:hover, .dropdown:hover .dropbtn {
-    background-color: #13522e;
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: white;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
-}
-
-.dropdown-content a {
-    float: none;
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-    text-align: left;
-}
-
-.dropdown-content a:hover {
-    background-color: #ddd;
-}
-
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-.navbar .icon {
-    display: none;
-}
-
-@media screen and (max-width: 600px) {
-    .navbar a:not(:first-child), .dropdown .dropbtn {
-        display: none;
-    }
-    .navbar a.icon {
-        float: right;
-        display: block;
-    }
-}
-
-@media screen and (max-width: 600px) {
-    .navbar.responsive {position: relative;}
-    .navbar.responsive .icon {
-        position: absolute;
-        right: 0;
-        top: 0;
-    }
-    .navbar.responsive a {
-        float: none;
-        display: block;
-        text-align: left;
-    }
-    .navbar.responsive .dropdown {
-        float: none;
-    }
-    .navbar.responsive .dropdown-content {
-        position: relative;
-    }
-    .navbar.responsive .dropdown .dropbtn {
-        display: block;
-        width: 100%;
-        text-align: left;
-    }
-}
-
-    </style>
+    <title>{% block title %}Wagah System{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <!-- <nav>
-        <ul>
-            <li><a href="/">Home</a></li>
-            <li class="dropdown">
-                <a href="/master-form">immigration Form</a>
-                <div class="dropdown-content">
-                    <a href="/master-form">Master Form</a>
-                    <a href="/masters/">Master List</a>
-                    <a href="/processed-masters/">Processed Masters</a>
+<body class="bg-gray-50">
+    <!-- Top Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <!-- Logo -->
+                    <div class="flex-shrink-0 flex items-center">
+                        <a href="/" class="text-xl font-bold text-indigo-600">Wagah System</a>
+                    </div>
+                    
+                    <!-- Navigation Links -->
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                        <a href="/master-form" class="nav-link {% if request.url.path == '/master-form' %}active{% endif %}">
+                            <i class="fas fa-user-edit"></i> Immigration
+                        </a>
+                        <a href="/view-count" class="nav-link {% if request.url.path == '/view-count' %}active{% endif %}">
+                            <i class="fas fa-chart-bar"></i> Reports
+                        </a>
+                        <div class="relative group">
+                            <button class="nav-link">
+                                <i class="fas fa-bus"></i> Transport <i class="fas fa-chevron-down ml-1"></i>
+                            </button>
+                            <div class="hidden group-hover:block absolute z-50 mt-2 w-48 rounded-md shadow-lg bg-white">
+                                <div class="py-1">
+                                    <a href="/view-buses" class="dropdown-item">
+                                        <i class="fas fa-bus"></i> Buses
+                                    </a>
+                                    <a href="/view-trains" class="dropdown-item">
+                                        <i class="fas fa-train"></i> Trains
+                                    </a>
+                                    <a href="/view-planes" class="dropdown-item">
+                                        <i class="fas fa-plane"></i> Planes
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </li>
-            <li class="dropdown">
-                <a href="/mark-as-arrived-form/">SIM and Scanning</a>
-                <div class="dropdown-content">
-                    <a href="/mark-as-arrived-form/">Mark as Arrived Form</a>
-                    <a href="/assign-sim-form">Assign SIM Form</a>
+
+                <!-- Right Side -->
+                <div class="flex items-center">
+                    {% if request.state.user %}
+                    <div class="relative group">
+                        <button class="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
+                            <img src="https://ui-avatars.com/api/?name={{ request.state.user.username }}" 
+                                 class="h-8 w-8 rounded-full">
+                            <span>{{ request.state.user.username }}</span>
+                        </button>
+                        <div class="hidden group-hover:block absolute right-0 z-50 mt-2 w-48 rounded-md shadow-lg bg-white">
+                            <div class="py-1">
+                                {% if request.state.is_admin %}
+                                <a href="/admin" class="dropdown-item">
+                                    <i class="fas fa-cog"></i> Admin Panel
+                                </a>
+                                {% endif %}
+                                <a href="/logout" class="dropdown-item text-red-600 hover:text-red-700">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="/login" class="nav-link">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                    {% endif %}
                 </div>
-            </li>
-            <li class="dropdown">
-                <a href="/bus-booking/">Bus Booking</a>
-                <div class="dropdown-content">
-                    <a href="/bus-booking/">Book Bus</a>
-                    <a href="/view-buses/">View Buses</a>
-                    <a href="/add-bus/">Add Bus</a>
-                </div>
-            </li>
-            <li class="dropdown">
-                <a href="/train-booking-form/">Train Booking</a>
-                <div class="dropdown-content">
-                    <a href="/train-booking-form/">Book Train</a>
-                    <a href="/view-trains/">View Trains</a>
-                    <a href="/add-train/">Add Train</a>
-                </div>
-            </li>
-            <li class="dropdown">
-                <a href="/plane-booking-form/">Plane Booking</a>
-                <div class="dropdown-content">
-                    <a href="/plane-booking-form/">Book Plane</a>
-                    <a href="/view-planes/">View Plane</a>
-                    <a href="/add-plane/">Add Plane</a>
-                </div>
-            </li>
-            <li class="dropdown">
-                <a href="/view-booking-info/">View Booking Info</a>
-                <div class="dropdown-content">
-                    <a href="/view-booking-info/">Bus Info</a>
-                    <a href="/train_info/">Train Info</a>
-                    <a href="/plane_info/">Plane Info</a>
-                </div>
-            </li>
-            <li class="dropdown">
-                <a href="/upload-csv/">Upload CSV</a>
-                <div class="dropdown-content">
-                    <a href="/upload-csv/">Upload CSV</a>
-                </div>
-            </li>
-            <li><a href="/view-count/">Report Count</a></li>
-        </ul>
-    </nav> -->
-    <div class="navbar" id="navbar">
-        <a href="/">Home</a>
-        <div class="dropdown">
-            <button class="dropbtn" onclick="window.location.href='/master-form/'">Immigration Form 
-                <i class="fa fa-caret-down"></i>
-            </button>
-            <div class="dropdown-content">
-                <a href="/master-form/">Master Form</a>
-                <a href="/masters/">Master List</a>
-                <a href="/processed-masters/">Processed Masters</a>
             </div>
         </div>
-        <div class="dropdown">
-            <button class="dropbtn" onclick="window.location.href='/mark-as-arrived-form/'">SIM & Scanning
-            </button>
-            <div class="dropdown-content">
-                <a href="/mark-as-arrived-form/">Mark as Arrived Form</a>
-                <a href="/assign-sim-form/">Assign SIM Form</a>
-                <a href='/mark-as-departed-form/'> Departure Scanning Form </a>
-            </div>
-        </div> 
-        <div class="dropdown">
-            <button class="dropbtn" onclick="window.location.href='/bus-booking/'">Bus Booking 
-            </button>
-            <div class="dropdown-content">
-                <a href="/bus-booking/">Book Bus</a>
-                <a href="/view-buses/">View Buses</a>
-                <a href="/add-bus/">Add Bus</a>
-                <a href="/count-bus/">Bus Seat Count</a>
-            </div>
-        </div>
-        <div class="dropdown">
-            <button class="dropbtn" onclick="window.location.href='/train-booking-form/'">Train Booking  
-            </button>
-            <div class="dropdown-content">
-                <a href="/train-booking-form/">Book Train</a>
-                <a href="/view-trains/">View Trains</a>
-                <a href="/add-train/">Add Train</a>
-                <a href="/count-train/">Train Seat Count</a>
-            </div>
-        </div>
-        <div class="dropdown">
-            <button class="dropbtn" onclick="window.location.href='/plane-booking-form/'">Plane Booking 
-            </button>
-            <div class="dropdown-content">
-                <a href="/plane-booking-form/">Book Plane</a>
-                <a href="/view-planes/">View Plane</a>
-                <a href="/add-plane/">Add Plane</a>
-                <a href="/count-plane/">Plane Seat Count</a>
+
+        <!-- Mobile Navigation -->
+        <div class="sm:hidden" id="mobile-menu">
+            <div class="pt-2 pb-3 space-y-1">
+                <a href="/" class="mobile-nav-link">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="/master-form" class="mobile-nav-link">
+                    <i class="fas fa-user-edit"></i> Immigration
+                </a>
+                <a href="/view-count" class="mobile-nav-link">
+                    <i class="fas fa-chart-bar"></i> Reports
+                </a>
+                <div x-data="{ open: false }">
+                    <button @click="open = !open" class="mobile-nav-link w-full text-left">
+                        <i class="fas fa-bus"></i> Transport
+                        <i class="fas fa-chevron-down ml-1"></i>
+                    </button>
+                    <div x-show="open" class="pl-4">
+                        <a href="/view-buses" class="mobile-nav-link">
+                            <i class="fas fa-bus"></i> Buses
+                        </a>
+                        <a href="/view-trains" class="mobile-nav-link">
+                            <i class="fas fa-train"></i> Trains
+                        </a>
+                        <a href="/view-planes" class="mobile-nav-link">
+                            <i class="fas fa-plane"></i> Planes
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="dropdown">
-            <button class="dropbtn" onclick="window.location.href='/view-booking-info/'">View Booking Info 
-            </button>
-            <div class="dropdown-content">
-                <a href="/view-booking-info/">Bus Info</a>
-                <a href="/train_info/">Train Info</a>
-                <a href="/plane_info/">Plane Info</a>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="p-4 rounded-md {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                {{ message }}
             </div>
+            {% endfor %}
         </div>
-        <a href="/upload-csv/">Upload CSV</a>
-        <a href="/view-count/">Report Count</a>
-        <a href="javascript:void(0);" class="icon" onclick="toggleNavbar()">&#9776;</a>
-    </div>
-    <div class="container" style="max-width: 90vw; background-color: rgba(255, 255, 255, 0.8); padding:1.5rem; margin-top:1.2vw; margin-bottom:1.2vw">
+        {% endif %}
+
         {% block content %}{% endblock %}
-    </div>
-    <footer class="footer" style="color:white; height: 14px;">
-        <p>&copy; Powered by Toloba-ul-Kulliyat-il-Mumenoon Rawalpindi. All rights reserved 2024.</p>
-    </footer>  
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white shadow-inner mt-8">
+        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-gray-500 text-sm">
+                &copy; {% now "Y" %} Wagah System. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+    <style>
+        .nav-link {
+            @apply inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900 hover:border-gray-300;
+        }
+        .nav-link.active {
+            @apply border-indigo-500 text-gray-900 border-b-2;
+        }
+        .mobile-nav-link {
+            @apply block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50;
+        }
+        .dropdown-item {
+            @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.8.2/dist/alpine.min.js" defer></script>
+    {% block extra_js %}{% endblock %}
 
     <script>
-    function toggleNavbar() {
-        var x = document.getElementById("navbar");
-        if (x.className === "navbar") {
-            x.className += " responsive";
-        } else {
-            x.className = "navbar";
-        }
-    }
+        // Flash messages
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    title: '{{ message.tags|title }}',
+                    text: '{{ message }}',
+                    icon: '{{ message.tags }}',
+                    confirmButtonColor: '#4F46E5'
+                });
+            {% endfor %}
+        {% endif %}
+
+        // Mobile menu toggle
+        document.querySelector('.mobile-menu-button')?.addEventListener('click', function() {
+            document.querySelector('#mobile-menu').classList.toggle('hidden');
+        });
     </script>
-    
 </body>
 </html>
