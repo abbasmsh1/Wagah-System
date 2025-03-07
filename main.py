@@ -2,14 +2,14 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-from fastapi import FastAPI, Depends, Request, Form, HTTPException, File, UploadFile, APIRouter
+from fastapi import FastAPI, Depends, Request, Form, HTTPException, File, UploadFile, APIRouter, WebSocket
 from fastapi import Query, Path
-from typing import List  # Add this import
-from fastapi.responses import RedirectResponse,HTMLResponse, JSONResponse
+from typing import List, Optional
+from fastapi.responses import RedirectResponse,HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc, text
+from sqlalchemy import func, desc, text, or_, and_
 from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Bus, Plane, Train, ProcessedMaster, User
 import os
 import csv
@@ -30,6 +30,10 @@ from typing import Optional
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.websockets import WebSocketDisconnect
+import json
+from fpdf import FPDF
+import xlsxwriter
 
 from routers import master, transport, booking, admin
 from middleware.auth import user_required
@@ -1464,6 +1468,232 @@ async def print_its_form(request: Request, its_numbers: str = Form(...), db: Ses
     ]
     return templates.TemplateResponse("printable_form.html", {"request": request, "bookings": bookings})
 
+# WebSocket connection manager
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            await connection.send_text(message)
+
+manager = ConnectionManager()
+
+@app.websocket("/ws/masters")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # Handle any incoming messages if needed
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+
+# Export endpoints
+@app.post("/api/export-masters")
+async def export_masters(
+    format: str,
+    ids: Optional[List[int]] = None,
+    db: Session = Depends(get_db)
+):
+    # Build query based on whether specific IDs were requested
+    query = db.query(Master)
+    if ids:
+        query = query.filter(Master.ITS.in_(ids))
+    
+    records = query.all()
+    
+    if format == 'csv':
+        return export_to_csv(records)
+    elif format == 'pdf':
+        return export_to_pdf(records)
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported export format")
+
+def export_to_csv(records: List[Master]):
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write headers
+    writer.writerow(['ITS', 'First Name', 'Last Name', 'Passport No', 'Nationality', 'Status'])
+    
+    # Write data
+    for record in records:
+        status = 'Departed' if record.departed else 'Arrived' if record.arrived else 'Pending'
+        writer.writerow([
+            record.ITS,
+            record.first_name,
+            record.last_name,
+            record.passport_no,
+            record.nationality,
+            status
+        ])
+    
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=master-records-{datetime.now().strftime('%Y%m%d')}.csv"}
+    )
+
+def export_to_pdf(records: List[Master]):
+    pdf = FPDF()
+    pdf.add_page()
+    
+    # Add title
+    pdf.set_font('Arial', 'B', 16)
+    pdf.cell(0, 10, 'Master Records Report', 0, 1, 'C')
+    pdf.ln(10)
+    
+    # Add headers
+    pdf.set_font('Arial', 'B', 12)
+    headers = ['ITS', 'Name', 'Passport No', 'Nationality', 'Status']
+    col_width = pdf.w / len(headers)
+    for header in headers:
+        pdf.cell(col_width, 10, header, 1)
+    pdf.ln()
+    
+    # Add data
+    pdf.set_font('Arial', '', 12)
+    for record in records:
+        status = 'Departed' if record.departed else 'Arrived' if record.arrived else 'Pending'
+        pdf.cell(col_width, 10, str(record.ITS), 1)
+        pdf.cell(col_width, 10, f"{record.first_name} {record.last_name}", 1)
+        pdf.cell(col_width, 10, record.passport_no, 1)
+        pdf.cell(col_width, 10, record.nationality, 1)
+        pdf.cell(col_width, 10, status, 1)
+        pdf.ln()
+    
+    return StreamingResponse(
+        iter([pdf.output(dest='S').encode('latin1')]),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=master-records-{datetime.now().strftime('%Y%m%d')}.pdf"}
+    )
+
+# Bulk action endpoints
+@app.post("/api/bulk-mark-arrived")
+async def bulk_mark_arrived(
+    ids: List[int],
+    db: Session = Depends(get_db)
+):
+    try:
+        db.query(Master).filter(Master.ITS.in_(ids)).update(
+            {
+                Master.arrived: True,
+                Master.timestamp: datetime.now()
+            },
+            synchronize_session=False
+        )
+        db.commit()
+        
+        # Notify connected clients
+        await manager.broadcast(json.dumps({
+            "type": "bulk_update",
+            "action": "arrived",
+            "ids": ids
+        }))
+        
+        return {"message": f"Successfully marked {len(ids)} records as arrived"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/bulk-mark-departed")
+async def bulk_mark_departed(
+    ids: List[int],
+    db: Session = Depends(get_db)
+):
+    try:
+        db.query(Master).filter(Master.ITS.in_(ids)).update(
+            {
+                Master.departed: True,
+                Master.d_timestamp: datetime.now()
+            },
+            synchronize_session=False
+        )
+        db.commit()
+        
+        # Notify connected clients
+        await manager.broadcast(json.dumps({
+            "type": "bulk_update",
+            "action": "departed",
+            "ids": ids
+        }))
+        
+        return {"message": f"Successfully marked {len(ids)} records as departed"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Advanced filter endpoint
+@app.get("/api/masters/filter")
+async def filter_masters(
+    search: Optional[str] = None,
+    nationality: Optional[str] = None,
+    visa_type: Optional[str] = None,
+    date_range: Optional[str] = None,
+    status: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 10,
+    db: Session = Depends(get_db)
+):
+    query = db.query(Master)
+    
+    # Apply filters
+    if search:
+        query = query.filter(
+            or_(
+                Master.ITS.contains(search),
+                Master.first_name.ilike(f"%{search}%"),
+                Master.last_name.ilike(f"%{search}%"),
+                Master.passport_no.ilike(f"%{search}%")
+            )
+        )
+    
+    if nationality:
+        query = query.filter(Master.nationality == nationality)
+    
+    if visa_type:
+        query = query.filter(Master.visa_type == visa_type)
+    
+    if status:
+        if status == 'arrived':
+            query = query.filter(Master.arrived == True)
+        elif status == 'departed':
+            query = query.filter(Master.departed == True)
+        elif status == 'active':
+            query = query.filter(and_(Master.arrived == True, Master.departed == False))
+    
+    if date_range:
+        today = datetime.now().date()
+        if date_range == 'today':
+            query = query.filter(func.date(Master.created_at) == today)
+        elif date_range == 'week':
+            week_ago = today - timedelta(days=7)
+            query = query.filter(func.date(Master.created_at) >= week_ago)
+        elif date_range == 'month':
+            month_ago = today - timedelta(days=30)
+            query = query.filter(func.date(Master.created_at) >= month_ago)
+    
+    # Get total count for pagination
+    total_count = query.count()
+    
+    # Apply pagination
+    records = query.offset((page - 1) * page_size).limit(page_size).all()
+    
+    return {
+        "records": records,
+        "total": total_count,
+        "page": page,
+        "pages": (total_count + page_size - 1) // page_size
+    }
 
 if __name__ == "__main__":
     import uvicorn
