@@ -2,6 +2,15 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 from fastapi import FastAPI, Depends, Request, Form, HTTPException, File, UploadFile, APIRouter, WebSocket
 from fastapi import Query, Path
 from typing import List, Optional
