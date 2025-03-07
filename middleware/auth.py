@@ -4,12 +4,10 @@ from jose import JWTError, jwt
 from database import SessionLocal, User
 from typing import Optional
 from datetime import datetime
-import os
+from config.security import get_security_settings
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-keep-it-secret")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
+settings = get_security_settings()
 
 class RoleChecker:
     def __init__(self, allowed_roles: list):
@@ -17,7 +15,7 @@ class RoleChecker:
 
     async def __call__(self, request: Request, token: str = Depends(oauth2_scheme)):
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
             username: str = payload.get("sub")
             if username is None:
                 raise HTTPException(status_code=401, detail="Invalid authentication token")
