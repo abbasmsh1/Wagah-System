@@ -680,22 +680,28 @@ def view_all_count(request: Request, db: Session = Depends(get_db)):
         sim_count = db.query(func.count(Master.ITS)).filter(Master.phone.is_not(None), Master.phone != '').scalar()
 
         # Count of unique masters who booked a bus seat
-        bus_booking_count = db.query(func.count(func.distinct(Master.ITS)).\
-            join(BookingInfo, Master.ITS == BookingInfo.ITS).\
-            filter(BookingInfo.Mode == 1).\
-            scalar()
+        bus_booking_count = (
+            db.query(func.count(func.distinct(Master.ITS)))
+            .join(BookingInfo, Master.ITS == BookingInfo.ITS)
+            .filter(BookingInfo.Mode == 1)
+            .scalar()
+        )
         
-        # count of unique masters who booked a train seat
-        train_booking_count = db.query(func.count(func.distinct(Master.ITS))).\
-            join(BookingInfo, Master.ITS == BookingInfo.ITS).\
-            filter(BookingInfo.train_id.isnot(None)).\
-            scalar()
+        # Count of unique masters who booked a train seat
+        train_booking_count = (
+            db.query(func.count(func.distinct(Master.ITS)))
+            .join(BookingInfo, Master.ITS == BookingInfo.ITS)
+            .filter(BookingInfo.train_id.isnot(None))
+            .scalar()
+        )
         
-        # count of unique masters who booked a plane seat
-        plane_booking_count = db.query(func.count(Master.ITS)).\
-            join(BookingInfo, Master.ITS == BookingInfo.ITS).\
-            filter(BookingInfo.plane_id.isnot(None)).\
-            scalar()
+        # Count of unique masters who booked a plane seat
+        plane_booking_count = (
+            db.query(func.count(Master.ITS))
+            .join(BookingInfo, Master.ITS == BookingInfo.ITS)
+            .filter(BookingInfo.plane_id.isnot(None))
+            .scalar()
+        )
 
         # Render the template and pass the data
         return templates.TemplateResponse("view_count.html", {
@@ -1700,7 +1706,7 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", "8000"))
     uvicorn.run(
         app,
-        host="0.0.0.0",
+        host="localhost",
         port=port,
         ssl_keyfile="key.pem" if not settings.DEBUG else None,
         ssl_certfile="cert.pem" if not settings.DEBUG else None
