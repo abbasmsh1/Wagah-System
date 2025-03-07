@@ -1,74 +1,183 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delete Routes</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        .container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            margin: auto;
-            padding: 20px;
-        }
-        .card {
-            background-color: rgba(255, 176, 79);
-            padding: 20px;
-            height: 10vh;
-            width: 10vw;
-            border-radius: 5px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            cursor: pointer; /* Add cursor pointer for better UX */
-            transition: background-color 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-        .card:hover {
-            background-color: #f0f0f0;
-        }
-        .card a {
-            text-decoration: none;
-            color: #333;
-        }
-    </style>
-</head>
-<body>
-    <h1>Delete Routes</h1>
-    <div class="container">
-        <div class="card" onclick="deleteRecords('/delete_all_except_users')"><a href="#">Refresh ALL DATA</a></div>
-        <div class="card" onclick="deleteRecords('/master')"><a href="#">Delete all Master records</a></div>
-        <div class="card" onclick="deleteRecords('/group')"><a href="#">Delete all Group records</a></div>
-        <div class="card" onclick="deleteRecords('/group_info')"><a href="#">Delete all GroupInfo records</a></div>
-        <div class="card" onclick="deleteRecords('/booking_info')"><a href="#">Delete all BookingInfo records</a></div>
-        <div class="card" onclick="deleteRecords('/transport')"><a href="#">Delete all Transport records</a></div>
-        <div class="card" onclick="deleteRecords('/schedule')"><a href="#">Delete all Schedule records</a></div>
-        <div class="card" onclick="deleteRecords('/user')"><a href="#">Delete all User records</a></div>
-        <div class="card" onclick="deleteRecords('/processed_master')"><a href="#">Delete all ProcessedMaster records</a></div>
-        <div class="card" onclick="deleteRecords('/bus')"><a href="#">Delete all Bus records</a></div>
-        <div class="card" onclick="deleteRecords('/train')"><a href="#">Delete all Train records</a></div>
-        <div class="card" onclick="deleteRecords('/plane')"><a href="#">Delete all Plane records</a></div>
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Wagah System{% endblock %}
+
+{% block content %}
+<div class="py-6">
+    <!-- Welcome Section -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-bold text-gray-900">Welcome to Wagah Border Management System</h1>
+        <p class="mt-2 text-sm text-gray-600">Manage immigration and transportation with ease</p>
     </div>
-    <script>
-        async function deleteRecords(endpoint) {
-            if (confirm(`Are you sure you want to delete all records from the ${endpoint.substring(1)} table?`)) {
-                try {
-                    const response = await fetch(endpoint, { method: 'DELETE' });
-                    const data = await response.json();
-                    alert(data.message);
-                } catch (error) {
-                    alert('An error occurred: ' + error);
-                }
-            }
-        }
-    </script>
-</body>
-</html>
+
+    <!-- Stats Overview -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <!-- Total Passengers -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-users text-2xl text-indigo-600"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Passengers</dt>
+                                <dd class="flex items-baseline">
+                                    <div class="text-2xl font-semibold text-gray-900">{{ total_passengers|default:"0" }}</div>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-5 py-3">
+                    <div class="text-sm">
+                        <a href="/masters" class="font-medium text-indigo-600 hover:text-indigo-500">View all passengers &rarr;</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Arrivals -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-plane-arrival text-2xl text-green-600"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Today's Arrivals</dt>
+                                <dd class="flex items-baseline">
+                                    <div class="text-2xl font-semibold text-gray-900">{{ todays_arrivals|default:"0" }}</div>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-5 py-3">
+                    <div class="text-sm">
+                        <a href="/mark-as-arrived-form" class="font-medium text-green-600 hover:text-green-500">Process arrivals &rarr;</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Bookings -->
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-ticket-alt text-2xl text-yellow-600"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Pending Bookings</dt>
+                                <dd class="flex items-baseline">
+                                    <div class="text-2xl font-semibold text-gray-900">{{ pending_bookings|default:"0" }}</div>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-5 py-3">
+                    <div class="text-sm">
+                        <a href="/view-booking-info" class="font-medium text-yellow-600 hover:text-yellow-500">View bookings &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <h2 class="text-lg font-medium text-gray-900">Quick Actions</h2>
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <!-- Immigration Form -->
+            <a href="/master-form" class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-passport text-2xl text-indigo-600"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <span class="absolute inset-0" aria-hidden="true"></span>
+                    <p class="text-sm font-medium text-gray-900">Immigration Form</p>
+                    <p class="text-sm text-gray-500">Process new arrivals</p>
+                </div>
+            </a>
+
+            <!-- Transport Booking -->
+            <a href="/bus-booking" class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-bus text-2xl text-blue-600"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <span class="absolute inset-0" aria-hidden="true"></span>
+                    <p class="text-sm font-medium text-gray-900">Transport Booking</p>
+                    <p class="text-sm text-gray-500">Book bus, train, or plane</p>
+                </div>
+            </a>
+
+            <!-- Reports -->
+            <a href="/view-count" class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-chart-bar text-2xl text-purple-600"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <span class="absolute inset-0" aria-hidden="true"></span>
+                    <p class="text-sm font-medium text-gray-900">Reports</p>
+                    <p class="text-sm text-gray-500">View statistics and analytics</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <h2 class="text-lg font-medium text-gray-900">Recent Activity</h2>
+        <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-md">
+            <ul role="list" class="divide-y divide-gray-200">
+                {% for activity in recent_activities|default:[] %}
+                <li>
+                    <div class="px-4 py-4 sm:px-6">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-medium text-indigo-600 truncate">{{ activity.title }}</p>
+                            <div class="ml-2 flex-shrink-0 flex">
+                                <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    {{ activity.status }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-2 sm:flex sm:justify-between">
+                            <div class="sm:flex">
+                                <p class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-user flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"></i>
+                                    {{ activity.user }}
+                                </p>
+                            </div>
+                            <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                <i class="fas fa-clock flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"></i>
+                                <p>{{ activity.timestamp }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {% empty %}
+                <li class="px-4 py-4 sm:px-6 text-center text-gray-500">
+                    No recent activity
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Add any dashboard-specific JavaScript here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Example: Refresh stats every 5 minutes
+        setInterval(function() {
+            location.reload();
+        }, 300000);
+    });
+</script>
+{% endblock %}
+{% endblock %}

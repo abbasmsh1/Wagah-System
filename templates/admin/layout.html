@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Wagah System Admin{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex">
+        <!-- Sidebar -->
+        <div class="bg-gray-800 text-white w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out">
+            <a href="/admin" class="text-white flex items-center space-x-2 px-4">
+                <i class="fas fa-border-all"></i>
+                <span class="text-2xl font-semibold">Wagah Admin</span>
+            </a>
+
+            <nav>
+                <a href="/admin/dashboard" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
+                    <i class="fas fa-home mr-2"></i>Dashboard
+                </a>
+                <a href="/admin/masters" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
+                    <i class="fas fa-users mr-2"></i>Masters
+                </a>
+                <a href="/admin/bookings" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
+                    <i class="fas fa-ticket-alt mr-2"></i>Bookings
+                </a>
+                <a href="/admin/transport" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
+                    <i class="fas fa-bus mr-2"></i>Transport
+                </a>
+                <a href="/admin/reports" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
+                    <i class="fas fa-chart-bar mr-2"></i>Reports
+                </a>
+                <a href="/admin/users" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
+                    <i class="fas fa-user-shield mr-2"></i>Users
+                </a>
+            </nav>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1">
+            <!-- Top Navigation -->
+            <div class="bg-white shadow-md">
+                <div class="container mx-auto px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <button class="text-gray-500 hover:text-gray-600 md:hidden" id="menu-button">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <div class="flex items-center space-x-4">
+                            <div class="relative">
+                                <button class="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
+                                    <img src="https://ui-avatars.com/api/?name={{ request.state.user.username }}" class="h-8 w-8 rounded-full">
+                                    <span>{{ request.state.user.username }}</span>
+                                </button>
+                            </div>
+                            <a href="/logout" class="text-red-600 hover:text-red-700">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="container mx-auto px-6 py-8">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script>
+        // Mobile menu toggle
+        document.getElementById('menu-button').addEventListener('click', function() {
+            document.querySelector('.bg-gray-800').classList.toggle('-translate-x-full');
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 
