@@ -1810,13 +1810,17 @@ async def signup(
             status_code=400
         )
     
+    # Check if this is the first user
+    user_count = db.query(func.count(User.id)).scalar()
+    role = "admin" if user_count == 0 else "user"
+    
     # Create new user
     hashed_password = get_password_hash(password)
     new_user = User(
         username=username,
         hashed_password=hashed_password,
-        role="user",  # Default role for new users
-        designation=designation
+        role=role,
+        designation=designation if designation else "System Administrator" if role == "admin" else "User"
     )
     
     try:
