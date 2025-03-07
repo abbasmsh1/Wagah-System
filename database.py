@@ -44,6 +44,8 @@ class Master(Base):
     timestamp = Column(DateTime, default=None, nullable=True)
     departed = Column(Boolean, default=False)
     d_timestamp = Column(DateTime, default=None, nullable=True)
+    arrival_date = Column(Date, default=func.current_date())
+    created_at = Column(DateTime, default=func.now())
 
 # Define the Transport base model
 class Transport(Base):
@@ -98,6 +100,8 @@ class BookingInfo(Base):
     plane_id = Column(Integer, ForeignKey("plane.plane_id"), nullable=True)
     coach_number = Column(String)
     cabin_number = Column(String)
+    status = Column(String, default='pending')
+    created_at = Column(DateTime, default=func.now())
 
     @staticmethod
     def fill_form(db_session: Session, its: int, seat_number: int, bus_number: int):
@@ -118,7 +122,8 @@ class BookingInfo(Base):
                 Departed=False,  # Assuming the bus hasn't departed yet
                 Self_Issued=True,  # Assuming the booking is self-issued
                 seat_number=seat_number,  # Add seat number to the record
-                bus_number=bus_number  # Add bus number to the record
+                bus_number=bus_number,  # Add bus number to the record
+                status='confirmed'  # Set initial status
             )
             db_session.add(booking_info)
             db_session.commit()
@@ -143,9 +148,12 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
-    password = Column(String)
+    hashed_password = Column(String)
+    role = Column(String, default="user")  # admin, staff, or user
     designation = Column(String)
-    
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
 # Define the ProcessedMaster model
 class ProcessedMaster(Base):
     __tablename__ = "processed_master"
