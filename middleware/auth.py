@@ -6,14 +6,24 @@ from typing import Optional
 from datetime import datetime
 from config.security import get_security_settings
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 settings = get_security_settings()
+
+async def get_token_from_cookie(request: Request) -> Optional[str]:
+    token = request.cookies.get("access_token")
+    if token and token.startswith("Bearer "):
+        return token[7:]  # Remove "Bearer " prefix
+    return None
 
 class RoleChecker:
     def __init__(self, allowed_roles: list):
         self.allowed_roles = allowed_roles
 
-    async def __call__(self, request: Request, token: str = Depends(oauth2_scheme)):
+    async def __call__(self, request: Request):
+        token = await get_token_from_cookie(request)
+        if not token:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+            
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
             username: str = payload.get("sub")
