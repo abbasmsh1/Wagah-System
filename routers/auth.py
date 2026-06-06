@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Request, Form, Depends, HTTPException
+from fastapi import APIRouter, Request, Form, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from database import get_db, User
-from config.security import get_security_settings, verify_password, get_password_hash, create_access_token
+from config.security import get_security_settings, verify_password, create_access_token
 from config.limiter import limiter
 
 router = APIRouter()

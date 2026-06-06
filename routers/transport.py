@@ -1,11 +1,10 @@
-from fastapi import APIRouter, Depends, Request, Form, HTTPException, Query
+from fastapi import APIRouter, Depends, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from typing import Optional
-from database import get_db, Transport, Bus, Train, Plane, BookingInfo
-from datetime import datetime, time
+from database import get_db, Bus, Train, Plane
+from datetime import datetime
 
 router = APIRouter()
 

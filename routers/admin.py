@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, HTTPException
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 from typing import Dict, Any
 from database import get_db, Master, BookingInfo, Bus, Train, Plane, User, ProcessedMaster
 from middleware.auth import admin_required
-import json
 
 router = APIRouter()
 

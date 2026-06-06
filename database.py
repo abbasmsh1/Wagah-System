@@ -1,7 +1,4 @@
-import warnings
-warnings.filterwarnings("ignore")
 import os
-from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, Column, Integer, String, Date, Boolean, ForeignKey, DateTime, Time
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker

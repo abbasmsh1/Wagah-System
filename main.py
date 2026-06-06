@@ -1,14 +1,6 @@
-import warnings
-
-warnings.filterwarnings("ignore")
-
 import logging
 import os
-from datetime import datetime, timedelta, date, time
-from typing import List, Optional
-import json
-import csv
-import io
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(
@@ -17,29 +9,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-from fastapi import FastAPI, Depends, Request, Form, HTTPException, File, UploadFile, APIRouter, WebSocket
-from fastapi import Query, Path
-from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse, StreamingResponse
+from fastapi import FastAPI, Depends, Request
+from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import func, desc, text, or_, and_, Date
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from sqlalchemy import func
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.websockets import WebSocketDisconnect
-from jose import JWTError, jwt
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from config.limiter import limiter
-from fpdf import FPDF
-import xlsxwriter
 
-from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Bus, Plane, Train, ProcessedMaster, User
+from database import SessionLocal, User
 from routers import master, transport, booking, admin, auth
-from middleware.auth import user_required
-from config.security import get_security_settings, get_security_headers, verify_password, get_password_hash, generate_csrf_token
+from config.security import get_security_settings, get_security_headers, get_password_hash, generate_csrf_token
 
 # Create FastAPI app
 app = FastAPI(title="Wagah System")
@@ -95,9 +79,6 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 # Password hashing context moved to config.security
-
-# OAuth2 scheme
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # get_db lives in database.py; create_access_token in config.security
 

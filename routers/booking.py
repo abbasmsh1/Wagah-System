@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, Request, Form, HTTPException, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from typing import Optional
 from database import get_db, BookingInfo, Master, Bus, Train, Plane
 from datetime import datetime
 
