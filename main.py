@@ -29,6 +29,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.websockets import WebSocketDisconnect
 from jose import JWTError, jwt
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from fpdf import FPDF
 import xlsxwriter
 
@@ -98,6 +99,39 @@ app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(master.router, prefix="/master", tags=["master"])
 app.include_router(transport.router, prefix="/transport", tags=["transport"])
 app.include_router(booking.router, prefix="/booking", tags=["booking"])
+
+# Error handlers -- render friendly HTML pages instead of raw JSON, and send
+# unauthenticated users to the login page.
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 401:
+        return RedirectResponse(url="/login", status_code=303)
+    if exc.status_code == 403:
+        return templates.TemplateResponse(
+            "errors/403.html",
+            {"request": request, "error_title": "Access Denied",
+             "error_message": exc.detail or "You do not have permission to access this page."},
+            status_code=403,
+        )
+    if exc.status_code == 404:
+        return templates.TemplateResponse(
+            "errors/404.html",
+            {"request": request, "error_title": "Page Not Found",
+             "error_message": exc.detail or "The page you are looking for does not exist."},
+            status_code=404,
+        )
+    # Other client errors keep a simple JSON detail.
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled error processing %s %s", request.method, request.url.path)
+    return templates.TemplateResponse(
+        "errors/500.html",
+        {"request": request, "error_title": "Server Error",
+         "error_message": "An unexpected error occurred. Please try again later."},
+        status_code=500,
+    )
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
