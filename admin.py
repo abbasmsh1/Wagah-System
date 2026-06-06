@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from database import SessionLocal, User
 from fastapi.exceptions import RequestValidationError
-from pydantic.error_wrappers import ValidationError
+from pydantic import ValidationError
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from middleware.auth import admin_required

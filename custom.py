@@ -11,7 +11,7 @@ import os
 from sqlalchemy import func
 from datetime import datetime
 from fastapi.exceptions import RequestValidationError
-from pydantic.error_wrappers import ValidationError
+from pydantic import ValidationError
 from collections import defaultdict
 
 app = FastAPI()

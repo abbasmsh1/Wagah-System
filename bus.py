@@ -18,7 +18,7 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 from urllib.parse import unquote
 from fastapi.exceptions import RequestValidationError
-from pydantic.error_wrappers import ValidationError
+from pydantic import ValidationError
 from sqlalchemy.orm import Session, joinedload
 from datetime import timedelta
 from datetime import time

@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from fastapi.templating import Jinja2Templates
 import os
 from fastapi.exceptions import RequestValidationError
-from pydantic.error_wrappers import ValidationError
+from pydantic import ValidationError
 # Load environment variables
 load_dotenv()
 
