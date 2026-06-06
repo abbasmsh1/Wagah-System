@@ -45,19 +45,19 @@ async def create_bus_booking(
     master = db.query(Master).filter(Master.its == its).first()
     if not master:
         raise HTTPException(status_code=404, detail="Master not found")
-    
+
     bus = db.query(Bus).filter(Bus.bus_number == bus_number).first()
     if not bus:
         raise HTTPException(status_code=404, detail="Bus not found")
-    
+
     if bus.available_seats <= 0:
         raise HTTPException(status_code=400, detail="No available seats")
-    
+
     try:
         booking = BookingInfo(
             its=its,
-            transport_type="bus",
-            transport_id=bus_number,
+            mode=1,  # 1 for bus
+            transport_id=bus.bus_id,
             booking_time=datetime.now()
         )
         db.add(booking)
@@ -96,15 +96,15 @@ async def create_train_booking(
     master = db.query(Master).filter(Master.its == its).first()
     if not master:
         raise HTTPException(status_code=404, detail="Master not found")
-    
+
     train = db.query(Train).filter(Train.id == train_id).first()
     if not train:
         raise HTTPException(status_code=404, detail="Train not found")
-    
+
     try:
         booking = BookingInfo(
             its=its,
-            transport_type="train",
+            mode=2,  # 2 for train
             transport_id=train_id,
             seat_number=seat_number,
             coach_number=coach_number,
@@ -144,15 +144,15 @@ async def create_plane_booking(
     master = db.query(Master).filter(Master.its == its).first()
     if not master:
         raise HTTPException(status_code=404, detail="Master not found")
-    
+
     plane = db.query(Plane).filter(Plane.id == plane_id).first()
     if not plane:
         raise HTTPException(status_code=404, detail="Plane not found")
-    
+
     try:
         booking = BookingInfo(
             its=its,
-            transport_type="plane",
+            mode=3,  # 3 for plane
             transport_id=plane_id,
             seat_number=seat_number,
             booking_time=datetime.now()
@@ -173,17 +173,17 @@ async def get_booking_info(
     booking = db.query(BookingInfo).filter(BookingInfo.id == booking_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
-    
+
     master = db.query(Master).filter(Master.its == booking.its).first()
     transport = None
-    
-    if booking.transport_type == "bus":
-        transport = db.query(Bus).filter(Bus.bus_number == booking.transport_id).first()
-    elif booking.transport_type == "train":
-        transport = db.query(Train).filter(Train.id == booking.transport_id).first()
-    elif booking.transport_type == "plane":
-        transport = db.query(Plane).filter(Plane.id == booking.transport_id).first()
-    
+
+    if booking.mode == 1:
+        transport = db.query(Bus).filter(Bus.bus_id == booking.transport_id).first()
+    elif booking.mode == 2:
+        transport = db.query(Train).filter(Train.train_id == booking.transport_id).first()
+    elif booking.mode == 3:
+        transport = db.query(Plane).filter(Plane.plane_id == booking.transport_id).first()
+
     return templates.TemplateResponse(
         "booking_info.html",
         {
@@ -192,4 +192,4 @@ async def get_booking_info(
             "master": master,
             "transport": transport
         }
-    ) 
+    )

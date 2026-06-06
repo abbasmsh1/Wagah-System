@@ -9,10 +9,7 @@ from database import SessionLocal, Master, BookingInfo, Bus, Train, Plane, User,
 from middleware.auth import admin_required
 import json
 
-router = APIRouter(
-    prefix="/admin",
-    tags=["admin"]
-)
+router = APIRouter()
 
 templates = Jinja2Templates(directory="templates")
 
@@ -40,17 +37,17 @@ def get_dashboard_stats(db: Session) -> Dict[str, Any]:
     masters_growth = calculate_growth(total_masters, masters_last_week)
 
     # Calculate active bookings and growth
-    active_bookings = db.query(func.count(BookingInfo.id)).filter(BookingInfo.Departed == False).scalar()
+    active_bookings = db.query(func.count(BookingInfo.id)).filter(BookingInfo.departed == False).scalar()
     bookings_last_week = db.query(func.count(BookingInfo.id)).filter(
         BookingInfo.booking_time < week_ago,
-        BookingInfo.Departed == False
+        BookingInfo.departed == False
     ).scalar()
     bookings_growth = calculate_growth(active_bookings, bookings_last_week)
 
     # Calculate available transport
-    available_buses = db.query(func.count(Bus.id)).filter(Bus.available_seats > 0).scalar()
-    available_trains = db.query(func.count(Train.id)).scalar()
-    available_planes = db.query(func.count(Plane.id)).scalar()
+    available_buses = db.query(func.count(Bus.bus_id)).filter(Bus.available_seats > 0).scalar()
+    available_trains = db.query(func.count(Train.train_id)).scalar()
+    available_planes = db.query(func.count(Plane.plane_id)).scalar()
     available_transport = available_buses + available_trains + available_planes
 
     # Calculate processed today and trend
@@ -63,9 +60,9 @@ def get_dashboard_stats(db: Session) -> Dict[str, Any]:
     processing_trend = calculate_growth(processed_today, processed_yesterday)
 
     # Calculate transport distribution
-    bus_bookings = db.query(func.count(BookingInfo.id)).filter(BookingInfo.Mode == 1).scalar()
-    train_bookings = db.query(func.count(BookingInfo.id)).filter(BookingInfo.Mode == 2).scalar()
-    plane_bookings = db.query(func.count(BookingInfo.id)).filter(BookingInfo.Mode == 3).scalar()
+    bus_bookings = db.query(func.count(BookingInfo.id)).filter(BookingInfo.mode == 1).scalar()
+    train_bookings = db.query(func.count(BookingInfo.id)).filter(BookingInfo.mode == 2).scalar()
+    plane_bookings = db.query(func.count(BookingInfo.id)).filter(BookingInfo.mode == 3).scalar()
 
     return {
         "total_masters": total_masters,
@@ -87,7 +84,7 @@ def get_chart_data(db: Session) -> Dict[str, Any]:
     # Get bookings trend for the last 7 days
     now = datetime.now()
     dates = [(now - timedelta(days=i)).date() for i in range(6, -1, -1)]
-    
+
     bookings_data = []
     for date in dates:
         count = db.query(func.count(BookingInfo.id)).filter(
@@ -105,16 +102,16 @@ def get_chart_data(db: Session) -> Dict[str, Any]:
 def get_recent_activity(db: Session, limit: int = 10) -> list:
     # Get recent processed masters
     processed = db.query(ProcessedMaster).order_by(ProcessedMaster.timestamp.desc()).limit(limit).all()
-    
+
     activities = []
     for p in processed:
         activities.append({
             "timestamp": p.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             "action": "Master Processed",
-            "user": p.processed_by,
-            "details": f"ITS: {p.ITS}"
+            "user": p.processed_by_username,
+            "details": f"ITS: {p.its}"
         })
-    
+
     return activities
 
 @router.get("/", response_class=HTMLResponse)
@@ -127,7 +124,7 @@ async def admin_dashboard(
     stats = get_dashboard_stats(db)
     chart_data = get_chart_data(db)
     recent_activity = get_recent_activity(db)
-    
+
     return templates.TemplateResponse(
         "admin/dashboard.html",
         {
@@ -147,13 +144,13 @@ async def admin_masters(
 ):
     page_size = 20
     offset = (page - 1) * page_size
-    
+
     masters = db.query(Master).offset(offset).limit(page_size).all()
-    total = db.query(func.count(Master.ITS)).scalar()
+    total = db.query(func.count(Master.its)).scalar()
     total_pages = (total + page_size - 1) // page_size
-    
+
     return templates.TemplateResponse(
-        "admin/masters.html",
+        "masters.html",
         {
             "request": request,
             "masters": masters,
@@ -171,13 +168,13 @@ async def admin_bookings(
 ):
     page_size = 20
     offset = (page - 1) * page_size
-    
+
     bookings = db.query(BookingInfo).offset(offset).limit(page_size).all()
     total = db.query(func.count(BookingInfo.id)).scalar()
     total_pages = (total + page_size - 1) // page_size
-    
+
     return templates.TemplateResponse(
-        "admin/bookings.html",
+        "view_booking_info.html",
         {
             "request": request,
             "bookings": bookings,
@@ -199,4 +196,4 @@ async def admin_users(
             "request": request,
             "users": users
         }
-    ) 
+    )

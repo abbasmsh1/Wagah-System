@@ -7,14 +7,13 @@ from datetime import datetime, timedelta
 from jose import jwt
 
 from database import SessionLocal, User
-from config.security import get_security_settings
+from config.security import get_security_settings, verify_password, get_password_hash
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 settings = get_security_settings()
 
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing context moved to config.security
 
 def get_db():
     db = SessionLocal()
@@ -23,8 +22,7 @@ def get_db():
     finally:
         db.close()
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+# verify_password imported from config.security
 
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
@@ -60,7 +58,7 @@ async def login(
             },
             status_code=401
         )
-    
+
     if not user.is_active:
         return templates.TemplateResponse(
             "auth/login.html",
@@ -70,14 +68,14 @@ async def login(
             },
             status_code=401
         )
-    
+
     access_token = create_access_token(
         data={
             "sub": user.username,
             "role": user.role
         }
     )
-    
+
     response = RedirectResponse(url="/", status_code=303)
     response.set_cookie(
         key="access_token",
@@ -92,4 +90,4 @@ async def login(
 async def logout():
     response = RedirectResponse(url="/login", status_code=303)
     response.delete_cookie(key="access_token")
-    return response 
+    return response

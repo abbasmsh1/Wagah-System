@@ -22,3 +22,19 @@ htmlcov/
 .pytest_cache/
 .mypy_cache/
 *.sql
+
+# Virtual environments
+.venv/
+
+# Data / PII — never commit traveller data or DB dumps
+ITS_DATA.csv
+ITS HOF.xlsx
+*.csv
+*.xlsx
+backups/
+test_output.txt
+debug_log.txt
+middleware_error.txt
+cookies.txt
+server_smoke.log
+*.bundle

@@ -40,11 +40,13 @@ class Master(Base):
     visa_number = Column(String, unique=True, nullable=False)
     mode_of_transport = Column(String, nullable=False)
     phone = Column(String, nullable=True)
+    sim_issued = Column(Boolean, default=False, nullable=False)
     arrived = Column(Boolean, default=False, nullable=False)
     arrival_timestamp = Column(DateTime, nullable=True)
     departed = Column(Boolean, default=False, nullable=False)
     departure_timestamp = Column(DateTime, nullable=True)
     arrival_date = Column(Date, default=func.current_date(), nullable=False)
+    timestamp = Column(DateTime, default=func.now(), nullable=False) # For legacy script compatibility
     created_at = Column(DateTime, default=func.now(), nullable=False)
 
     booking_info = relationship("BookingInfo", back_populates="master", uselist=False)
@@ -73,6 +75,7 @@ class Bus(Transport):
     bus_id = Column(Integer, ForeignKey('transport.id'), primary_key=True)
     bus_number = Column(Integer, nullable=False, unique=True)
     no_of_seats = Column(Integer, nullable=False)
+    available_seats = Column(Integer, nullable=False)
     bus_type = Column(String, index=True, nullable=False)
 
     __mapper_args__ = {
@@ -104,7 +107,8 @@ class Train(Transport):
 # Define the BookingInfo model
 class BookingInfo(Base):
     __tablename__ = "booking_info"
-    its = Column(Integer, ForeignKey('master.its'), primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
+    its = Column(Integer, ForeignKey('master.its'), index=True, nullable=False)
     mode = Column(Integer, index=True, nullable=False)
     issued = Column(Boolean, default=False, nullable=False)
     departed = Column(Boolean, default=False, nullable=False)
@@ -114,6 +118,7 @@ class BookingInfo(Base):
     coach_number = Column(String, nullable=True)
     cabin_number = Column(String, nullable=True)
     status = Column(String, default='pending', nullable=False)
+    booking_time = Column(DateTime, default=func.now(), nullable=False) # Match router expectation
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
 
@@ -164,6 +169,7 @@ class ProcessedMaster(Base):
     phone = Column(String, index=True, nullable=True)
     arrived = Column(Boolean, default=False, nullable=False)
     processed_timestamp = Column(DateTime, default=func.now(), nullable=False)
+    timestamp = Column(DateTime, default=func.now(), nullable=False) # Match admin router expectation
     processed_by_username = Column(String, ForeignKey('users.username'), nullable=False)
 
     master = relationship("Master", back_populates="processed_info")

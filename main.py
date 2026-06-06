@@ -29,15 +29,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.websockets import WebSocketDisconnect
 from jose import JWTError, jwt
-from passlib.context import CryptContext
-from pydantic import BaseModel
 from fpdf import FPDF
 import xlsxwriter
 
 from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Bus, Plane, Train, ProcessedMaster, User
 from routers import master, transport, booking, admin, auth
 from middleware.auth import user_required
-from config.security import get_security_settings, get_security_headers
+from config.security import get_security_settings, get_security_headers, verify_password, get_password_hash
 
 # Create FastAPI app
 app = FastAPI(title="Wagah System")
@@ -66,8 +64,11 @@ app.add_middleware(
     allowed_hosts=settings.ALLOWED_HOSTS
 )
 
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Add custom auth state middleware
+from middleware.session import AuthStateMiddleware
+app.add_middleware(AuthStateMiddleware)
+
+# Password hashing context moved to config.security
 
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -81,11 +82,7 @@ def get_db():
         db.close()
 
 # Password hashing functions
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+# Password hashing functions are imported from config.security
 
 # Token functions
 def create_access_token(data: dict) -> str:
@@ -141,4 +138,4 @@ async def startup_event():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

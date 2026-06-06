@@ -1,15 +1,13 @@
 from fastapi import APIRouter, Depends, Request, Form, HTTPException, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import Optional
 from database import SessionLocal, Transport, Bus, Train, Plane, BookingInfo
 from datetime import datetime, time
 
-router = APIRouter(
-    prefix="/transport",
-    tags=["transport"]
-)
+router = APIRouter()
 
 templates = Jinja2Templates(directory="templates")
 
@@ -34,9 +32,11 @@ async def post_add_bus(
 ):
     try:
         new_bus = Bus(
+            bus_number=db.query(func.max(Bus.bus_number)).scalar() or 100 + 1,
             no_of_seats=no_of_seats,
             type=type,
-            available_seats=no_of_seats
+            available_seats=no_of_seats,
+            bus_type=type # Match both inherited and specific field
         )
         db.add(new_bus)
         db.commit()
@@ -47,11 +47,18 @@ async def post_add_bus(
 
 @router.get("/bus/list", response_class=HTMLResponse)
 async def list_buses(request: Request, db: Session = Depends(get_db)):
-    buses = db.query(Bus).all()
-    return templates.TemplateResponse(
-        "bus_list.html",
-        {"request": request, "buses": buses}
-    )
+    try:
+        buses = db.query(Bus).all()
+        return templates.TemplateResponse(
+            "view_buses.html",
+            {"request": request, "buses": buses}
+        )
+    except Exception as e:
+        import traceback
+        with open("debug_log.txt", "w") as f:
+            f.write(f"DB URL: {db.get_bind().url}\n")
+            f.write(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Train routes
 @router.get("/train/add", response_class=HTMLResponse)
@@ -62,6 +69,7 @@ async def get_add_train(request: Request):
 async def post_add_train(
     request: Request,
     train_name: str = Form(...),
+    train_number: str = Form(...),
     departure_time: str = Form(...),
     db: Session = Depends(get_db)
 ):
@@ -69,7 +77,9 @@ async def post_add_train(
         departure_time_obj = datetime.strptime(departure_time, "%H:%M").time()
         new_train = Train(
             train_name=train_name,
-            departure_time=departure_time_obj
+            train_number=train_number,
+            departure_time=departure_time_obj,
+            type="train"
         )
         db.add(new_train)
         db.commit()
@@ -82,7 +92,7 @@ async def post_add_train(
 async def list_trains(request: Request, db: Session = Depends(get_db)):
     trains = db.query(Train).all()
     return templates.TemplateResponse(
-        "train_list.html",
+        "view_trains.html",
         {"request": request, "trains": trains}
     )
 
@@ -95,6 +105,7 @@ async def get_add_plane(request: Request):
 async def post_add_plane(
     request: Request,
     company: str = Form(...),
+    flight_number: str = Form(...),
     departure_time: str = Form(...),
     db: Session = Depends(get_db)
 ):
@@ -102,7 +113,9 @@ async def post_add_plane(
         departure_time_obj = datetime.strptime(departure_time, "%H:%M").time()
         new_plane = Plane(
             company=company,
-            departure_time=departure_time_obj
+            flight_number=flight_number,
+            departure_time=departure_time_obj,
+            type="plane"
         )
         db.add(new_plane)
         db.commit()
@@ -115,6 +128,6 @@ async def post_add_plane(
 async def list_planes(request: Request, db: Session = Depends(get_db)):
     planes = db.query(Plane).all()
     return templates.TemplateResponse(
-        "plane_list.html",
+        "view_planes.html",
         {"request": request, "planes": planes}
-    ) 
+    )
