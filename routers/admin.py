@@ -32,8 +32,8 @@ def get_dashboard_stats(db: Session) -> Dict[str, Any]:
     yesterday = now - timedelta(days=1)
 
     # Calculate total masters and growth
-    total_masters = db.query(func.count(Master.ITS)).scalar()
-    masters_last_week = db.query(func.count(Master.ITS)).filter(Master.timestamp < week_ago).scalar()
+    total_masters = db.query(func.count(Master.its)).scalar()
+    masters_last_week = db.query(func.count(Master.its)).filter(Master.timestamp < week_ago).scalar()
     masters_growth = calculate_growth(total_masters, masters_last_week)
 
     # Calculate active bookings and growth
