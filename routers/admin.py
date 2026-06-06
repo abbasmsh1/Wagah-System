@@ -143,11 +143,13 @@ async def admin_masters(
     total_pages = (total + page_size - 1) // page_size
 
     return templates.TemplateResponse(
-        "masters.html",
+        "masters_list.html",
         {
             "request": request,
             "masters": masters,
             "page": page,
+            "page_size": page_size,
+            "total": total,
             "total_pages": total_pages
         }
     )

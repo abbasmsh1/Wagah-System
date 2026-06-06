@@ -34,11 +34,17 @@ async def update_master(
     first_name: str = Form(...),
     middle_name: str = Form(None),
     last_name: str = Form(...),
-    passport_no: str = Form(...),
+    date_of_birth: str = Form(...),
+    passport_number: str = Form(...),
     passport_expiry: str = Form(...),
-    visa_no: str = Form(None),
+    visa_number: str = Form(...),
+    mode_of_transport: str = Form(...),
+    phone: str = Form(None),
     db: Session = Depends(get_db)
 ):
+    dob = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
+    expiry = datetime.strptime(passport_expiry, "%Y-%m-%d").date()
+
     master = db.query(Master).filter(Master.its == its).first()
     if not master:
         master = Master(
@@ -46,18 +52,24 @@ async def update_master(
             first_name=first_name,
             middle_name=middle_name,
             last_name=last_name,
-            passport_number=passport_no,
-            passport_expiry=datetime.strptime(passport_expiry, "%Y-%m-%d").date(),
-            visa_number=visa_no
+            date_of_birth=dob,
+            passport_number=passport_number,
+            passport_expiry=expiry,
+            visa_number=visa_number,
+            mode_of_transport=mode_of_transport,
+            phone=phone,
         )
         db.add(master)
     else:
         master.first_name = first_name
         master.middle_name = middle_name
         master.last_name = last_name
-        master.passport_number = passport_no
-        master.passport_expiry = datetime.strptime(passport_expiry, "%Y-%m-%d").date()
-        master.visa_number = visa_no
+        master.date_of_birth = dob
+        master.passport_number = passport_number
+        master.passport_expiry = expiry
+        master.visa_number = visa_number
+        master.mode_of_transport = mode_of_transport
+        master.phone = phone
 
     try:
         db.commit()
@@ -85,6 +97,8 @@ async def list_masters(
             "request": request,
             "masters": masters,
             "page": page,
+            "page_size": page_size,
+            "total": total,
             "total_pages": total_pages
         }
     )

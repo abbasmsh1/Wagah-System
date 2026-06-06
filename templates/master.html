@@ -19,17 +19,17 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-            <form method="POST" action="/master/" class="p-6 space-y-8 divide-y divide-gray-200">
+            <form method="POST" action="/master/update" class="p-6 space-y-8 divide-y divide-gray-200">
                 <!-- Personal Information -->
                 <div class="space-y-6">
                     <h3 class="text-lg leading-6 font-medium text-gray-900">Personal Information</h3>
                     <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                         <div class="sm:col-span-2">
-                            <label for="ITS" class="block text-sm font-medium text-gray-700">ITS Number</label>
+                            <label for="its" class="block text-sm font-medium text-gray-700">ITS Number</label>
                             <div class="mt-1">
-                                <input type="text" name="ITS" id="ITS" required 
+                                <input type="text" name="its" id="its" required inputmode="numeric"
                                     class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                                    value="{{ master.ITS if master else '' }}">
+                                    value="{{ master.its if master else '' }}">
                             </div>
                         </div>
 
@@ -43,6 +43,15 @@
                         </div>
 
                         <div class="sm:col-span-2">
+                            <label for="middle_name" class="block text-sm font-medium text-gray-700">Middle Name</label>
+                            <div class="mt-1">
+                                <input type="text" name="middle_name" id="middle_name"
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    value="{{ master.middle_name if master else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-3">
                             <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
                             <div class="mt-1">
                                 <input type="text" name="last_name" id="last_name" required
@@ -52,20 +61,57 @@
                         </div>
 
                         <div class="sm:col-span-3">
-                            <label for="passport_no" class="block text-sm font-medium text-gray-700">Passport Number</label>
+                            <label for="date_of_birth" class="block text-sm font-medium text-gray-700">Date of Birth</label>
                             <div class="mt-1">
-                                <input type="text" name="passport_no" id="passport_no" required
+                                <input type="date" name="date_of_birth" id="date_of_birth" required
                                     class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                                    value="{{ master.passport_no if master else '' }}">
+                                    value="{{ master.date_of_birth.strftime('%Y-%m-%d') if master and master.date_of_birth else '' }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Travel Document Information -->
+                <div class="pt-8 space-y-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Travel Document</h3>
+                    <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                        <div class="sm:col-span-3">
+                            <label for="passport_number" class="block text-sm font-medium text-gray-700">Passport Number</label>
+                            <div class="mt-1">
+                                <input type="text" name="passport_number" id="passport_number" required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    value="{{ master.passport_number if master else '' }}">
                             </div>
                         </div>
 
                         <div class="sm:col-span-3">
-                            <label for="nationality" class="block text-sm font-medium text-gray-700">Nationality</label>
+                            <label for="passport_expiry" class="block text-sm font-medium text-gray-700">Passport Expiry</label>
                             <div class="mt-1">
-                                <input type="text" name="nationality" id="nationality" required
+                                <input type="date" name="passport_expiry" id="passport_expiry" required
                                     class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                                    value="{{ master.nationality if master else '' }}">
+                                    value="{{ master.passport_expiry.strftime('%Y-%m-%d') if master and master.passport_expiry else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-3">
+                            <label for="visa_number" class="block text-sm font-medium text-gray-700">Visa Number</label>
+                            <div class="mt-1">
+                                <input type="text" name="visa_number" id="visa_number" required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    value="{{ master.visa_number if master else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-3">
+                            <label for="mode_of_transport" class="block text-sm font-medium text-gray-700">Mode of Transport</label>
+                            <div class="mt-1">
+                                <select name="mode_of_transport" id="mode_of_transport" required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                    <option value="">Select Mode</option>
+                                    <option value="bus" {% if master and master.mode_of_transport == 'bus' %}selected{% endif %}>Bus</option>
+                                    <option value="train" {% if master and master.mode_of_transport == 'train' %}selected{% endif %}>Train</option>
+                                    <option value="plane" {% if master and master.mode_of_transport == 'plane' %}selected{% endif %}>Plane</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -81,53 +127,6 @@
                                 <input type="tel" name="phone" id="phone"
                                     class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                                     value="{{ master.phone if master else '' }}">
-                            </div>
-                        </div>
-
-                        <div class="sm:col-span-3">
-                            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                            <div class="mt-1">
-                                <input type="email" name="email" id="email"
-                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                                    value="{{ master.email if master else '' }}">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Travel Information -->
-                <div class="pt-8 space-y-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">Travel Information</h3>
-                    <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                        <div class="sm:col-span-2">
-                            <label for="arrival_date" class="block text-sm font-medium text-gray-700">Arrival Date</label>
-                            <div class="mt-1">
-                                <input type="date" name="arrival_date" id="arrival_date" required
-                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                                    value="{{ master.arrival_date.strftime('%Y-%m-%d') if master and master.arrival_date else '' }}">
-                            </div>
-                        </div>
-
-                        <div class="sm:col-span-2">
-                            <label for="departure_date" class="block text-sm font-medium text-gray-700">Departure Date</label>
-                            <div class="mt-1">
-                                <input type="date" name="departure_date" id="departure_date" required
-                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                                    value="{{ master.departure_date.strftime('%Y-%m-%d') if master and master.departure_date else '' }}">
-                            </div>
-                        </div>
-
-                        <div class="sm:col-span-2">
-                            <label for="visa_type" class="block text-sm font-medium text-gray-700">Visa Type</label>
-                            <div class="mt-1">
-                                <select name="visa_type" id="visa_type" required
-                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
-                                    <option value="">Select Visa Type</option>
-                                    <option value="tourist" {% if master and master.visa_type == 'tourist' %}selected{% endif %}>Tourist</option>
-                                    <option value="business" {% if master and master.visa_type == 'business' %}selected{% endif %}>Business</option>
-                                    <option value="student" {% if master and master.visa_type == 'student' %}selected{% endif %}>Student</option>
-                                    <option value="work" {% if master and master.visa_type == 'work' %}selected{% endif %}>Work</option>
-                                </select>
                             </div>
                         </div>
                     </div>
@@ -153,66 +152,14 @@
 
 {% block extra_js %}
 <script>
-    // Form validation and enhancement
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('form');
-        const itsInput = document.getElementById('ITS');
-        
-        // ITS number validation
-        itsInput.addEventListener('input', function() {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
-
-        // Form submission handling
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            try {
-                const formData = new FormData(form);
-                const response = await fetch(form.action, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (response.ok) {
-                    Swal.fire({
-                        title: 'Success!',
-                        text: 'Immigration form submitted successfully',
-                        icon: 'success',
-                        confirmButtonColor: '#4F46E5'
-                    }).then(() => {
-                        window.location.href = '/';
-                    });
-                } else {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Form submission failed');
-                }
-            } catch (error) {
-                Swal.fire({
-                    title: 'Error!',
-                    text: error.message,
-                    icon: 'error',
-                    confirmButtonColor: '#4F46E5'
-                });
-            }
-        });
-
-        // Date validation
-        const arrivalDate = document.getElementById('arrival_date');
-        const departureDate = document.getElementById('departure_date');
-
-        function validateDates() {
-            if (arrivalDate.value && departureDate.value) {
-                if (new Date(departureDate.value) < new Date(arrivalDate.value)) {
-                    departureDate.setCustomValidity('Departure date must be after arrival date');
-                } else {
-                    departureDate.setCustomValidity('');
-                }
-            }
+    // Keep the ITS field numeric.
+    document.addEventListener('DOMContentLoaded', function () {
+        var its = document.getElementById('its');
+        if (its) {
+            its.addEventListener('input', function () {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
         }
-
-        arrivalDate.addEventListener('change', validateDates);
-        departureDate.addEventListener('change', validateDates);
     });
 </script>
 {% endblock %}

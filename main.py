@@ -24,6 +24,7 @@ from config.limiter import limiter
 
 from database import SessionLocal, User, init_db, get_db
 from routers import master, transport, booking, admin, auth
+from middleware.auth import user_required
 from config.security import get_security_settings, get_security_headers, get_password_hash, generate_csrf_token
 
 # Get security settings
@@ -93,9 +94,9 @@ async def add_security_headers(request: Request, call_next):
 from middleware.csrf import csrf_protect
 app.include_router(auth.router, tags=["auth"], dependencies=[Depends(csrf_protect)])
 app.include_router(admin.router, prefix="/admin", tags=["admin"], dependencies=[Depends(csrf_protect)])
-app.include_router(master.router, prefix="/master", tags=["master"], dependencies=[Depends(csrf_protect)])
-app.include_router(transport.router, prefix="/transport", tags=["transport"], dependencies=[Depends(csrf_protect)])
-app.include_router(booking.router, prefix="/booking", tags=["booking"], dependencies=[Depends(csrf_protect)])
+app.include_router(master.router, prefix="/master", tags=["master"], dependencies=[Depends(csrf_protect), Depends(user_required)])
+app.include_router(transport.router, prefix="/transport", tags=["transport"], dependencies=[Depends(csrf_protect), Depends(user_required)])
+app.include_router(booking.router, prefix="/booking", tags=["booking"], dependencies=[Depends(csrf_protect), Depends(user_required)])
 
 # Error handlers -- render friendly HTML pages instead of raw JSON, and send
 # unauthenticated users to the login page.
