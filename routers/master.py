@@ -42,6 +42,8 @@ async def update_master(
     phone: str = Form(None),
     db: Session = Depends(get_db)
 ):
+    if mode_of_transport not in ("bus", "train", "plane"):
+        raise HTTPException(status_code=400, detail="Invalid mode of transport")
     dob = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
     expiry = datetime.strptime(passport_expiry, "%Y-%m-%d").date()
 

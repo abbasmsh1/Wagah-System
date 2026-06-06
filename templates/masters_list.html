@@ -19,7 +19,6 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ITS</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Passport</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visa</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mode</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     </tr>
@@ -33,8 +32,9 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ master.first_name }}{% if master.middle_name %} {{ master.middle_name }}{% endif %} {{ master.last_name }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ master.passport_number }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ master.visa_number }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {% if master.passport_number %}&bull;&bull;&bull;&bull;{{ master.passport_number[-4:] }}{% endif %}
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ master.mode_of_transport }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                             {% if master.departed %}
@@ -47,7 +47,7 @@
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">No records found.</td></tr>
+                    <tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">No records found.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
