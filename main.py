@@ -4,6 +4,7 @@ warnings.filterwarnings("ignore")
 
 import logging
 import os
+import secrets
 from datetime import datetime, timedelta, date, time
 from typing import List, Optional
 import json
@@ -176,17 +177,28 @@ def create_initial_admin():
     try:
         user_count = db.query(func.count(User.id)).scalar()
         if user_count == 0:
-            hashed_password = get_password_hash("admin")
+            username = os.getenv("INITIAL_ADMIN_USERNAME", "admin")
+            password = os.getenv("INITIAL_ADMIN_PASSWORD")
+            generated = not password  # treat unset or empty as "generate one"
+            if generated:
+                # No weak hardcoded default: generate a strong random password.
+                password = secrets.token_urlsafe(16)
             admin_user = User(
-                username="admin",
-                hashed_password=hashed_password,
+                username=username,
+                hashed_password=get_password_hash(password),
                 role="admin",
                 designation="System Administrator",
                 is_active=True
             )
             db.add(admin_user)
             db.commit()
-            logger.info("Created initial admin user")
+            if generated:
+                logger.warning(
+                    "Created initial admin '%s' with a GENERATED password: %s "
+                    "-- log in and change it immediately.", username, password
+                )
+            else:
+                logger.info("Created initial admin '%s' from INITIAL_ADMIN_PASSWORD.", username)
     except Exception as e:
         logger.error(f"Error creating initial admin user: {e}")
     finally:
