@@ -2,13 +2,19 @@
 
 {% block content %}
 <h2>Add New Train</h2>
-<form action="/add-train/" method="post">
+<form action="/transport/train/add" method="post">
     <label for="train_name">Train Name:</label>
     <input type="text" id="train_name" name="train_name" required>
-    
+
+    <label for="train_number">Train Number:</label>
+    <input type="text" id="train_number" name="train_number" required>
+
+    <label for="no_of_seats">Number of Seats:</label>
+    <input type="number" id="no_of_seats" name="no_of_seats" min="1" required>
+
     <label for="departure_time">Time (hrs:min):</label>
     <input type="time" id="departure_time" name="departure_time" required>
-    
+
     <button type="submit">Add Train</button>
 </form>
 {% endblock %}

@@ -71,6 +71,7 @@ async def post_add_train(
     request: Request,
     train_name: str = Form(...),
     train_number: str = Form(...),
+    no_of_seats: int = Form(...),
     departure_time: str = Form(...),
     db: Session = Depends(get_db)
 ):
@@ -80,7 +81,10 @@ async def post_add_train(
             train_name=train_name,
             train_number=train_number,
             departure_time=departure_time_obj,
-            type="train"
+            type="train",
+            capacity=no_of_seats,
+            no_of_seats=no_of_seats,
+            available_seats=no_of_seats
         )
         db.add(new_train)
         db.commit()
@@ -107,6 +111,7 @@ async def post_add_plane(
     request: Request,
     company: str = Form(...),
     flight_number: str = Form(...),
+    no_of_seats: int = Form(...),
     departure_time: str = Form(...),
     db: Session = Depends(get_db)
 ):
@@ -116,7 +121,10 @@ async def post_add_plane(
             company=company,
             flight_number=flight_number,
             departure_time=departure_time_obj,
-            type="plane"
+            type="plane",
+            capacity=no_of_seats,
+            no_of_seats=no_of_seats,
+            available_seats=no_of_seats
         )
         db.add(new_plane)
         db.commit()

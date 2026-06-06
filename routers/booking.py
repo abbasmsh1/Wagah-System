@@ -7,7 +7,6 @@ from database import SessionLocal, BookingInfo, Master, Bus, Train, Plane
 from datetime import datetime
 
 router = APIRouter(
-    prefix="/booking",
     tags=["booking"]
 )
 
@@ -101,6 +100,9 @@ async def create_train_booking(
     if not train:
         raise HTTPException(status_code=404, detail="Train not found")
 
+    if train.available_seats <= 0:
+        raise HTTPException(status_code=400, detail="No available seats")
+
     try:
         booking = BookingInfo(
             its=its,
@@ -112,6 +114,7 @@ async def create_train_booking(
             booking_time=datetime.now()
         )
         db.add(booking)
+        train.available_seats -= 1
         db.commit()
         return RedirectResponse(url=f"/booking/info/{booking.id}", status_code=303)
     except Exception as e:
@@ -149,6 +152,9 @@ async def create_plane_booking(
     if not plane:
         raise HTTPException(status_code=404, detail="Plane not found")
 
+    if plane.available_seats <= 0:
+        raise HTTPException(status_code=400, detail="No available seats")
+
     try:
         booking = BookingInfo(
             its=its,
@@ -158,6 +164,7 @@ async def create_plane_booking(
             booking_time=datetime.now()
         )
         db.add(booking)
+        plane.available_seats -= 1
         db.commit()
         return RedirectResponse(url=f"/booking/info/{booking.id}", status_code=303)
     except Exception as e:

@@ -88,6 +88,8 @@ class Plane(Transport):
     plane_id = Column(Integer, ForeignKey('transport.id'), primary_key=True)
     company = Column(String, nullable=False)
     flight_number = Column(String, nullable=False, unique=True)
+    no_of_seats = Column(Integer, nullable=False)
+    available_seats = Column(Integer, nullable=False)
 
     __mapper_args__ = {
         'polymorphic_identity': 'plane',
@@ -99,6 +101,8 @@ class Train(Transport):
     train_id = Column(Integer, ForeignKey('transport.id'), primary_key=True)
     train_name = Column(String, nullable=False)
     train_number = Column(String, nullable=False, unique=True)
+    no_of_seats = Column(Integer, nullable=False)
+    available_seats = Column(Integer, nullable=False)
 
     __mapper_args__ = {
         'polymorphic_identity': 'train',
