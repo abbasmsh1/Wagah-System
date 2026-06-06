@@ -2,35 +2,16 @@ from fastapi import APIRouter, Request, Form, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
-from datetime import datetime, timedelta
-from jose import jwt
 
-from database import SessionLocal, User
-from config.security import get_security_settings, verify_password, get_password_hash
+from database import get_db, User
+from config.security import get_security_settings, verify_password, get_password_hash, create_access_token
 from config.limiter import limiter
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 settings = get_security_settings()
 
-# Password hashing context moved to config.security
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-# verify_password imported from config.security
-
-def create_access_token(data: dict) -> str:
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
+# get_db, verify_password and create_access_token are imported from shared modules
 
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request, message: str = None):

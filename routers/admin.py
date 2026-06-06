@@ -5,20 +5,13 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime, timedelta
 from typing import Dict, Any
-from database import SessionLocal, Master, BookingInfo, Bus, Train, Plane, User, ProcessedMaster
+from database import get_db, Master, BookingInfo, Bus, Train, Plane, User, ProcessedMaster
 from middleware.auth import admin_required
 import json
 
 router = APIRouter()
 
 templates = Jinja2Templates(directory="templates")
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 def calculate_growth(current: int, previous: int) -> float:
     if previous == 0:

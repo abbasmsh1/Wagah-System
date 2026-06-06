@@ -3,19 +3,12 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from typing import Optional
-from database import SessionLocal, Master, ProcessedMaster
+from database import get_db, Master, ProcessedMaster
 from datetime import datetime
 
 router = APIRouter()
 
 templates = Jinja2Templates(directory="templates")
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.get("/", response_class=HTMLResponse)
 async def get_master_form(request: Request):

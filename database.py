@@ -24,6 +24,15 @@ engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 # Create a configured "Session" class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
+def get_db():
+    """FastAPI dependency that yields a database session and closes it."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 # Create a base class for the models
 Base = declarative_base()
 

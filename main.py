@@ -4,7 +4,6 @@ warnings.filterwarnings("ignore")
 
 import logging
 import os
-import secrets
 from datetime import datetime, timedelta, date, time
 from typing import List, Optional
 import json
@@ -100,24 +99,7 @@ async def add_security_headers(request: Request, call_next):
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# Database dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-# Password hashing functions
-# Password hashing functions are imported from config.security
-
-# Token functions
-def create_access_token(data: dict) -> str:
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
+# get_db lives in database.py; create_access_token in config.security
 
 # Include routers (CSRF dependency guards all state-changing POSTs;
 # it is a no-op for safe methods like GET)
@@ -179,10 +161,15 @@ def create_initial_admin():
         if user_count == 0:
             username = os.getenv("INITIAL_ADMIN_USERNAME", "admin")
             password = os.getenv("INITIAL_ADMIN_PASSWORD")
-            generated = not password  # treat unset or empty as "generate one"
-            if generated:
-                # No weak hardcoded default: generate a strong random password.
-                password = secrets.token_urlsafe(16)
+            if not password:
+                # Fail closed: never invent or log a credential. Operator must
+                # provide one explicitly; until then no admin account exists.
+                logger.error(
+                    "No users exist and INITIAL_ADMIN_PASSWORD is not set. "
+                    "Set INITIAL_ADMIN_PASSWORD (and optionally INITIAL_ADMIN_USERNAME) "
+                    "and restart to create the initial admin account."
+                )
+                return
             admin_user = User(
                 username=username,
                 hashed_password=get_password_hash(password),
@@ -192,13 +179,7 @@ def create_initial_admin():
             )
             db.add(admin_user)
             db.commit()
-            if generated:
-                logger.warning(
-                    "Created initial admin '%s' with a GENERATED password: %s "
-                    "-- log in and change it immediately.", username, password
-                )
-            else:
-                logger.info("Created initial admin '%s' from INITIAL_ADMIN_PASSWORD.", username)
+            logger.info("Created initial admin '%s' from INITIAL_ADMIN_PASSWORD.", username)
     except Exception as e:
         logger.error(f"Error creating initial admin user: {e}")
     finally:

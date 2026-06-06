@@ -4,19 +4,12 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import Optional
-from database import SessionLocal, Transport, Bus, Train, Plane, BookingInfo
+from database import get_db, Transport, Bus, Train, Plane, BookingInfo
 from datetime import datetime, time
 
 router = APIRouter()
 
 templates = Jinja2Templates(directory="templates")
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 # Bus routes
 @router.get("/bus/add", response_class=HTMLResponse)
