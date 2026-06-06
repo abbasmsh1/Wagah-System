@@ -32,8 +32,9 @@ async def post_add_bus(
 ):
     try:
         new_bus = Bus(
-            bus_number=db.query(func.max(Bus.bus_number)).scalar() or 100 + 1,
+            bus_number=(db.query(func.max(Bus.bus_number)).scalar() or 100) + 1,
             no_of_seats=no_of_seats,
+            capacity=no_of_seats,  # Transport.capacity is NOT NULL
             type=type,
             available_seats=no_of_seats,
             bus_type=type # Match both inherited and specific field
