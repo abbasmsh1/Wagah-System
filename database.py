@@ -185,5 +185,13 @@ class ProcessedMaster(Base):
     master = relationship("Master", back_populates="processed_info")
     processed_by_user = relationship("User", back_populates="processed_masters")
 
-# Create all tables in the database
-Base.metadata.create_all(bind=engine)
+def init_db():
+    """Create any missing tables.
+
+    Real deployments should manage schema with Alembic (`alembic upgrade
+    head`); this is a convenience used on app startup so a fresh dev
+    database self-initializes. Importing this module no longer has the
+    side effect of creating tables (which previously broke Alembic
+    autogenerate and made imports do hidden I/O).
+    """
+    Base.metadata.create_all(bind=engine)

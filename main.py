@@ -21,7 +21,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from config.limiter import limiter
 
-from database import SessionLocal, User
+from database import SessionLocal, User, init_db
 from routers import master, transport, booking, admin, auth
 from config.security import get_security_settings, get_security_headers, get_password_hash, generate_csrf_token
 
@@ -169,6 +169,7 @@ def create_initial_admin():
 # Create initial admin user on startup
 @app.on_event("startup")
 async def startup_event():
+    init_db()
     create_initial_admin()
 
 if __name__ == "__main__":
