@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, Request, Form, HTTPException
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime, timedelta
 from typing import Dict, Any
 from database import get_db, Master, BookingInfo, Bus, Train, Plane, User, ProcessedMaster
+from config.security import get_password_hash, validate_password
 from middleware.auth import admin_required
 
 router = APIRouter()
@@ -189,3 +190,69 @@ async def admin_users(
             "users": users
         }
     )
+
+VALID_ROLES = ("admin", "staff", "user")
+
+@router.get("/users/add", response_class=HTMLResponse)
+async def add_user_form(
+    request: Request,
+    _: bool = Depends(admin_required)
+):
+    return templates.TemplateResponse("admin/add_user.html", {"request": request})
+
+@router.post("/users/add", response_class=HTMLResponse)
+async def add_user(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    designation: str = Form(...),
+    role: str = Form("user"),
+    db: Session = Depends(get_db),
+    _: bool = Depends(admin_required)
+):
+    if role not in VALID_ROLES:
+        role = "user"
+    if not validate_password(password):
+        return templates.TemplateResponse(
+            "admin/add_user.html",
+            {"request": request, "message": "Password must be at least 8 characters and "
+             "include upper- and lower-case letters, a digit and a special character."},
+            status_code=400,
+        )
+    if db.query(User).filter(User.username == username).first():
+        return templates.TemplateResponse(
+            "admin/add_user.html",
+            {"request": request, "message": "That username already exists."},
+            status_code=400,
+        )
+    user = User(
+        username=username,
+        hashed_password=get_password_hash(password),
+        role=role,
+        designation=designation,
+        is_active=True,
+    )
+    db.add(user)
+    db.commit()
+    return RedirectResponse(url="/admin/users", status_code=303)
+
+@router.post("/users/{user_id}/toggle", response_class=HTMLResponse)
+async def toggle_user_active(
+    request: Request,
+    user_id: int,
+    db: Session = Depends(get_db),
+    _: bool = Depends(admin_required)
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    # Don't let an admin lock themselves out of the last active admin account.
+    if user.role == "admin" and user.is_active:
+        active_admins = db.query(func.count(User.id)).filter(
+            User.role == "admin", User.is_active == True
+        ).scalar()
+        if active_admins <= 1:
+            raise HTTPException(status_code=400, detail="Cannot deactivate the last active admin")
+    user.is_active = not user.is_active
+    db.commit()
+    return RedirectResponse(url="/admin/users", status_code=303)
