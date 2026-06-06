@@ -9,11 +9,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-from fastapi import FastAPI, Depends, Request
+from fastapi import FastAPI, Depends, Request, HTTPException
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import func
+from sqlalchemy import func, text
+from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -21,12 +22,20 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from config.limiter import limiter
 
-from database import SessionLocal, User, init_db
+from database import SessionLocal, User, init_db, get_db
 from routers import master, transport, booking, admin, auth
 from config.security import get_security_settings, get_security_headers, get_password_hash, generate_csrf_token
 
-# Create FastAPI app
-app = FastAPI(title="Wagah System")
+# Get security settings
+settings = get_security_settings()
+
+# Create FastAPI app -- hide interactive docs/openapi unless DEBUG is enabled
+app = FastAPI(
+    title="Wagah System",
+    docs_url="/docs" if settings.DEBUG else None,
+    redoc_url="/redoc" if settings.DEBUG else None,
+    openapi_url="/openapi.json" if settings.DEBUG else None,
+)
 
 # Rate limiting (slowapi)
 app.state.limiter = limiter
@@ -37,9 +46,6 @@ templates = Jinja2Templates(directory="templates")
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# Get security settings
-settings = get_security_settings()
 
 # Configure CORS
 app.add_middleware(
@@ -133,6 +139,15 @@ async def root(request: Request):
             "current_year": datetime.now().year
         }
     )
+
+@app.get("/health")
+async def health(db: Session = Depends(get_db)):
+    """Liveness/readiness probe: confirms the app and DB are reachable."""
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception:
+        raise HTTPException(status_code=503, detail="database unavailable")
+    return {"status": "ok"}
 
 # Create initial admin user if no users exist
 def create_initial_admin():
