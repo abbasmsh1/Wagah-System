@@ -69,6 +69,14 @@ app.add_middleware(
 from middleware.session import AuthStateMiddleware
 app.add_middleware(AuthStateMiddleware)
 
+# Attach security headers (CSP, HSTS, X-Frame-Options, ...) to every response
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    for header, value in get_security_headers().items():
+        response.headers[header] = value
+    return response
+
 # Password hashing context moved to config.security
 
 # OAuth2 scheme
