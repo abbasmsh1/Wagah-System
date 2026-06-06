@@ -30,6 +30,9 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.websockets import WebSocketDisconnect
 from jose import JWTError, jwt
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from config.limiter import limiter
 from fpdf import FPDF
 import xlsxwriter
 
@@ -40,6 +43,10 @@ from config.security import get_security_settings, get_security_headers, verify_
 
 # Create FastAPI app
 app = FastAPI(title="Wagah System")
+
+# Rate limiting (slowapi)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Configure templates
 templates = Jinja2Templates(directory="templates")

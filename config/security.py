@@ -47,6 +47,10 @@ class SecuritySettings(BaseSettings):
 
     class Config:
         case_sensitive = True
+        # Load .env directly so settings don't depend on some other module
+        # having called load_dotenv() first (import-order independence).
+        env_file = ".env"
+        extra = "ignore"
 
 @lru_cache()
 def get_security_settings() -> SecuritySettings:

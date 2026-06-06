@@ -8,6 +8,7 @@ from jose import jwt
 
 from database import SessionLocal, User
 from config.security import get_security_settings, verify_password, get_password_hash
+from config.limiter import limiter
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -42,6 +43,7 @@ async def login_page(request: Request, message: str = None):
     )
 
 @router.post("/login")
+@limiter.limit("5/minute")
 async def login(
     request: Request,
     username: str = Form(...),
