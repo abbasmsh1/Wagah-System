@@ -1,9 +1,12 @@
+import logging
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request
 from jose import jwt
 from database import SessionLocal, User
 from .auth import get_token_from_cookie, settings
+
+logger = logging.getLogger(__name__)
 
 class AuthStateMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -32,8 +35,6 @@ class AuthStateMiddleware(BaseHTTPMiddleware):
 
             response = await call_next(request)
             return response
-        except Exception as e:
-            import traceback
-            with open("middleware_error.txt", "w") as f:
-                f.write(traceback.format_exc())
-            raise e
+        except Exception:
+            logger.exception("AuthStateMiddleware failed processing %s", request.url.path)
+            raise

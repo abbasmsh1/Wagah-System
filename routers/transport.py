@@ -35,24 +35,17 @@ async def post_add_bus(
         db.add(new_bus)
         db.commit()
         return RedirectResponse(url="/transport/bus/list", status_code=303)
-    except Exception as e:
+    except Exception:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise
 
 @router.get("/bus/list", response_class=HTMLResponse)
 async def list_buses(request: Request, db: Session = Depends(get_db)):
-    try:
-        buses = db.query(Bus).all()
-        return templates.TemplateResponse(
-            "view_buses.html",
-            {"request": request, "buses": buses}
-        )
-    except Exception as e:
-        import traceback
-        with open("debug_log.txt", "w") as f:
-            f.write(f"DB URL: {db.get_bind().url}\n")
-            f.write(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+    buses = db.query(Bus).all()
+    return templates.TemplateResponse(
+        "view_buses.html",
+        {"request": request, "buses": buses}
+    )
 
 # Train routes
 @router.get("/train/add", response_class=HTMLResponse)
@@ -82,9 +75,9 @@ async def post_add_train(
         db.add(new_train)
         db.commit()
         return RedirectResponse(url="/transport/train/list", status_code=303)
-    except Exception as e:
+    except Exception:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise
 
 @router.get("/train/list", response_class=HTMLResponse)
 async def list_trains(request: Request, db: Session = Depends(get_db)):
@@ -122,9 +115,9 @@ async def post_add_plane(
         db.add(new_plane)
         db.commit()
         return RedirectResponse(url="/transport/plane/list", status_code=303)
-    except Exception as e:
+    except Exception:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise
 
 @router.get("/plane/list", response_class=HTMLResponse)
 async def list_planes(request: Request, db: Session = Depends(get_db)):

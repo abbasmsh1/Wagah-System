@@ -63,9 +63,9 @@ async def update_master(
     try:
         db.commit()
         return RedirectResponse(url=f"/master/info/?its={its}", status_code=303)
-    except Exception as e:
+    except Exception:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise
 
 @router.get("/list/", response_class=HTMLResponse)
 async def list_masters(

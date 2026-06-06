@@ -56,9 +56,9 @@ async def create_bus_booking(
         bus.available_seats -= 1
         db.commit()
         return RedirectResponse(url=f"/booking/info/{booking.id}", status_code=303)
-    except Exception as e:
+    except Exception:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise
 
 @router.get("/train/form", response_class=HTMLResponse)
 async def get_train_booking_form(
@@ -110,9 +110,9 @@ async def create_train_booking(
         train.available_seats -= 1
         db.commit()
         return RedirectResponse(url=f"/booking/info/{booking.id}", status_code=303)
-    except Exception as e:
+    except Exception:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise
 
 @router.get("/plane/form", response_class=HTMLResponse)
 async def get_plane_booking_form(
@@ -160,9 +160,9 @@ async def create_plane_booking(
         plane.available_seats -= 1
         db.commit()
         return RedirectResponse(url=f"/booking/info/{booking.id}", status_code=303)
-    except Exception as e:
+    except Exception:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise
 
 @router.get("/info/{booking_id}", response_class=HTMLResponse)
 async def get_booking_info(
