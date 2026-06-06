@@ -3,6 +3,7 @@ from typing import List
 import os
 from functools import lru_cache
 from passlib.context import CryptContext
+import secrets
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -11,6 +12,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
+
+def generate_csrf_token() -> str:
+    """Generate a random token for the double-submit CSRF cookie."""
+    return secrets.token_urlsafe(32)
 
 class SecuritySettings(BaseSettings):
     # Security
@@ -50,8 +55,8 @@ def get_security_settings() -> SecuritySettings:
 # Security Policy Configuration
 security_policies = {
     "default-src": ["'self'"],
-    "script-src": ["'self'", "cdn.jsdelivr.net"],
-    "style-src": ["'self'", "cdn.jsdelivr.net"],
+    "script-src": ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net"],
+    "style-src": ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net"],
     "img-src": ["'self'", "data:", "ui-avatars.com"],
     "font-src": ["'self'", "cdn.jsdelivr.net"],
     "connect-src": ["'self'"],

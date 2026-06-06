@@ -36,7 +36,7 @@ import xlsxwriter
 from database import SessionLocal, engine, Master, BookingInfo, Transport, Schedule, Bus, Plane, Train, ProcessedMaster, User
 from routers import master, transport, booking, admin, auth
 from middleware.auth import user_required
-from config.security import get_security_settings, get_security_headers, verify_password, get_password_hash
+from config.security import get_security_settings, get_security_headers, verify_password, get_password_hash, generate_csrf_token
 
 # Create FastAPI app
 app = FastAPI(title="Wagah System")
@@ -69,12 +69,22 @@ app.add_middleware(
 from middleware.session import AuthStateMiddleware
 app.add_middleware(AuthStateMiddleware)
 
-# Attach security headers (CSP, HSTS, X-Frame-Options, ...) to every response
+# Attach security headers (CSP, HSTS, X-Frame-Options, ...) to every response,
+# and issue the CSRF double-submit cookie when one isn't present yet.
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
     for header, value in get_security_headers().items():
         response.headers[header] = value
+    if not request.cookies.get("csrf_token"):
+        response.set_cookie(
+            key="csrf_token",
+            value=generate_csrf_token(),
+            max_age=settings.SESSION_EXPIRE_MINUTES * 60,
+            samesite=settings.COOKIE_SAMESITE.lower(),
+            secure=settings.COOKIE_SECURE,
+            httponly=False,  # readable by JS so forms can echo it back
+        )
     return response
 
 # Password hashing context moved to config.security
@@ -101,12 +111,14 @@ def create_access_token(data: dict) -> str:
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
-# Include routers
-app.include_router(auth.router, tags=["auth"])
-app.include_router(admin.router, prefix="/admin", tags=["admin"])
-app.include_router(master.router, prefix="/master", tags=["master"])
-app.include_router(transport.router, prefix="/transport", tags=["transport"])
-app.include_router(booking.router, prefix="/booking", tags=["booking"])
+# Include routers (CSRF dependency guards all state-changing POSTs;
+# it is a no-op for safe methods like GET)
+from middleware.csrf import csrf_protect
+app.include_router(auth.router, tags=["auth"], dependencies=[Depends(csrf_protect)])
+app.include_router(admin.router, prefix="/admin", tags=["admin"], dependencies=[Depends(csrf_protect)])
+app.include_router(master.router, prefix="/master", tags=["master"], dependencies=[Depends(csrf_protect)])
+app.include_router(transport.router, prefix="/transport", tags=["transport"], dependencies=[Depends(csrf_protect)])
+app.include_router(booking.router, prefix="/booking", tags=["booking"], dependencies=[Depends(csrf_protect)])
 
 # Error handlers -- render friendly HTML pages instead of raw JSON, and send
 # unauthenticated users to the login page.

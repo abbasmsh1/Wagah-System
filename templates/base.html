@@ -188,6 +188,26 @@
         {% endif %}
     </script>
 
+    <script>
+        // Inject the CSRF token (double-submit cookie) into every POST form.
+        (function () {
+            function getCookie(name) {
+                var m = document.cookie.split('; ').find(function (r) { return r.indexOf(name + '=') === 0; });
+                return m ? m.split('=')[1] : '';
+            }
+            var token = getCookie('csrf_token');
+            document.querySelectorAll('form').forEach(function (form) {
+                if ((form.method || '').toLowerCase() === 'post' && !form.querySelector('input[name="csrf_token"]')) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'csrf_token';
+                    input.value = token;
+                    form.appendChild(input);
+                }
+            });
+        })();
+    </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>
