@@ -15,9 +15,11 @@ if DATABASE_URL is None:
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is not set.")
 
-# Create the SQLAlchemy engine (check_same_thread is a SQLite-only argument)
+# Create the SQLAlchemy engine (check_same_thread is a SQLite-only argument).
+# pool_pre_ping guards against stale pooled connections (e.g. serverless
+# instance reuse against a remote Postgres).
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+engine = create_engine(DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
 
 # Create a configured "Session" class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

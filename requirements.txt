@@ -12,6 +12,7 @@ bcrypt==4.0.1  # pinned: passlib 1.7.4 is incompatible with bcrypt>=4.1 (72-byte
 python-multipart==0.0.9
 email-validator==2.1.0
 alembic==1.13.1
+psycopg2-binary==2.9.9
 python-dotenv==1.0.1
 pytest==7.4.4
 httpx==0.26.0  # required by fastapi.testclient
