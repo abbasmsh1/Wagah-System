@@ -23,7 +23,13 @@ body {
     flex-direction: column;
     min-height: 100dvh;
 }
-body > main { flex: 1; }
+body > main { flex: 1; display: flex; flex-direction: column; }
+body > main > * { width: 100%; }
+.hero-wagah { flex: 1; }
+
+/* The Transport dropdown wrapper is the flex item, not the button inside it;
+   make the wrapper a stretching flex box so the button baseline-aligns. */
+nav .relative.group { display: flex; align-items: stretch; }
 
 .bg-canvas { background-color: var(--pk-canvas); }
 .bg-brand { background-color: var(--pk-green-600); }
@@ -106,7 +112,8 @@ thead.bg-gray-50 { background-color: var(--pk-green-50); }
     /* Full-bleed escape from main's max-w-7xl container. */
     width: 100vw;
     margin-left: calc(50% - 50vw);
-    margin-top: -1.5rem; /* cancel main's py-6 so the photo meets the nav */
+    margin-top: -1.5rem;    /* cancel main's py-6 so the photo meets the nav */
+    margin-bottom: -1.5rem; /* ...and the footer */
     background:
         linear-gradient(rgba(1, 65, 28, 0.78), rgba(1, 65, 28, 0.62)),
         url('/static/wagah-bg.jpg') center / cover no-repeat;
