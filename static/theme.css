@@ -18,7 +18,12 @@
 body {
     font-family: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif;
     color: var(--pk-ink);
+    /* Sticky footer: main grows, footer sits at the viewport bottom on short pages. */
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
 }
+body > main { flex: 1; }
 
 .bg-canvas { background-color: var(--pk-canvas); }
 .bg-brand { background-color: var(--pk-green-600); }
@@ -89,6 +94,23 @@ button.nav-link { background: none; border-top: 0; border-left: 0; border-right:
 
 /* Table header tint. */
 thead.bg-gray-50 { background-color: var(--pk-green-50); }
+
+/* Anonymous home hero: Wagah ceremony photo under a deep-green wash so
+   the white type stays readable at any viewport. */
+.hero-wagah {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    padding: 5rem 0;
+    /* Full-bleed escape from main's max-w-7xl container. */
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-top: -1.5rem; /* cancel main's py-6 so the photo meets the nav */
+    background:
+        linear-gradient(rgba(1, 65, 28, 0.78), rgba(1, 65, 28, 0.62)),
+        url('/static/wagah-bg.jpg') center / cover no-repeat;
+}
 
 /* Home quick-action cards. */
 .quick-card {
