@@ -128,7 +128,7 @@ new Chart(bookingsTrendCtx, {
         datasets: [{
             label: 'Bookings',
             data: {{ chart_data.bookings_trend.data | tojson }},
-            borderColor: 'rgb(59, 130, 246)',
+            borderColor: '#046A38',
             tension: 0.1
         }]
     },
@@ -151,9 +151,9 @@ new Chart(transportDistributionCtx, {
                 {{ stats.plane_bookings }}
             ],
             backgroundColor: [
-                'rgb(59, 130, 246)',
-                'rgb(16, 185, 129)',
-                'rgb(249, 115, 22)'
+                '#01411C',
+                '#2E9E63',
+                '#BFE6CF'
             ]
         }]
     },

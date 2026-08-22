@@ -9,7 +9,7 @@
                     Users Management
                 </h2>
                 <a href="/admin/users/add" 
-                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-brand focus:outline-none focus-brand">
                     Add New User
                 </a>
             </div>
@@ -65,7 +65,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <form action="/admin/users/{{ user.id }}/toggle" method="POST" class="inline">
-                                    <button type="submit" class="text-indigo-600 hover:text-indigo-900">
+                                    <button type="submit" class="text-brand">
                                         {{ 'Deactivate' if user.is_active else 'Activate' }}
                                     </button>
                                 </form>

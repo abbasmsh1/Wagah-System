@@ -6,34 +6,33 @@
     <title>{% block title %}Wagah System Admin{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fontsource/outfit@5.0.13/index.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', path='theme.css') }}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-gray-100">
+<body class="bg-canvas">
     <div class="min-h-screen flex">
         <!-- Sidebar -->
-        <div class="bg-gray-800 text-white w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out">
+        <div class="sidebar-brand text-white w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out">
             <a href="/admin" class="text-white flex items-center space-x-2 px-4">
                 <i class="fas fa-border-all"></i>
                 <span class="text-2xl font-semibold">Wagah Admin</span>
             </a>
 
             <nav>
-                <a href="/admin/dashboard" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
+                <a href="/admin/dashboard" class="sidebar-link">
                     <i class="fas fa-home mr-2"></i>Dashboard
                 </a>
-                <a href="/admin/masters" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
+                <a href="/admin/masters" class="sidebar-link">
                     <i class="fas fa-users mr-2"></i>Masters
                 </a>
-                <a href="/admin/bookings" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
+                <a href="/admin/bookings" class="sidebar-link">
                     <i class="fas fa-ticket-alt mr-2"></i>Bookings
                 </a>
-                <a href="/admin/transport" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
+                <a href="/transport/bus/list" class="sidebar-link">
                     <i class="fas fa-bus mr-2"></i>Transport
                 </a>
-                <a href="/admin/reports" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
-                    <i class="fas fa-chart-bar mr-2"></i>Reports
-                </a>
-                <a href="/admin/users" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
+                <a href="/admin/users" class="sidebar-link">
                     <i class="fas fa-user-shield mr-2"></i>Users
                 </a>
             </nav>

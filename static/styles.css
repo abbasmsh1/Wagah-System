@@ -462,7 +462,7 @@ select {
 }
 
 .btn-primary {
-    background-color: #4f46e5;
+    background-color: #046A38;
     color: white;
 }
 
@@ -472,8 +472,8 @@ select {
 
 .btn-secondary {
     background-color: white;
-    color: #4f46e5;
-    border: 1px solid #4f46e5;
+    color: #046A38;
+    border: 1px solid #046A38;
 }
 
 .btn-secondary:hover {

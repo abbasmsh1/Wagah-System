@@ -7,7 +7,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="md:flex md:items-center md:justify-between mb-6">
             <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl">Master Records</h2>
-            <a href="/master/" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+            <a href="/master/" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand">
                 <i class="fas fa-plus mr-2"></i> Add New Record
             </a>
         </div>
@@ -27,7 +27,7 @@
                     {% for master in masters %}
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            <a href="/master/info/?its={{ master.its }}" class="text-indigo-600 hover:text-indigo-900">{{ master.its }}</a>
+                            <a href="/master/info/?its={{ master.its }}" class="text-brand">{{ master.its }}</a>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ master.first_name }}{% if master.middle_name %} {{ master.middle_name }}{% endif %} {{ master.last_name }}

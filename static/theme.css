@@ -1,0 +1,89 @@
+/* Wagah System theme: Pakistan green + white.
+   Deep flag green #01411C carries identity (nav, headings, sidebar);
+   #046A38 is the single action color; #E7F4EC is the soft tint for
+   badges and fills. Grays are green-tinted for one consistent family. */
+
+:root {
+    --pk-green-900: #01411C;
+    --pk-green-700: #035C2C;
+    --pk-green-600: #046A38;
+    --pk-green-100: #E7F4EC;
+    --pk-green-50: #F3FAF5;
+    --pk-canvas: #F7FAF8;
+    --pk-ink: #16211A;
+    --pk-hairline: #DFEAE2;
+    --pk-ring: rgba(4, 106, 56, 0.35);
+}
+
+body {
+    font-family: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    color: var(--pk-ink);
+}
+
+.bg-canvas { background-color: var(--pk-canvas); }
+.bg-brand { background-color: var(--pk-green-600); }
+a.bg-brand:hover, button.bg-brand:hover { background-color: var(--pk-green-700); }
+a.bg-brand:active, button.bg-brand:active { transform: translateY(1px); }
+.bg-brand-deep { background-color: var(--pk-green-900); }
+.bg-brand-soft { background-color: var(--pk-green-100); }
+
+.text-brand { color: var(--pk-green-600); }
+a.text-brand:hover, button.text-brand:hover { color: var(--pk-green-900); }
+.text-brand-deep { color: var(--pk-green-900); }
+.border-brand { border-color: var(--pk-green-600); }
+
+/* Focus treatment for inputs and buttons (replaces focus:ring-indigo-*). */
+.focus-brand:focus {
+    outline: none;
+    border-color: var(--pk-green-600);
+    box-shadow: 0 0 0 3px var(--pk-ring);
+}
+
+/* Interactive elements ease between states. */
+a, button, input, select { transition: background-color .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease; }
+
+/* Main nav (base.html). Real CSS: the previous @apply block was inert
+   because Tailwind ships from a CDN with no build step. */
+.nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: 0 .25rem;
+    border-bottom: 2px solid transparent;
+    font-size: .875rem;
+    font-weight: 500;
+    color: #5B6B60;
+}
+.nav-link:hover { color: var(--pk-green-900); }
+.nav-link.active { color: var(--pk-green-900); border-bottom-color: var(--pk-green-600); }
+
+.mobile-nav-link {
+    display: block;
+    padding: .5rem 1rem .5rem .75rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #5B6B60;
+}
+.mobile-nav-link:hover { color: var(--pk-green-900); background-color: var(--pk-green-50); }
+
+.dropdown-item {
+    display: block;
+    padding: .5rem 1rem;
+    font-size: .875rem;
+    color: #374840;
+}
+.dropdown-item:hover { background-color: var(--pk-green-50); color: var(--pk-green-900); }
+
+/* Cards: hairline border, faint green-tinted shadow (no heavy gray shadows). */
+.shadow, .shadow-lg, .shadow-md, .sm\:rounded-lg {
+    box-shadow: 0 1px 2px rgba(1, 65, 28, 0.06), 0 4px 12px rgba(1, 65, 28, 0.05);
+}
+.bg-white.shadow, .bg-white.shadow-lg { border: 1px solid var(--pk-hairline); }
+
+/* Admin sidebar (admin/layout.html). */
+.sidebar-brand { background-color: var(--pk-green-900); }
+.sidebar-link { display: block; padding: .625rem 1rem; border-radius: .375rem; color: #CDE4D6; }
+.sidebar-link:hover { background-color: var(--pk-green-700); color: #ffffff; }
+
+/* Table header tint. */
+thead.bg-gray-50 { background-color: var(--pk-green-50); }

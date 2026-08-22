@@ -7,11 +7,13 @@
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', path='favicon.ico') }}">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fontsource/outfit@5.0.13/index.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', path='theme.css') }}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js" integrity="sha384-4mFQWIqZrcfYZkFPEgIoT//zTEU64gEoH2tGV72Koyhoa9Fxz43YgroFUGj4/RAx" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.0/dist/sweetalert2.all.min.js" integrity="sha384-sq+5hxvLgjWvhAYFgRA9sabU5qEkbcPSAA+ZGfjgd0hbJ9SUzZ7GdO+MZFGxZxA4" crossorigin="anonymous"></script>
     {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-gray-50">
+<body class="bg-canvas">
     <!-- Top Navigation -->
     <nav class="bg-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,7 +21,7 @@
                 <div class="flex">
                     <!-- Logo -->
                     <div class="flex-shrink-0 flex items-center">
-                        <a href="/" class="text-xl font-bold text-indigo-600">Wagah System</a>
+                        <a href="/" class="text-xl font-bold text-brand-deep">Wagah System</a>
                     </div>
                     
                     <!-- Navigation Links -->
@@ -27,25 +29,25 @@
                         <a href="/" class="nav-link {{ 'active' if request.url.path == '/' }}">
                             <i class="fas fa-home"></i> Home
                         </a>
-                        <a href="/master-form" class="nav-link {{ 'active' if request.url.path == '/master-form' }}">
+                        <a href="/master/" class="nav-link {{ 'active' if request.url.path.startswith('/master') and not request.url.path.startswith('/master/list') }}">
                             <i class="fas fa-user-edit"></i> Immigration
                         </a>
-                        <a href="/view-count" class="nav-link {{ 'active' if request.url.path == '/view-count' }}">
-                            <i class="fas fa-chart-bar"></i> Reports
+                        <a href="/master/list/" class="nav-link {{ 'active' if request.url.path.startswith('/master/list') }}">
+                            <i class="fas fa-users"></i> Masters
                         </a>
                         <div class="relative group">
-                            <button class="nav-link">
+                            <button class="nav-link {{ 'active' if request.url.path.startswith('/transport') }}">
                                 <i class="fas fa-bus"></i> Transport <i class="fas fa-chevron-down ml-1"></i>
                             </button>
                             <div class="hidden group-hover:block absolute z-50 mt-2 w-48 rounded-md shadow-lg bg-white">
                                 <div class="py-1">
-                                    <a href="/view-buses" class="dropdown-item">
+                                    <a href="/transport/bus/list" class="dropdown-item">
                                         <i class="fas fa-bus"></i> Buses
                                     </a>
-                                    <a href="/view-trains" class="dropdown-item">
+                                    <a href="/transport/train/list" class="dropdown-item">
                                         <i class="fas fa-train"></i> Trains
                                     </a>
-                                    <a href="/view-planes" class="dropdown-item">
+                                    <a href="/transport/plane/list" class="dropdown-item">
                                         <i class="fas fa-plane"></i> Planes
                                     </a>
                                 </div>
@@ -83,7 +85,7 @@
                     {% endif %}
 
                     <!-- Mobile menu button -->
-                    <button type="button" class="sm:hidden ml-4 p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-controls="mobile-menu" aria-expanded="false" id="mobile-menu-button">
+                    <button type="button" class="sm:hidden ml-4 p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus-brand" aria-controls="mobile-menu" aria-expanded="false" id="mobile-menu-button">
                         <span class="sr-only">Open main menu</span>
                         <i class="fas fa-bars"></i>
                     </button>
@@ -97,11 +99,11 @@
                 <a href="/" class="mobile-nav-link">
                     <i class="fas fa-home"></i> Home
                 </a>
-                <a href="/master-form" class="mobile-nav-link">
+                <a href="/master/" class="mobile-nav-link">
                     <i class="fas fa-user-edit"></i> Immigration
                 </a>
-                <a href="/view-count" class="mobile-nav-link">
-                    <i class="fas fa-chart-bar"></i> Reports
+                <a href="/master/list/" class="mobile-nav-link">
+                    <i class="fas fa-users"></i> Masters
                 </a>
                 <div class="relative">
                     <button class="mobile-nav-link w-full text-left" id="mobile-transport-button">
@@ -109,13 +111,13 @@
                         <i class="fas fa-chevron-down ml-1"></i>
                     </button>
                     <div class="hidden pl-4" id="mobile-transport-menu">
-                        <a href="/view-buses" class="mobile-nav-link">
+                        <a href="/transport/bus/list" class="mobile-nav-link">
                             <i class="fas fa-bus"></i> Buses
                         </a>
-                        <a href="/view-trains" class="mobile-nav-link">
+                        <a href="/transport/train/list" class="mobile-nav-link">
                             <i class="fas fa-train"></i> Trains
                         </a>
-                        <a href="/view-planes" class="mobile-nav-link">
+                        <a href="/transport/plane/list" class="mobile-nav-link">
                             <i class="fas fa-plane"></i> Planes
                         </a>
                     </div>
@@ -148,20 +150,8 @@
         </div>
     </footer>
 
-    <style>
-        .nav-link {
-            @apply inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900 hover:border-gray-300;
-        }
-        .nav-link.active {
-            @apply border-indigo-500 text-gray-900 border-b-2;
-        }
-        .mobile-nav-link {
-            @apply block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50;
-        }
-        .dropdown-item {
-            @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900;
-        }
-    </style>
+    <!-- Nav/dropdown styles live in static/theme.css (the old inline @apply
+         rules were inert: Tailwind ships from a CDN with no build step). -->
 
     <!-- Scripts -->
     <script>
@@ -182,7 +172,7 @@
                     title: '{{ message.type|title }}',
                     text: '{{ message.text }}',
                     icon: '{{ message.type }}',
-                    confirmButtonColor: '#4F46E5'
+                    confirmButtonColor: '#046A38'
                 });
             {% endfor %}
         {% endif %}

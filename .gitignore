@@ -38,3 +38,5 @@ middleware_error.txt
 cookies.txt
 server_smoke.log
 *.bundle
+.vercel
+.env*

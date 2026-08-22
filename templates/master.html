@@ -28,7 +28,7 @@
                             <label for="its" class="block text-sm font-medium text-gray-700">ITS Number</label>
                             <div class="mt-1">
                                 <input type="text" name="its" id="its" required inputmode="numeric"
-                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    class="shadow-sm focus-brand block w-full sm:text-sm border-gray-300 rounded-md"
                                     value="{{ master.its if master else '' }}">
                             </div>
                         </div>
@@ -37,7 +37,7 @@
                             <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
                             <div class="mt-1">
                                 <input type="text" name="first_name" id="first_name" required
-                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    class="shadow-sm focus-brand block w-full sm:text-sm border-gray-300 rounded-md"
                                     value="{{ master.first_name if master else '' }}">
                             </div>
                         </div>
@@ -46,7 +46,7 @@
                             <label for="middle_name" class="block text-sm font-medium text-gray-700">Middle Name</label>
                             <div class="mt-1">
                                 <input type="text" name="middle_name" id="middle_name"
-                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    class="shadow-sm focus-brand block w-full sm:text-sm border-gray-300 rounded-md"
                                     value="{{ master.middle_name if master else '' }}">
                             </div>
                         </div>
@@ -55,7 +55,7 @@
                             <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
                             <div class="mt-1">
                                 <input type="text" name="last_name" id="last_name" required
-                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    class="shadow-sm focus-brand block w-full sm:text-sm border-gray-300 rounded-md"
                                     value="{{ master.last_name if master else '' }}">
                             </div>
                         </div>
@@ -64,7 +64,7 @@
                             <label for="date_of_birth" class="block text-sm font-medium text-gray-700">Date of Birth</label>
                             <div class="mt-1">
                                 <input type="date" name="date_of_birth" id="date_of_birth" required
-                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    class="shadow-sm focus-brand block w-full sm:text-sm border-gray-300 rounded-md"
                                     value="{{ master.date_of_birth.strftime('%Y-%m-%d') if master and master.date_of_birth else '' }}">
                             </div>
                         </div>
@@ -79,7 +79,7 @@
                             <label for="passport_number" class="block text-sm font-medium text-gray-700">Passport Number</label>
                             <div class="mt-1">
                                 <input type="text" name="passport_number" id="passport_number" required
-                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    class="shadow-sm focus-brand block w-full sm:text-sm border-gray-300 rounded-md"
                                     value="{{ master.passport_number if master else '' }}">
                             </div>
                         </div>
@@ -88,7 +88,7 @@
                             <label for="passport_expiry" class="block text-sm font-medium text-gray-700">Passport Expiry</label>
                             <div class="mt-1">
                                 <input type="date" name="passport_expiry" id="passport_expiry" required
-                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    class="shadow-sm focus-brand block w-full sm:text-sm border-gray-300 rounded-md"
                                     value="{{ master.passport_expiry.strftime('%Y-%m-%d') if master and master.passport_expiry else '' }}">
                             </div>
                         </div>
@@ -97,7 +97,7 @@
                             <label for="visa_number" class="block text-sm font-medium text-gray-700">Visa Number</label>
                             <div class="mt-1">
                                 <input type="text" name="visa_number" id="visa_number" required
-                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    class="shadow-sm focus-brand block w-full sm:text-sm border-gray-300 rounded-md"
                                     value="{{ master.visa_number if master else '' }}">
                             </div>
                         </div>
@@ -106,7 +106,7 @@
                             <label for="mode_of_transport" class="block text-sm font-medium text-gray-700">Mode of Transport</label>
                             <div class="mt-1">
                                 <select name="mode_of_transport" id="mode_of_transport" required
-                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                    class="shadow-sm focus-brand block w-full sm:text-sm border-gray-300 rounded-md">
                                     <option value="">Select Mode</option>
                                     <option value="bus" {% if master and master.mode_of_transport == 'bus' %}selected{% endif %}>Bus</option>
                                     <option value="train" {% if master and master.mode_of_transport == 'train' %}selected{% endif %}>Train</option>
@@ -125,7 +125,7 @@
                             <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
                             <div class="mt-1">
                                 <input type="tel" name="phone" id="phone"
-                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    class="shadow-sm focus-brand block w-full sm:text-sm border-gray-300 rounded-md"
                                     value="{{ master.phone if master else '' }}">
                             </div>
                         </div>
@@ -136,11 +136,11 @@
                 <div class="pt-8">
                     <div class="flex justify-end space-x-3">
                         <button type="button" onclick="window.history.back()"
-                            class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-brand">
                             Cancel
                         </button>
                         <button type="submit"
-                            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand focus:outline-none focus-brand">
                             Save
                         </button>
                     </div>
