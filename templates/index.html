@@ -1,41 +1,106 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Wagah System{% endblock %}
+{% block title %}Home - Wagah System{% endblock %}
 
 {% block content %}
-<div class="py-16 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto text-center">
+{% if stats %}
+<div class="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div class="md:flex md:items-end md:justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-brand-deep">Wagah Border Operations</h1>
+            <p class="mt-1 text-gray-500">Signed in as {{ request.state.user.username }}{% if request.state.user.designation %} &middot; {{ request.state.user.designation }}{% endif %}</p>
+        </div>
+        <a href="/master/" class="mt-4 md:mt-0 inline-flex items-center px-5 py-2.5 rounded-md text-white bg-brand text-sm font-medium">
+            <i class="fas fa-user-plus mr-2"></i> Process arrival
+        </a>
+    </div>
+
+    <!-- Live counts -->
+    <dl class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        <div class="bg-white shadow rounded-lg px-6 py-5">
+            <dt class="text-sm font-medium text-gray-500">Registered travelers</dt>
+            <dd class="mt-1 text-3xl font-semibold text-brand-deep" style="font-variant-numeric: tabular-nums">{{ stats.masters }}</dd>
+        </div>
+        <div class="bg-white shadow rounded-lg px-6 py-5">
+            <dt class="text-sm font-medium text-gray-500">Arrived</dt>
+            <dd class="mt-1 text-3xl font-semibold text-brand-deep" style="font-variant-numeric: tabular-nums">{{ stats.arrived }}</dd>
+        </div>
+        <div class="bg-white shadow rounded-lg px-6 py-5">
+            <dt class="text-sm font-medium text-gray-500">Bookings</dt>
+            <dd class="mt-1 text-3xl font-semibold text-brand-deep" style="font-variant-numeric: tabular-nums">{{ stats.bookings }}</dd>
+        </div>
+        <div class="bg-white shadow rounded-lg px-6 py-5">
+            <dt class="text-sm font-medium text-gray-500">Transports in fleet</dt>
+            <dd class="mt-1 text-3xl font-semibold text-brand-deep" style="font-variant-numeric: tabular-nums">{{ stats.transports }}</dd>
+        </div>
+    </dl>
+
+    <!-- Quick actions -->
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick actions</h2>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <a href="/master/" class="quick-card">
+            <i class="fas fa-user-edit text-brand text-xl"></i>
+            <div>
+                <p class="font-medium text-gray-900">Immigration desk</p>
+                <p class="text-sm text-gray-500">Look up a traveler by ITS and update their record</p>
+            </div>
+        </a>
+        <a href="/master/list/" class="quick-card">
+            <i class="fas fa-users text-brand text-xl"></i>
+            <div>
+                <p class="font-medium text-gray-900">Traveler records</p>
+                <p class="text-sm text-gray-500">Browse registered travelers and their status</p>
+            </div>
+        </a>
+        <a href="/booking/bus/form" class="quick-card">
+            <i class="fas fa-ticket-alt text-brand text-xl"></i>
+            <div>
+                <p class="font-medium text-gray-900">New booking</p>
+                <p class="text-sm text-gray-500">Assign a bus, train, or plane seat</p>
+            </div>
+        </a>
+        <a href="/transport/bus/list" class="quick-card">
+            <i class="fas fa-bus text-brand text-xl"></i>
+            <div>
+                <p class="font-medium text-gray-900">Fleet</p>
+                <p class="text-sm text-gray-500">View and manage buses, trains, and planes</p>
+            </div>
+        </a>
+        {% if request.state.is_admin %}
+        <a href="/admin/dashboard" class="quick-card">
+            <i class="fas fa-chart-line text-brand text-xl"></i>
+            <div>
+                <p class="font-medium text-gray-900">Admin dashboard</p>
+                <p class="text-sm text-gray-500">Trends, charts, and recent activity</p>
+            </div>
+        </a>
+        <a href="/admin/users" class="quick-card">
+            <i class="fas fa-user-shield text-brand text-xl"></i>
+            <div>
+                <p class="font-medium text-gray-900">User management</p>
+                <p class="text-sm text-gray-500">Add staff accounts and control access</p>
+            </div>
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="py-20 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto text-center">
+        <p class="inline-block px-3 py-1 rounded-md bg-brand-soft text-brand-deep text-sm font-medium mb-6">Pakistan &ndash; India border crossing</p>
         <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
             <span class="block">Welcome to</span>
             <span class="block text-brand">Wagah System</span>
         </h1>
-        <p class="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-            A comprehensive system for managing border crossings at Wagah Border.
+        <p class="mt-4 max-w-xl mx-auto text-lg text-gray-500">
+            Traveler registration, arrivals, and transport bookings for the Wagah border crossing, in one place.
         </p>
-        <div class="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
-            <div class="rounded-md shadow">
-                <a href="/master/" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brand md:py-4 md:text-lg md:px-10">
-                    Process arrival
-                </a>
-            </div>
-            <div class="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
-                <a href="/master/list/" class="w-full flex items-center justify-center px-8 py-3 border border-brand text-base font-medium rounded-md text-brand bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10">
-                    View records
-                </a>
-            </div>
+        <div class="mt-8">
+            <a href="/login" class="inline-flex items-center justify-center px-8 py-3 rounded-md text-white bg-brand text-base font-medium md:py-4 md:text-lg md:px-10">
+                <i class="fas fa-sign-in-alt mr-2"></i> Staff sign in
+            </a>
         </div>
     </div>
 </div>
-
-{% block extra_js %}
-<script>
-    // Add any dashboard-specific JavaScript here
-    document.addEventListener('DOMContentLoaded', function() {
-        // Example: Refresh stats every 5 minutes
-        setInterval(function() {
-            location.reload();
-        }, 300000);
-    });
-</script>
-{% endblock %}
+{% endif %}
 {% endblock %}

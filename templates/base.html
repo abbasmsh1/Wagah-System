@@ -39,8 +39,9 @@
                             <button class="nav-link {{ 'active' if request.url.path.startswith('/transport') }}">
                                 <i class="fas fa-bus"></i> Transport <i class="fas fa-chevron-down ml-1"></i>
                             </button>
-                            <div class="hidden group-hover:block absolute z-50 mt-2 w-48 rounded-md shadow-lg bg-white">
-                                <div class="py-1">
+                            <!-- pt-2 (not mt-2) keeps the hover zone contiguous so the menu doesn't flicker shut -->
+                            <div class="hidden group-hover:block absolute top-full z-50 pt-2 w-48">
+                                <div class="py-1 bg-white rounded-md shadow-lg">
                                     <a href="/transport/bus/list" class="dropdown-item">
                                         <i class="fas fa-bus"></i> Buses
                                     </a>
@@ -65,8 +66,8 @@
                                  class="h-8 w-8 rounded-full">
                             <span>{{ request.state.user.username }}</span>
                         </button>
-                        <div class="hidden group-hover:block absolute right-0 z-50 mt-2 w-48 rounded-md shadow-lg bg-white">
-                            <div class="py-1">
+                        <div class="hidden group-hover:block absolute right-0 top-full z-50 pt-2 w-48">
+                            <div class="py-1 bg-white rounded-md shadow-lg">
                                 {% if request.state.is_admin %}
                                 <a href="/admin" class="dropdown-item">
                                     <i class="fas fa-cog"></i> Admin Panel

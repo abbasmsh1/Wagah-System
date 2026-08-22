@@ -22,7 +22,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from config.limiter import limiter
 
-from database import SessionLocal, User, get_db, init_db
+from database import SessionLocal, User, Master, BookingInfo, Transport, get_db, init_db
 from routers import master, transport, booking, admin, auth
 from middleware.auth import staff_required
 from config.security import get_security_settings, get_security_headers, get_password_hash, generate_csrf_token
@@ -145,12 +145,22 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     )
 
 @app.get("/", response_class=HTMLResponse)
-async def root(request: Request):
+async def root(request: Request, db: Session = Depends(get_db)):
+    # Signed-in staff see live counts; anonymous visitors just get the hero.
+    stats = None
+    if request.state.user:
+        stats = {
+            "masters": db.query(func.count(Master.its)).scalar(),
+            "arrived": db.query(func.count(Master.its)).filter(Master.arrived == True).scalar(),
+            "bookings": db.query(func.count(BookingInfo.id)).scalar(),
+            "transports": db.query(func.count(Transport.id)).scalar(),
+        }
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
-            "current_year": datetime.now().year
+            "current_year": datetime.now().year,
+            "stats": stats
         }
     )
 
