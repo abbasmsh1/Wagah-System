@@ -1,100 +1,51 @@
-import warnings
-warnings.filterwarnings("ignore")
+"""Periodic SQLite backup.
+
+Snapshots the whole database with SQLite's online backup API (safe while the
+app is running) into BACKUP_DIR, and optionally into BACKUP_EXTERNAL_DIR.
+Restore = stop the app and copy the snapshot back over the database file.
+
+Run alongside the app:  python backup.py
+"""
+import logging
 import os
-import time
-import schedule
 import sqlite3
-from datetime import datetime
-from sqlalchemy import create_engine, MetaData
-from sqlalchemy.orm import sessionmaker
-import threading
-from fastapi import FastAPI, HTTPException
+import time
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-BACKUP_DIR = 'backups'
-EXTERNAL_DIR = 'F:/backups'  # Use forward slashes for Windows path
+from dotenv import load_dotenv
 
-def get_engine():
-    return create_engine(DATABASE_URL)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logger = logging.getLogger(__name__)
 
-def backup_table(engine, table_name):
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    backup_file = os.path.join(BACKUP_DIR, f"{table_name}_backup.sql")
+load_dotenv()
 
-    with sqlite3.connect(engine.url.database) as conn:
-        with open(backup_file, 'w') as f:
-            for line in conn.iterdump():
-                if line.startswith(f'INSERT INTO "{table_name}"'):
-                    f.write(f'{line}\n')
-    try:
-        backup_file_external = os.path.join(EXTERNAL_DIR, f"{table_name}_backup.sql")
-        with sqlite3.connect(engine.url.database) as conn:
-            with open(backup_file_external, 'w') as f:
-                for line in conn.iterdump():
-                    if line.startswith(f'INSERT INTO "{table_name}"'):
-                        f.write(f'{line}\n')
-    except:
-        pass
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./wagah.db")
+if not DATABASE_URL.startswith("sqlite"):
+    raise SystemExit("backup.py only supports SQLite; use pg_dump or similar for other databases.")
+DB_PATH = DATABASE_URL.split("///", 1)[1]
 
-    print(f"Backup for table {table_name} created at {backup_file} and {backup_file_external}")
+BACKUP_DIR = os.getenv("BACKUP_DIR", "backups")
+EXTERNAL_DIR = os.getenv("BACKUP_EXTERNAL_DIR")  # optional second copy, e.g. a mounted drive
+INTERVAL_SECONDS = int(os.getenv("BACKUP_INTERVAL_SECONDS", "3600"))
 
-def backup_database():
-    if not os.path.exists(BACKUP_DIR):
-        os.makedirs(BACKUP_DIR)
+def backup_to(target_dir: str) -> None:
+    os.makedirs(target_dir, exist_ok=True)
+    target = os.path.join(target_dir, "wagah_backup.db")
+    with sqlite3.connect(DB_PATH) as src, sqlite3.connect(target) as dst:
+        src.backup(dst)
+    logger.info("Backup written to %s", target)
 
-    engine = get_engine()
-    metadata = MetaData()
-    metadata.reflect(bind=engine)
-
-    for table_name in metadata.tables.keys():
-        backup_table(engine, table_name)
-
-schedule.every(1).minutes.do(backup_database)
-
-def restore_table(engine, table_name, backup_file):
-    with sqlite3.connect(engine.url.database) as conn:
-        cursor = conn.cursor()
-        
-        # Remove existing data from the table
-        cursor.execute(f'DELETE FROM "{table_name}";')
-        
-        # Restore data from the backup file
-        with open(backup_file, 'r') as f:
-            sql_script = f.read()
-            conn.executescript(sql_script)
-
-    print(f"Data for table {table_name} restored from {backup_file}")
-
-def run_scheduler():
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-
-app = FastAPI()
-
-@app.on_event("startup")
-def startup_event():
-    backup_thread = threading.Thread(target=run_scheduler)
-    backup_thread.start()
-
-@app.post("/restore-table/")
-async def restore_table_endpoint(table_name: str, backup_file: str):
-    engine = get_engine()
-    external_backup_file = os.path.join(EXTERNAL_DIR, backup_file)
-    if not os.path.exists(external_backup_file):
-        raise HTTPException(status_code=404, detail="Backup file not found")
-    
-    try:
-        restore_table(engine, table_name, external_backup_file)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
-    return {"message": f"Table {table_name} restored successfully from {backup_file}"}
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+def backup_database() -> None:
+    backup_to(BACKUP_DIR)
+    if EXTERNAL_DIR:
+        try:
+            backup_to(EXTERNAL_DIR)
+        except OSError:
+            logger.exception("External backup to %s failed", EXTERNAL_DIR)
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 9500)))
+    while True:
+        try:
+            backup_database()
+        except Exception:
+            logger.exception("Backup failed")
+        time.sleep(INTERVAL_SECONDS)

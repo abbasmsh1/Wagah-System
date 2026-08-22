@@ -24,7 +24,9 @@ class AuthStateMiddleware(BaseHTTPMiddleware):
                         db = SessionLocal()
                         try:
                             user = db.query(User).filter(User.username == username).first()
-                            if user:
+                            # is_active check here means deactivating a user
+                            # locks them out immediately, not at token expiry.
+                            if user and user.is_active:
                                 request.state.user = user
                                 request.state.is_admin = (user.role == "admin")
                         finally:

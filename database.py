@@ -15,8 +15,9 @@ if DATABASE_URL is None:
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is not set.")
 
-# Create the SQLAlchemy engine
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# Create the SQLAlchemy engine (check_same_thread is a SQLite-only argument)
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 
 # Create a configured "Session" class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

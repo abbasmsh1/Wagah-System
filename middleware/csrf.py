@@ -1,3 +1,5 @@
+import secrets
+
 from fastapi import Request, HTTPException
 
 
@@ -15,6 +17,6 @@ async def csrf_protect(request: Request) -> bool:
     cookie_token = request.cookies.get("csrf_token")
     form = await request.form()
     form_token = form.get("csrf_token")
-    if not cookie_token or not form_token or cookie_token != form_token:
+    if not cookie_token or not form_token or not secrets.compare_digest(cookie_token, str(form_token)):
         raise HTTPException(status_code=403, detail="CSRF token missing or invalid")
     return True

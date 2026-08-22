@@ -1,10 +1,9 @@
 from pydantic_settings import BaseSettings
 from typing import List
-import os
 from functools import lru_cache
 from passlib.context import CryptContext
 from jose import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import secrets
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -24,28 +23,24 @@ class SecuritySettings(BaseSettings):
     # Required: no default, so the app refuses to start without an explicit
     # SECRET_KEY and can never silently run on a public/hardcoded key.
     SECRET_KEY: str
-    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     # Application
-    DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
-    ALLOWED_HOSTS: List[str] = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-    CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(",")
+    DEBUG: bool = False
+    ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1"]
+    CORS_ORIGINS: List[str] = ["http://localhost:8000", "http://127.0.0.1:8000"]
 
     # Cookie
-    COOKIE_SECURE: bool = os.getenv("COOKIE_SECURE", "True").lower() == "true"
-    COOKIE_HTTPONLY: bool = os.getenv("COOKIE_HTTPONLY", "True").lower() == "true"
-    COOKIE_SAMESITE: str = os.getenv("COOKIE_SAMESITE", "Lax")
+    COOKIE_SECURE: bool = True
+    COOKIE_HTTPONLY: bool = True
+    COOKIE_SAMESITE: str = "Lax"
 
     # Rate Limiting
-    RATE_LIMIT_PER_MINUTE: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
+    RATE_LIMIT_PER_MINUTE: int = 60
 
     # Password
-    MIN_PASSWORD_LENGTH: int = int(os.getenv("MIN_PASSWORD_LENGTH", "8"))
-    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("PASSWORD_RESET_TOKEN_EXPIRE_MINUTES", "15"))
-
-    # Session
-    SESSION_EXPIRE_MINUTES: int = int(os.getenv("SESSION_EXPIRE_MINUTES", "120"))
+    MIN_PASSWORD_LENGTH: int = 8
 
     class Config:
         case_sensitive = True
@@ -62,7 +57,7 @@ def create_access_token(data: dict) -> str:
     """Encode a signed JWT access token with an expiry claim."""
     settings = get_security_settings()
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 

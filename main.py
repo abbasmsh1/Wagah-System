@@ -22,7 +22,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from config.limiter import limiter
 
-from database import SessionLocal, User, init_db, get_db
+from database import SessionLocal, User, get_db
 from routers import master, transport, booking, admin, auth
 from middleware.auth import staff_required
 from config.security import get_security_settings, get_security_headers, get_password_hash, generate_csrf_token
@@ -30,9 +30,19 @@ from config.security import get_security_settings, get_security_headers, get_pas
 # Get security settings
 settings = get_security_settings()
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Schema is managed by Alembic (`alembic upgrade head`); startup only
+    # bootstraps the first admin account on an empty users table.
+    create_initial_admin()
+    yield
+
 # Create FastAPI app -- hide interactive docs/openapi unless DEBUG is enabled
 app = FastAPI(
     title="Wagah System",
+    lifespan=lifespan,
     docs_url="/docs" if settings.DEBUG else None,
     redoc_url="/redoc" if settings.DEBUG else None,
     openapi_url="/openapi.json" if settings.DEBUG else None,
@@ -78,7 +88,7 @@ async def add_security_headers(request: Request, call_next):
         response.set_cookie(
             key="csrf_token",
             value=generate_csrf_token(),
-            max_age=settings.SESSION_EXPIRE_MINUTES * 60,
+            max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
             samesite=settings.COOKIE_SAMESITE.lower(),
             secure=settings.COOKIE_SECURE,
             httponly=False,  # readable by JS so forms can echo it back
@@ -181,12 +191,6 @@ def create_initial_admin():
         logger.error(f"Error creating initial admin user: {e}")
     finally:
         db.close()
-
-# Create initial admin user on startup
-@app.on_event("startup")
-async def startup_event():
-    init_db()
-    create_initial_admin()
 
 if __name__ == "__main__":
     import uvicorn

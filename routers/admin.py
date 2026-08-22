@@ -164,7 +164,7 @@ async def admin_bookings(
     page_size = 20
     offset = (page - 1) * page_size
 
-    bookings = db.query(BookingInfo).offset(offset).limit(page_size).all()
+    bookings = db.query(BookingInfo).order_by(BookingInfo.id).offset(offset).limit(page_size).all()
     total = db.query(func.count(BookingInfo.id)).scalar()
     total_pages = (total + page_size - 1) // page_size
 

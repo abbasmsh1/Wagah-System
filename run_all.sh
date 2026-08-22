@@ -1,29 +1,14 @@
 #!/bin/bash
-# Start the standalone Wagah services in the background.
+# Start the Wagah System (mounted app) and the periodic backup job.
 #
-# NOTE: these are legacy standalone FastAPI apps that predate the mounted
-# application in main.py, which now supersedes most of them. Each script must
-# listen on its own port to avoid binding conflicts when run together.
+# The legacy standalone apps (custom.py, arrived.py, sim.py, bus.py, train.py,
+# plane.py, admin.py, modify.py, delete.py) are deliberately NOT started here:
+# they predate main.py, bypass its auth/CSRF/rate-limit stack, and delete.py
+# exposes unauthenticated destructive endpoints. Run one manually only if you
+# need a feature that has not been migrated to routers/ yet.
 
-# Function to start a Python script in the background
-start_script() {
-    local script_name=$1
-    echo "Starting $script_name"
-    python "$script_name" &
-}
+set -e
 
-# Start all the Python scripts
-start_script custom.py
-start_script arrived.py
-start_script sim.py
-start_script bus.py
-start_script train.py
-start_script plane.py
-start_script admin.py
-start_script main.py
-start_script backup.py
-start_script modify.py
-start_script delete.py
-
-# Wait for all background jobs to complete
-wait
+alembic upgrade head
+python backup.py &
+python main.py

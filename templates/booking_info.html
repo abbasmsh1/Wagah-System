@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Booking #{{ booking.id }} - Wagah System{% endblock %}
+
+{% block content %}
+<div class="py-6">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl mb-6">Booking #{{ booking.id }}</h2>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <dl class="divide-y divide-gray-200">
+                <div class="px-6 py-4 grid grid-cols-3 gap-4">
+                    <dt class="text-sm font-medium text-gray-500">ITS</dt>
+                    <dd class="text-sm text-gray-900 col-span-2">{{ booking.its }}</dd>
+                </div>
+                <div class="px-6 py-4 grid grid-cols-3 gap-4">
+                    <dt class="text-sm font-medium text-gray-500">Passenger</dt>
+                    <dd class="text-sm text-gray-900 col-span-2">
+                        {% if master %}
+                        {{ master.first_name }}{% if master.middle_name %} {{ master.middle_name }}{% endif %} {{ master.last_name }}
+                        {% else %}Unknown{% endif %}
+                    </dd>
+                </div>
+                <div class="px-6 py-4 grid grid-cols-3 gap-4">
+                    <dt class="text-sm font-medium text-gray-500">Transport</dt>
+                    <dd class="text-sm text-gray-900 col-span-2">
+                        {% if booking.mode == 1 %}Bus{% if transport %} #{{ transport.bus_number }} ({{ transport.bus_type }}){% endif %}
+                        {% elif booking.mode == 2 %}Train{% if transport %} {{ transport.train_name }} #{{ transport.train_number }}{% endif %}
+                        {% elif booking.mode == 3 %}Plane{% if transport %} {{ transport.company }} {{ transport.flight_number }}{% endif %}
+                        {% else %}Unknown{% endif %}
+                    </dd>
+                </div>
+                <div class="px-6 py-4 grid grid-cols-3 gap-4">
+                    <dt class="text-sm font-medium text-gray-500">Seat</dt>
+                    <dd class="text-sm text-gray-900 col-span-2">
+                        {{ booking.seat_number or "-" }}
+                        {% if booking.coach_number %} / Coach {{ booking.coach_number }}{% endif %}
+                        {% if booking.cabin_number %} / Cabin {{ booking.cabin_number }}{% endif %}
+                    </dd>
+                </div>
+                <div class="px-6 py-4 grid grid-cols-3 gap-4">
+                    <dt class="text-sm font-medium text-gray-500">Status</dt>
+                    <dd class="text-sm col-span-2">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                            {% if booking.departed %}bg-gray-100 text-gray-800
+                            {% elif booking.issued %}bg-green-100 text-green-800
+                            {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                            {% if booking.departed %}Departed{% elif booking.issued %}Issued{% else %}{{ booking.status | capitalize }}{% endif %}
+                        </span>
+                    </dd>
+                </div>
+                <div class="px-6 py-4 grid grid-cols-3 gap-4">
+                    <dt class="text-sm font-medium text-gray-500">Booked</dt>
+                    <dd class="text-sm text-gray-900 col-span-2">{{ booking.booking_time.strftime("%Y-%m-%d %H:%M") if booking.booking_time }}</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+</div>
+{% endblock %}

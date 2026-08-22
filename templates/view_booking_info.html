@@ -1,44 +1,67 @@
 {% extends "base.html" %}
 
+{% block title %}Bookings - Wagah System{% endblock %}
+
 {% block content %}
-<div class="inner-container" style=" overflow-y: scroll; overflow-x: hidden; width: 85%; padding: 20px;">
-        
-<h1>Booking Information</h1>
+<div class="py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl mb-6">Bookings</h2>
 
-<form method="get" action="/view-booking-info/">
-    <label for="bus_number">Filter by Bus Number:</label>
-    <input type="number" id="bus_number" name="bus_number">
-    <button type="submit">Apply Filter</button>
-</form>
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ITS</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mode</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seat</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for booking in bookings %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <a href="/booking/info/{{ booking.id }}" class="text-indigo-600 hover:text-indigo-900">#{{ booking.id }}</a>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ booking.its }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {% if booking.master %}{{ booking.master.first_name }} {{ booking.master.last_name }}{% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {% if booking.mode == 1 %}Bus{% elif booking.mode == 2 %}Train{% elif booking.mode == 3 %}Plane{% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ booking.seat_number or "-" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                {% if booking.departed %}bg-gray-100 text-gray-800
+                                {% elif booking.issued %}bg-green-100 text-green-800
+                                {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                {% if booking.departed %}Departed{% elif booking.issued %}Issued{% else %}{{ booking.status | capitalize }}{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">No bookings found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-<table style="margin-top:5%;">
-    <thead>
-        <tr>
-            <th>ITS</th>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Passport No.</th>
-            <th>Bus Number</th>
-            <th>Issued</th>
-            <th>Departed</th>
-            <th>Seat Number</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for booking, master in booking_info |sort(attribute='seat_number') %}
-        <tr>
-            <td>{{ booking.ITS }}</td>
-            <td>{{ master.first_name }} {{ master.last_name }}</td>
-            <td>{{ master.phone }}</td>
-            <td>{{ master.passport_No }}</td>
-            <td>{{ booking.bus_number }}</td>
-            <td>{{ "Yes" if booking.Issued else "No" }}</td>
-            <td>{{ "Yes" if booking.Departed else "No" }}</td>
-            <td>{{ booking.seat_number }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<button style="font-family: poppins; margin-bottom: 1rem" onclick="window.history.go(-1);">Back</button>
+        {% if total_pages > 1 %}
+        <div class="mt-4 flex items-center justify-between">
+            <p class="text-sm text-gray-500">Page {{ page }} of {{ total_pages }}</p>
+            <div class="space-x-2">
+                {% if page > 1 %}
+                <a href="?page={{ page - 1 }}" class="px-3 py-1 border rounded-md text-sm text-gray-700 hover:bg-gray-50">Previous</a>
+                {% endif %}
+                {% if page < total_pages %}
+                <a href="?page={{ page + 1 }}" class="px-3 py-1 border rounded-md text-sm text-gray-700 hover:bg-gray-50">Next</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
