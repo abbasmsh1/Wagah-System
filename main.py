@@ -22,7 +22,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from config.limiter import limiter
 
-from database import SessionLocal, User, get_db
+from database import SessionLocal, User, get_db, init_db
 from routers import master, transport, booking, admin, auth
 from middleware.auth import staff_required
 from config.security import get_security_settings, get_security_headers, get_password_hash, generate_csrf_token
@@ -34,8 +34,11 @@ from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Schema is managed by Alembic (`alembic upgrade head`); startup only
-    # bootstraps the first admin account on an empty users table.
+    # Schema is managed by Alembic (`alembic upgrade head`). AUTO_CREATE_TABLES
+    # is for environments where migrations can't run before boot (e.g. Vercel's
+    # ephemeral /tmp SQLite); startup then creates missing tables directly.
+    if os.getenv("AUTO_CREATE_TABLES", "").lower() == "true":
+        init_db()
     create_initial_admin()
     yield
 
